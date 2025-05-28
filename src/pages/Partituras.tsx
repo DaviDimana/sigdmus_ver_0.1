@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +9,7 @@ import { Plus, Search, Filter, FileMusic, Calendar, User } from 'lucide-react';
 
 const Partituras = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
   const partituras = [
     {
@@ -63,7 +65,10 @@ const Partituras = () => {
             Gerencie seu catálogo de partituras musicais
           </p>
         </div>
-        <Button className="flex items-center space-x-2">
+        <Button 
+          className="flex items-center space-x-2"
+          onClick={() => navigate('/partituras/nova')}
+        >
           <Plus className="h-4 w-4" />
           <span>Nova Partitura</span>
         </Button>

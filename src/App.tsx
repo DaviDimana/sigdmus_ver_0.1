@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "./components/Layout/MainLayout";
 import Dashboard from "./pages/Dashboard";
 import Partituras from "./pages/Partituras";
+import NovaPartitura from "./pages/NovaPartitura";
 import Performances from "./pages/Performances";
 import Repositorio from "./pages/Repositorio";
 import Login from "./pages/Login";
@@ -51,6 +52,7 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/partituras" element={<Partituras />} />
+              <Route path="/partituras/nova" element={<NovaPartitura />} />
               <Route path="/performances" element={<Performances />} />
               <Route path="/repositorio" element={<Repositorio />} />
               <Route path="*" element={<NotFound />} />
