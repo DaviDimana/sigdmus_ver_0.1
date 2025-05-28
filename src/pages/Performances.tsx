@@ -1,11 +1,13 @@
-
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Calendar, MapPin, Clock, Users } from 'lucide-react';
 
 const Performances = () => {
+  const navigate = useNavigate();
+
   const performances = [
     {
       id: 1,
@@ -72,7 +74,10 @@ const Performances = () => {
             Gerencie apresentações e eventos musicais
           </p>
         </div>
-        <Button className="flex items-center space-x-2">
+        <Button 
+          className="flex items-center space-x-2"
+          onClick={() => navigate('/performances/nova')}
+        >
           <Plus className="h-4 w-4" />
           <span>Nova Performance</span>
         </Button>

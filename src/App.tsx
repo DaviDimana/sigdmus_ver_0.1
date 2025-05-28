@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import Partituras from "./pages/Partituras";
 import NovaPartitura from "./pages/NovaPartitura";
 import Performances from "./pages/Performances";
+import NovaPerformance from "./pages/NovaPerformance";
 import Repositorio from "./pages/Repositorio";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
