@@ -1,84 +1,94 @@
 
 import jsPDF from 'jspdf';
+import { getFieldLabels } from './formFields';
 
 interface GenerateLabelsParams {
   type: 'partituras' | 'performances';
   fields: string[];
 }
 
-// Dados mock (mesmos do reportGenerator)
+// Dados mock atualizados (mesmos do reportGenerator)
 const mockPartituras = [
   {
     id: 1,
+    setor: "Acervo OSUFBA",
     titulo: "Sinfonia nº 9 em Ré menor",
     compositor: "Ludwig van Beethoven",
-    genero: "Clássico",
-    duracao: "65 min",
-    dificuldade: "Avançado",
-    status: "Ativo",
-    dataAdicao: "2024-01-15",
-    ultimaPerformance: "2024-03-20"
+    instrumentacao: "Orquestra Sinfônica",
+    tonalidade: "Ré menor",
+    genero: "Sinfonia",
+    edicao: "Primeira edição",
+    anoEdicao: "1824",
+    digitalizado: "sim",
+    numeroArmario: "A01",
+    numeroPrateleira: "P01",
+    numeroPasta: "PA001"
   },
   {
     id: 2,
+    setor: "Acervo Schuwebel",
     titulo: "Ave Maria",
     compositor: "Franz Schubert",
-    genero: "Sacro",
-    duracao: "6 min",
-    dificuldade: "Intermediário",
-    status: "Ativo",
-    dataAdicao: "2024-02-10",
-    ultimaPerformance: "2024-05-12"
+    instrumentacao: "Voz e Piano",
+    tonalidade: "Si bemol maior",
+    genero: "Lied",
+    edicao: "Segunda edição",
+    anoEdicao: "1825",
+    digitalizado: "sim",
+    numeroArmario: "A02",
+    numeroPrateleira: "P02",
+    numeroPasta: "PA002"
   },
   {
     id: 3,
+    setor: "Compositores da Bahia",
     titulo: "O Guarani - Abertura",
     compositor: "Carlos Gomes",
-    genero: "Ópera",
-    duracao: "8 min",
-    dificuldade: "Avançado",
-    status: "Ativo",
-    dataAdicao: "2024-01-28",
-    ultimaPerformance: "2024-04-08"
+    instrumentacao: "Orquestra",
+    tonalidade: "Lá maior",
+    genero: "Abertura",
+    edicao: "Primeira edição",
+    anoEdicao: "1870",
+    digitalizado: "nao",
+    numeroArmario: "A03",
+    numeroPrateleira: "P03",
+    numeroPasta: "PA003"
   }
 ];
 
 const mockPerformances = [
   {
     id: 1,
-    titulo: "Concerto de Natal",
-    obra: "Sinfonia nº 9 - Beethoven",
+    tituloObra: "Sinfonia nº 9 em Ré menor",
+    nomeCompositor: "Ludwig van Beethoven",
+    local: "Sala Principal",
     data: "2024-12-25",
     horario: "19:30",
-    local: "Sala Principal",
-    regente: "Maestro Silva",
-    publico: 250,
-    status: "Agendado",
-    tipo: "Concerto"
+    maestros: "Maestro Silva",
+    interpretes: "Orquestra Sinfônica da UFBA",
+    release: "Concerto especial de Natal com a obra mais famosa de Beethoven"
   },
   {
     id: 2,
-    titulo: "Recital de Piano",
-    obra: "Ave Maria - Schubert",
+    tituloObra: "Ave Maria",
+    nomeCompositor: "Franz Schubert",
+    local: "Auditório",
     data: "2025-01-02",
     horario: "20:00",
-    local: "Auditório",
-    regente: "Ana Costa",
-    publico: 120,
-    status: "Agendado",
-    tipo: "Recital"
+    maestros: "Ana Costa",
+    interpretes: "Maria Santos (Soprano), João Silva (Piano)",
+    release: "Recital intimista de música sacra"
   },
   {
     id: 3,
-    titulo: "Festival de Inverno",
-    obra: "O Guarani - Carlos Gomes",
+    tituloObra: "O Guarani - Abertura",
+    nomeCompositor: "Carlos Gomes",
+    local: "Teatro Municipal",
     data: "2024-11-15",
     horario: "18:00",
-    local: "Teatro Municipal",
-    regente: "Maestro Santos",
-    publico: 400,
-    status: "Realizado",
-    tipo: "Festival"
+    maestros: "Maestro Santos",
+    interpretes: "Orquestra Sinfônica da Bahia",
+    release: "Festival de música brasileira com obras de compositores nacionais"
   }
 ];
 

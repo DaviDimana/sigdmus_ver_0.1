@@ -8,34 +8,12 @@ import { Badge } from '@/components/ui/badge';
 import { FileText, Download, FileSpreadsheet, Printer, Tags } from 'lucide-react';
 import { generateReport } from '@/utils/reportGenerator';
 import { generateLabels } from '@/utils/labelGenerator';
+import { partiturasFields, performancesFields } from '@/utils/formFields';
 
 const Relatorios = () => {
   const [selectedType, setSelectedType] = useState<'partituras' | 'performances'>('partituras');
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
   const [outputFormat, setOutputFormat] = useState<'pdf' | 'word' | 'excel'>('pdf');
-
-  const partiturasFields = [
-    { id: 'titulo', label: 'Título da Obra' },
-    { id: 'compositor', label: 'Nome do Compositor' },
-    { id: 'genero', label: 'Gênero' },
-    { id: 'duracao', label: 'Duração' },
-    { id: 'dificuldade', label: 'Dificuldade' },
-    { id: 'status', label: 'Status' },
-    { id: 'dataAdicao', label: 'Data de Adição' },
-    { id: 'ultimaPerformance', label: 'Última Performance' }
-  ];
-
-  const performancesFields = [
-    { id: 'titulo', label: 'Título' },
-    { id: 'obra', label: 'Obra' },
-    { id: 'data', label: 'Data' },
-    { id: 'horario', label: 'Horário' },
-    { id: 'local', label: 'Local' },
-    { id: 'regente', label: 'Regente' },
-    { id: 'publico', label: 'Público' },
-    { id: 'status', label: 'Status' },
-    { id: 'tipo', label: 'Tipo' }
-  ];
 
   const currentFields = selectedType === 'partituras' ? partiturasFields : performancesFields;
 
