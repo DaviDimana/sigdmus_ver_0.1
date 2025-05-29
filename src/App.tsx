@@ -55,6 +55,7 @@ const App = () => {
               <Route path="/partituras" element={<Partituras />} />
               <Route path="/partituras/nova" element={<NovaPartitura />} />
               <Route path="/performances" element={<Performances />} />
+              <Route path="/performances/nova" element={<NovaPerformance />} />
               <Route path="/repositorio" element={<Repositorio />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
