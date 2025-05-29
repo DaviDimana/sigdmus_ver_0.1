@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Upload, Download, Search, Folder, File } from 'lucide-react';
+import UploadDialog from '@/components/UploadDialog';
 
 const Repositorio = () => {
   const arquivos = [
@@ -47,6 +47,12 @@ const Repositorio = () => {
     { nome: "Áudio de Referência", count: 12, color: "bg-orange-100 text-orange-800" }
   ];
 
+  const handleUpload = (file: File, data: any) => {
+    console.log('Arquivo enviado:', file);
+    console.log('Dados do formulário:', data);
+    // Aqui seria implementada a lógica para salvar no banco de dados
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -56,10 +62,12 @@ const Repositorio = () => {
             Organize e gerencie arquivos PDF das partituras
           </p>
         </div>
-        <Button className="flex items-center space-x-2">
-          <Upload className="h-4 w-4" />
-          <span>Upload de Arquivo</span>
-        </Button>
+        <UploadDialog onUpload={handleUpload}>
+          <Button className="flex items-center space-x-2">
+            <Upload className="h-4 w-4" />
+            <span>Upload de Arquivo</span>
+          </Button>
+        </UploadDialog>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
