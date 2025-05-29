@@ -11,6 +11,7 @@ import NovaPartitura from "./pages/NovaPartitura";
 import Performances from "./pages/Performances";
 import NovaPerformance from "./pages/NovaPerformance";
 import Repositorio from "./pages/Repositorio";
+import Relatorios from "./pages/Relatorios";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -57,6 +58,7 @@ const App = () => {
               <Route path="/performances" element={<Performances />} />
               <Route path="/performances/nova" element={<NovaPerformance />} />
               <Route path="/repositorio" element={<Repositorio />} />
+              <Route path="/relatorios" element={<Relatorios />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </MainLayout>
