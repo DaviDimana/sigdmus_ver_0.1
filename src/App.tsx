@@ -73,6 +73,7 @@ const AppContent = () => {
         />
         <Route path="/repositorio" element={<Repositorio />} />
         <Route path="/relatorios" element={<Relatorios />} />
+        <Route path="/configuracoes" element={<Configuracoes />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
