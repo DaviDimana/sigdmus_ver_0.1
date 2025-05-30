@@ -16,7 +16,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, currentUser }) => {
     <div className="min-h-screen bg-gray-50">
       <Navbar currentUser={currentUser} />
       <div className="flex">
-        <Sidebar userRole={currentUser?.role} />
+        <Sidebar />
         <main className="flex-1 p-6">
           {children}
         </main>

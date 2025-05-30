@@ -4,7 +4,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useAuth } from "./hooks/useAuth";
 import MainLayout from "./components/Layout/MainLayout";
+import AuthGuard from "./components/Layout/AuthGuard";
 import Dashboard from "./pages/Dashboard";
 import Partituras from "./pages/Partituras";
 import NovaPartitura from "./pages/NovaPartitura";
@@ -12,56 +14,80 @@ import Performances from "./pages/Performances";
 import NovaPerformance from "./pages/NovaPerformance";
 import Repositorio from "./pages/Repositorio";
 import Relatorios from "./pages/Relatorios";
-import Login from "./pages/Login";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => {
-  // Simulando usuário logado (será substituído pela autenticação real)
-  const currentUser = {
-    name: "João Silva",
-    role: "admin" as const
-  };
+const AppContent = () => {
+  const { user, profile, loading } = useAuth();
 
-  // Para demo, vamos mostrar o layout principal. Na implementação real,
-  // verificaremos se o usuário está autenticado
-  const isAuthenticated = true;
-
-  if (!isAuthenticated) {
+  // Show loading while checking auth state
+  if (loading) {
     return (
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="*" element={<Login />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </QueryClientProvider>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando...</p>
+        </div>
+      </div>
     );
   }
 
+  // Show auth page if not authenticated
+  if (!user) {
+    return (
+      <Routes>
+        <Route path="*" element={<Auth />} />
+      </Routes>
+    );
+  }
+
+  // Convert profile to format expected by MainLayout
+  const currentUser = profile ? {
+    name: profile.name,
+    role: profile.role.toLowerCase() as 'admin' | 'supervisor' | 'user'
+  } : null;
+
+  return (
+    <MainLayout currentUser={currentUser}>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/partituras" element={<Partituras />} />
+        <Route 
+          path="/partituras/nova" 
+          element={
+            <AuthGuard requiredRole="GERENTE">
+              <NovaPartitura />
+            </AuthGuard>
+          } 
+        />
+        <Route path="/performances" element={<Performances />} />
+        <Route 
+          path="/performances/nova" 
+          element={
+            <AuthGuard requiredRole="GERENTE">
+              <NovaPerformance />
+            </AuthGuard>
+          } 
+        />
+        <Route path="/repositorio" element={<Repositorio />} />
+        <Route path="/relatorios" element={<Relatorios />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </MainLayout>
+  );
+};
+
+const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <MainLayout currentUser={currentUser}>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/partituras" element={<Partituras />} />
-              <Route path="/partituras/nova" element={<NovaPartitura />} />
-              <Route path="/performances" element={<Performances />} />
-              <Route path="/performances/nova" element={<NovaPerformance />} />
-              <Route path="/repositorio" element={<Repositorio />} />
-              <Route path="/relatorios" element={<Relatorios />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </MainLayout>
+          <AppContent />
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

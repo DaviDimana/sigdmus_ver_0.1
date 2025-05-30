@@ -8,62 +8,74 @@ import {
   BarChart3, 
   Users, 
   Settings,
-  Home
+  Home,
+  Plus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
 
-interface SidebarProps {
-  userRole?: 'admin' | 'supervisor' | 'user';
-}
+const Sidebar: React.FC = () => {
+  const { profile } = useAuth();
 
-const Sidebar: React.FC<SidebarProps> = ({ userRole = 'user' }) => {
   const navigationItems = [
     {
       name: 'Dashboard',
       href: '/',
       icon: Home,
-      roles: ['admin', 'supervisor', 'user']
+      roles: ['ADMIN', 'GERENTE', 'ARQUIVISTA', 'MUSICO']
     },
     {
       name: 'Partituras',
       href: '/partituras',
       icon: FileMusic,
-      roles: ['admin', 'supervisor', 'user']
+      roles: ['ADMIN', 'GERENTE', 'ARQUIVISTA', 'MUSICO']
+    },
+    {
+      name: 'Nova Partitura',
+      href: '/partituras/nova',
+      icon: Plus,
+      roles: ['ADMIN', 'GERENTE']
     },
     {
       name: 'Performances',
       href: '/performances',
       icon: Calendar,
-      roles: ['admin', 'supervisor', 'user']
+      roles: ['ADMIN', 'GERENTE', 'ARQUIVISTA', 'MUSICO']
+    },
+    {
+      name: 'Nova Performance',
+      href: '/performances/nova',
+      icon: Plus,
+      roles: ['ADMIN', 'GERENTE']
     },
     {
       name: 'Repositório',
       href: '/repositorio',
       icon: FolderOpen,
-      roles: ['admin', 'supervisor', 'user']
+      roles: ['ADMIN', 'GERENTE', 'ARQUIVISTA', 'MUSICO']
     },
     {
       name: 'Relatórios',
       href: '/relatorios',
       icon: BarChart3,
-      roles: ['admin', 'supervisor']
+      roles: ['ADMIN', 'GERENTE', 'ARQUIVISTA', 'MUSICO']
     },
     {
       name: 'Usuários',
       href: '/usuarios',
       icon: Users,
-      roles: ['admin']
+      roles: ['ADMIN']
     },
     {
       name: 'Configurações',
       href: '/configuracoes',
       icon: Settings,
-      roles: ['admin', 'supervisor']
+      roles: ['ADMIN', 'GERENTE']
     }
   ];
 
   const filteredItems = navigationItems.filter(item => 
-    item.roles.includes(userRole)
+    profile?.role && item.roles.includes(profile.role)
   );
 
   return (

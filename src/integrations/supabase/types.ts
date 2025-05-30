@@ -135,14 +135,79 @@ export type Database = {
         }
         Relationships: []
       }
+      user_profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          instrumento: Database["public"]["Enums"]["instrumento_type"] | null
+          name: string
+          role: Database["public"]["Enums"]["user_role"]
+          setor: Database["public"]["Enums"]["Setor"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id: string
+          instrumento?: Database["public"]["Enums"]["instrumento_type"] | null
+          name: string
+          role?: Database["public"]["Enums"]["user_role"]
+          setor?: Database["public"]["Enums"]["Setor"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          instrumento?: Database["public"]["Enums"]["instrumento_type"] | null
+          name?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          setor?: Database["public"]["Enums"]["Setor"] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
+      get_user_sector: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["Setor"]
+      }
+      has_role: {
+        Args: { check_role: Database["public"]["Enums"]["user_role"] }
+        Returns: boolean
+      }
     }
     Enums: {
+      instrumento_type:
+        | "FLAUTA"
+        | "OBOÉ"
+        | "CLARINETE"
+        | "FAGOTE"
+        | "TROMPA"
+        | "TROMPETE"
+        | "TROMBONE"
+        | "TUBA"
+        | "VIOLINO_I"
+        | "VIOLINO_II"
+        | "VIOLA"
+        | "VIOLONCELO"
+        | "CONTRABAIXO"
+        | "HARPA"
+        | "PIANO"
+        | "PERCUSSAO"
+        | "SOPRANO"
+        | "CONTRALTO"
+        | "TENOR"
+        | "BAIXO"
       Role: "ADMIN" | "SETOR" | "USER"
       Setor:
         | "ACERVO_OSUFBA"
@@ -153,6 +218,7 @@ export type Database = {
         | "MEMORIAL_LINDENBERG_CARDOSO"
         | "COMPOSITORES_DA_BAHIA"
         | "ACERVO_OSBA"
+      user_role: "ADMIN" | "GERENTE" | "ARQUIVISTA" | "MUSICO"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -268,6 +334,28 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      instrumento_type: [
+        "FLAUTA",
+        "OBOÉ",
+        "CLARINETE",
+        "FAGOTE",
+        "TROMPA",
+        "TROMPETE",
+        "TROMBONE",
+        "TUBA",
+        "VIOLINO_I",
+        "VIOLINO_II",
+        "VIOLA",
+        "VIOLONCELO",
+        "CONTRABAIXO",
+        "HARPA",
+        "PIANO",
+        "PERCUSSAO",
+        "SOPRANO",
+        "CONTRALTO",
+        "TENOR",
+        "BAIXO",
+      ],
       Role: ["ADMIN", "SETOR", "USER"],
       Setor: [
         "ACERVO_OSUFBA",
@@ -279,6 +367,7 @@ export const Constants = {
         "COMPOSITORES_DA_BAHIA",
         "ACERVO_OSBA",
       ],
+      user_role: ["ADMIN", "GERENTE", "ARQUIVISTA", "MUSICO"],
     },
   },
 } as const
