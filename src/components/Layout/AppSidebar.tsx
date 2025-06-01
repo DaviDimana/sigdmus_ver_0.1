@@ -92,32 +92,34 @@ const AppSidebar: React.FC = () => {
   console.log('Filtered items:', filteredItems);
 
   return (
-    <Sidebar className="border-r">
-      <SidebarHeader className="border-b px-6 py-4">
-        <h2 className="text-lg font-semibold">
+    <Sidebar variant="sidebar" className="w-64 border-r bg-background">
+      <SidebarHeader className="border-b px-6 py-4 bg-background">
+        <h2 className="text-lg font-semibold text-foreground">
           Sistema Musical
         </h2>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="bg-background">
         <SidebarGroup>
-          <SidebarGroupLabel>Navegação</SidebarGroupLabel>
-          <SidebarGroupContent>
+          <SidebarGroupLabel className="px-6 py-2 text-sm font-medium text-muted-foreground">
+            Navegação
+          </SidebarGroupLabel>
+          <SidebarGroupContent className="px-3">
             <SidebarMenu>
               {filteredItems.map((item) => (
                 <SidebarMenuItem key={item.name}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild className="w-full">
                     <NavLink
                       to={item.href}
                       className={({ isActive }) =>
-                        `flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                        `flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors w-full ${
                           isActive
                             ? 'bg-primary text-primary-foreground'
                             : 'text-foreground hover:bg-accent hover:text-accent-foreground'
                         }`
                       }
                     >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.name}</span>
+                      <item.icon className="h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">{item.name}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
