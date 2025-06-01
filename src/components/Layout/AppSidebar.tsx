@@ -92,34 +92,34 @@ const AppSidebar: React.FC = () => {
   console.log('Filtered items:', filteredItems);
 
   return (
-    <Sidebar variant="sidebar" className="w-64 border-r bg-background">
-      <SidebarHeader className="border-b px-6 py-4 bg-background">
-        <h2 className="text-lg font-semibold text-foreground">
+    <Sidebar>
+      <SidebarHeader className="px-4 py-3 border-b">
+        <h2 className="text-lg font-semibold text-gray-900">
           Sistema Musical
         </h2>
       </SidebarHeader>
-      <SidebarContent className="bg-background">
+      <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="px-6 py-2 text-sm font-medium text-muted-foreground">
+          <SidebarGroupLabel className="px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
             Navegação
           </SidebarGroupLabel>
-          <SidebarGroupContent className="px-3">
-            <SidebarMenu>
+          <SidebarGroupContent>
+            <SidebarMenu className="px-2">
               {filteredItems.map((item) => (
                 <SidebarMenuItem key={item.name}>
-                  <SidebarMenuButton asChild className="w-full">
+                  <SidebarMenuButton asChild>
                     <NavLink
                       to={item.href}
                       className={({ isActive }) =>
-                        `flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors w-full ${
+                        `flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                           isActive
-                            ? 'bg-primary text-primary-foreground'
-                            : 'text-foreground hover:bg-accent hover:text-accent-foreground'
+                            ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
+                            : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                         }`
                       }
                     >
-                      <item.icon className="h-4 w-4 flex-shrink-0" />
-                      <span className="truncate">{item.name}</span>
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.name}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
