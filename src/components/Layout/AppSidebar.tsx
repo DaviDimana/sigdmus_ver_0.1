@@ -23,7 +23,6 @@ import {
   SidebarHeader,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
-import { cn } from '@/lib/utils';
 
 const AppSidebar: React.FC = () => {
   const { profile } = useAuth();
@@ -89,14 +88,15 @@ const AppSidebar: React.FC = () => {
     profile?.role && item.roles.includes(profile.role)
   );
 
+  console.log('Profile:', profile);
+  console.log('Filtered items:', filteredItems);
+
   return (
-    <Sidebar>
-      <SidebarHeader>
-        <div className="p-4">
-          <h2 className="text-lg font-semibold text-sidebar-foreground">
-            Sistema Musical
-          </h2>
-        </div>
+    <Sidebar className="border-r">
+      <SidebarHeader className="border-b px-6 py-4">
+        <h2 className="text-lg font-semibold">
+          Sistema Musical
+        </h2>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -109,12 +109,11 @@ const AppSidebar: React.FC = () => {
                     <NavLink
                       to={item.href}
                       className={({ isActive }) =>
-                        cn(
-                          'flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors',
+                        `flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                           isActive
-                            ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                            : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-                        )
+                            ? 'bg-primary text-primary-foreground'
+                            : 'text-foreground hover:bg-accent hover:text-accent-foreground'
+                        }`
                       }
                     >
                       <item.icon className="h-4 w-4" />

@@ -26,7 +26,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, currentUser }) => {
               <Navbar currentUser={currentUser} />
             </div>
           </header>
-          <main className="flex-1 p-6">
+          <main className="flex-1 p-6 overflow-auto">
             {children}
           </main>
         </SidebarInset>
