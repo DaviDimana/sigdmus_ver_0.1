@@ -14,6 +14,7 @@ import Performances from "./pages/Performances";
 import NovaPerformance from "./pages/NovaPerformance";
 import Repositorio from "./pages/Repositorio";
 import Relatorios from "./pages/Relatorios";
+import Configuracoes from "./pages/Configuracoes";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 

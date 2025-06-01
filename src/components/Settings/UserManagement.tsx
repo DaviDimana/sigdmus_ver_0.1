@@ -207,7 +207,28 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    
+    // Preparar dados com tipos corretos
+    const updates: Partial<UserProfile> = {
+      name: formData.name,
+      role: formData.role as UserProfile['role']
+    };
+
+    // Só incluir setor se não estiver vazio e for um valor válido
+    if (formData.setor && setores.includes(formData.setor)) {
+      updates.setor = formData.setor as UserProfile['setor'];
+    } else if (!formData.setor) {
+      updates.setor = null;
+    }
+
+    // Só incluir instrumento se não estiver vazio e for um valor válido
+    if (formData.instrumento && instrumentos.includes(formData.instrumento)) {
+      updates.instrumento = formData.instrumento as UserProfile['instrumento'];
+    } else if (!formData.instrumento) {
+      updates.instrumento = null;
+    }
+
+    onSave(updates);
   };
 
   return (
