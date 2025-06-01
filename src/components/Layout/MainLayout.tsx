@@ -1,27 +1,37 @@
 
 import React from 'react';
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import AppSidebar from './AppSidebar';
 import Navbar from './Navbar';
-import Sidebar from './Sidebar';
+
+interface User {
+  name: string;
+  role: 'admin' | 'supervisor' | 'user';
+}
 
 interface MainLayoutProps {
   children: React.ReactNode;
-  currentUser?: {
-    name: string;
-    role: 'admin' | 'supervisor' | 'user';
-  } | null;
+  currentUser: User | null;
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children, currentUser }) => {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar currentUser={currentUser} />
-      <div className="flex">
-        <Sidebar />
-        <main className="flex-1 p-6">
-          {children}
-        </main>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <AppSidebar />
+        <SidebarInset className="flex-1">
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1" />
+            <div className="flex-1">
+              <Navbar currentUser={currentUser} />
+            </div>
+          </header>
+          <main className="flex-1 p-6">
+            {children}
+          </main>
+        </SidebarInset>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
