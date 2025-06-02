@@ -9,17 +9,38 @@ import PasswordSettings from '@/components/Settings/PasswordSettings';
 import { Users, User, Lock } from 'lucide-react';
 
 const Configuracoes: React.FC = () => {
-  const { profile } = useAuth();
+  console.log('=== CONFIGURAÇÕES PAGE LOADING ===');
+  
+  const { profile, user, loading } = useAuth();
+  
+  console.log('Auth state in Configurações:', { profile, user, loading });
 
-  if (!profile) {
+  if (loading) {
+    console.log('Configurações: Still loading auth...');
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-gray-500">Carregando...</p>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-500">Carregando configurações...</p>
+        </div>
       </div>
     );
   }
 
-  const isAdmin = profile.role === 'ADMIN';
+  if (!user) {
+    console.log('Configurações: No user found');
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-gray-500">Usuário não encontrado</p>
+      </div>
+    );
+  }
+
+  console.log('Configurações: Rendering page for user:', user.email);
+  console.log('Configurações: Profile role:', profile?.role);
+
+  // Sempre mostrar as configurações básicas, independente do profile
+  const showUserManagement = profile?.role === 'ADMIN';
 
   return (
     <div className="space-y-6">
@@ -28,6 +49,10 @@ const Configuracoes: React.FC = () => {
         <p className="text-gray-600 mt-2">
           Gerencie suas configurações e preferências
         </p>
+        {/* Debug info */}
+        <div className="text-xs text-gray-400 mt-1">
+          Debug: User: {user?.email}, Role: {profile?.role || 'N/A'}, Loading: {loading.toString()}
+        </div>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
@@ -40,7 +65,7 @@ const Configuracoes: React.FC = () => {
             <Lock className="h-4 w-4" />
             Senha
           </TabsTrigger>
-          {isAdmin && (
+          {showUserManagement && (
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Usuários
@@ -70,7 +95,7 @@ const Configuracoes: React.FC = () => {
           </Card>
         </TabsContent>
 
-        {isAdmin && (
+        {showUserManagement && (
           <TabsContent value="users">
             <Card>
               <CardHeader>

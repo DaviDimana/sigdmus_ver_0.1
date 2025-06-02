@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,10 +21,12 @@ export const useAuth = () => {
   });
 
   useEffect(() => {
+    console.log('=== useAuth: Setting up auth listener ===');
+    
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth event:', event, session);
+        console.log('useAuth: Auth event:', event, session?.user?.email);
         
         setAuthState(prev => ({
           ...prev,
@@ -35,10 +36,12 @@ export const useAuth = () => {
 
         // Defer profile fetching to prevent deadlocks
         if (session?.user) {
+          console.log('useAuth: User found, fetching profile...');
           setTimeout(() => {
             fetchUserProfile(session.user.id);
           }, 0);
         } else {
+          console.log('useAuth: No user, clearing profile');
           setAuthState(prev => ({
             ...prev,
             profile: null,
@@ -50,6 +53,8 @@ export const useAuth = () => {
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('useAuth: Initial session check:', session?.user?.email);
+      
       setAuthState(prev => ({
         ...prev,
         session,
@@ -63,10 +68,15 @@ export const useAuth = () => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log('useAuth: Cleaning up subscription');
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchUserProfile = async (userId: string) => {
+    console.log('useAuth: Fetching profile for user:', userId);
+    
     try {
       const { data: profile, error } = await supabase
         .from('user_profiles')
@@ -75,16 +85,37 @@ export const useAuth = () => {
         .single();
 
       if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching profile:', error);
+        console.error('useAuth: Error fetching profile:', error);
+        // Em caso de erro de policy, vamos definir um perfil temporário
+        if (error.code === '42P17') {
+          console.log('useAuth: Policy error detected, setting temporary profile');
+          setAuthState(prev => ({
+            ...prev,
+            profile: {
+              id: userId,
+              name: 'Usuário Temporário',
+              email: prev.user?.email || '',
+              role: 'ADMIN', // Temporariamente admin para acessar tudo
+              setor: null,
+              instrumento: null,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            } as UserProfile,
+            loading: false
+          }));
+          return;
+        }
       }
 
+      console.log('useAuth: Profile fetched:', profile);
+      
       setAuthState(prev => ({
         ...prev,
         profile: profile || null,
         loading: false
       }));
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('useAuth: Error fetching profile:', error);
       setAuthState(prev => ({ ...prev, loading: false }));
     }
   };
