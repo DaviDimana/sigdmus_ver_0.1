@@ -30,7 +30,7 @@ export const useArquivos = () => {
   });
 
   const uploadArquivo = useMutation({
-    mutationFn: async ({ file, metadata }: { file: File; metadata: Omit<ArquivoInsert, 'arquivo_url' | 'nome' | 'tipo' | 'tamanho'> }) => {
+    mutationFn: async ({ file, metadata }: { file: File; metadata: { categoria: string; obra: string; partitura_id?: string; performance_id?: string; } }) => {
       console.log('Uploading arquivo:', file.name);
       
       // Upload do arquivo para o storage
