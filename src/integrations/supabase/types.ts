@@ -329,6 +329,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_user_profile_access: {
+        Args: { profile_user_id: string }
+        Returns: boolean
+      }
       get_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]

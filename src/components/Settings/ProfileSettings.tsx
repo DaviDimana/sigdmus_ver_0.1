@@ -58,6 +58,8 @@ const ProfileSettings: React.FC = () => {
     setLoading(true);
 
     try {
+      console.log('Atualizando perfil com dados:', formData);
+      
       const updates: Partial<Tables<'user_profiles'>> = {
         name: formData.name.trim(),
       };
@@ -65,24 +67,41 @@ const ProfileSettings: React.FC = () => {
       // Apenas gerentes e admins podem alterar setor
       if (profile?.role === 'GERENTE' || profile?.role === 'ADMIN') {
         updates.setor = formData.setor as any;
+        console.log('Adicionando setor ao update:', formData.setor);
       }
 
       // Apenas músicos podem alterar instrumento
       if (profile?.role === 'MUSICO') {
         updates.instrumento = formData.instrumento as any;
+        console.log('Adicionando instrumento ao update:', formData.instrumento);
       }
 
-      await updateProfile(updates);
+      console.log('Updates a serem aplicados:', updates);
+      
+      const result = await updateProfile(updates);
+      console.log('Perfil atualizado com sucesso:', result);
 
       toast({
         title: "Perfil atualizado",
         description: "Suas informações foram atualizadas com sucesso.",
       });
     } catch (error) {
-      console.error('Erro ao atualizar perfil:', error);
+      console.error('Erro detalhado ao atualizar perfil:', error);
+      
+      let errorMessage = "Erro ao atualizar perfil. Tente novamente.";
+      
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        if (error.message.includes('RLS')) {
+          errorMessage = "Erro de permissão. Verifique se você tem acesso para editar este perfil.";
+        } else if (error.message.includes('network')) {
+          errorMessage = "Erro de conexão. Verifique sua internet e tente novamente.";
+        }
+      }
+      
       toast({
         title: "Erro",
-        description: "Erro ao atualizar perfil. Tente novamente.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
