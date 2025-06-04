@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { Upload, User } from 'lucide-react';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -16,10 +15,21 @@ const ProfileSettings: React.FC = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: profile?.name || '',
-    setor: profile?.setor || '',
-    instrumento: profile?.instrumento || ''
+    name: '',
+    setor: '',
+    instrumento: ''
   });
+
+  // Initialize form data when profile is loaded
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        name: profile.name || '',
+        setor: profile.setor || '',
+        instrumento: profile.instrumento || ''
+      });
+    }
+  }, [profile]);
 
   const setores = [
     'ACERVO_OSUFBA', 'ACERVO_SCHWEBEL', 'ACERVO_PIERO', 'ACERVO_PINO',
@@ -35,14 +45,24 @@ const ProfileSettings: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.name.trim()) {
+      toast({
+        title: "Erro",
+        description: "O nome é obrigatório.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
       const updates: Partial<Tables<'user_profiles'>> = {
-        name: formData.name,
+        name: formData.name.trim(),
       };
 
-      // Apenas gerentes podem alterar setor
+      // Apenas gerentes e admins podem alterar setor
       if (profile?.role === 'GERENTE' || profile?.role === 'ADMIN') {
         updates.setor = formData.setor as any;
       }
@@ -79,6 +99,14 @@ const ProfileSettings: React.FC = () => {
       .slice(0, 2);
   };
 
+  if (!profile) {
+    return (
+      <div className="flex items-center justify-center h-32">
+        <p className="text-gray-500">Carregando perfil...</p>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="flex items-center space-x-6">
@@ -102,12 +130,13 @@ const ProfileSettings: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="name">Nome</Label>
+          <Label htmlFor="name">Nome *</Label>
           <Input
             id="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             required
+            placeholder="Digite seu nome"
           />
         </div>
 
@@ -118,16 +147,18 @@ const ProfileSettings: React.FC = () => {
             value={profile?.email}
             disabled
             className="bg-gray-50"
+            placeholder="Email do usuário"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="role">Role</Label>
+          <Label htmlFor="role">Função</Label>
           <Input
             id="role"
             value={profile?.role}
             disabled
             className="bg-gray-50"
+            placeholder="Função do usuário"
           />
         </div>
 
@@ -174,9 +205,11 @@ const ProfileSettings: React.FC = () => {
         )}
       </div>
 
-      <Button type="submit" disabled={loading}>
-        {loading ? 'Salvando...' : 'Salvar Alterações'}
-      </Button>
+      <div className="flex justify-end">
+        <Button type="submit" disabled={loading} className="min-w-[140px]">
+          {loading ? 'Salvando...' : 'Salvar Alterações'}
+        </Button>
+      </div>
     </form>
   );
 };
