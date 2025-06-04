@@ -1,57 +1,140 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Upload, Download, Search, Folder, File } from 'lucide-react';
-import UploadDialog from '@/components/UploadDialog';
+import { Upload, Download, Search, FileText, Music, FileSpreadsheet, File, Trash2 } from 'lucide-react';
+import { useArquivos } from '@/hooks/useArquivos';
+import { usePartituras } from '@/hooks/usePartituras';
+import { usePerformances } from '@/hooks/usePerformances';
+import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+
+const uploadSchema = z.object({
+  categoria: z.string().min(1, 'Categoria é obrigatória'),
+  obra: z.string().min(1, 'Obra é obrigatória'),
+  partitura_id: z.string().optional(),
+  performance_id: z.string().optional(),
+});
+
+type UploadFormData = z.infer<typeof uploadSchema>;
 
 const Repositorio = () => {
-  const arquivos = [
-    {
-      id: 1,
-      nome: "Sinfonia_9_Beethoven_Partitura_Completa.pdf",
-      tipo: "PDF",
-      tamanho: "2.4 MB",
-      dataUpload: "2024-01-15",
-      categoria: "Partitura Completa",
-      obra: "Sinfonia nº 9 - Beethoven",
-      downloads: 45
+  const { arquivos, isLoading, uploadArquivo, downloadArquivo, deleteArquivo } = useArquivos();
+  const { partituras } = usePartituras();
+  const { performances } = usePerformances();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+
+  const form = useForm<UploadFormData>({
+    resolver: zodResolver(uploadSchema),
+    defaultValues: {
+      categoria: '',
+      obra: '',
+      partitura_id: '',
+      performance_id: '',
     },
-    {
-      id: 2,
-      nome: "Ave_Maria_Schubert_Piano.pdf",
-      tipo: "PDF",
-      tamanho: "1.2 MB",
-      dataUpload: "2024-02-10",
-      categoria: "Parte Individual",
-      obra: "Ave Maria - Schubert",
-      downloads: 23
-    },
-    {
-      id: 3,
-      nome: "Guarani_Abertura_Orquestra.pdf",
-      tipo: "PDF",
-      tamanho: "3.1 MB",
-      dataUpload: "2024-01-28",
-      categoria: "Partitura Completa",
-      obra: "O Guarani - Carlos Gomes",
-      downloads: 18
+  });
+
+  const filteredArquivos = arquivos.filter(arquivo => {
+    const matchesSearch = arquivo.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         arquivo.obra.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = !categoryFilter || arquivo.categoria === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
     }
-  ];
+  };
+
+  const handleUpload = async (data: UploadFormData) => {
+    if (!selectedFile) {
+      toast.error('Selecione um arquivo para fazer upload');
+      return;
+    }
+
+    try {
+      await uploadArquivo.mutateAsync({
+        file: selectedFile,
+        metadata: data
+      });
+      toast.success('Arquivo enviado com sucesso!');
+      setUploadDialogOpen(false);
+      setSelectedFile(null);
+      form.reset();
+    } catch (error) {
+      console.error('Erro ao fazer upload:', error);
+      toast.error('Erro ao fazer upload do arquivo. Tente novamente.');
+    }
+  };
+
+  const handleDownload = async (arquivo: any) => {
+    try {
+      await downloadArquivo.mutateAsync(arquivo);
+      toast.success('Download iniciado!');
+    } catch (error) {
+      console.error('Erro ao fazer download:', error);
+      toast.error('Erro ao fazer download. Tente novamente.');
+    }
+  };
+
+  const handleDelete = async (arquivo: any) => {
+    if (confirm('Tem certeza que deseja excluir este arquivo?')) {
+      try {
+        await deleteArquivo.mutateAsync(arquivo);
+        toast.success('Arquivo excluído com sucesso!');
+      } catch (error) {
+        console.error('Erro ao excluir arquivo:', error);
+        toast.error('Erro ao excluir arquivo. Tente novamente.');
+      }
+    }
+  };
+
+  const getFileIcon = (tipo: string) => {
+    if (tipo.includes('pdf')) return <FileText className="h-5 w-5 text-red-500" />;
+    if (tipo.includes('audio') || tipo.includes('midi')) return <Music className="h-5 w-5 text-purple-500" />;
+    if (tipo.includes('spreadsheet') || tipo.includes('excel')) return <FileSpreadsheet className="h-5 w-5 text-green-500" />;
+    return <File className="h-5 w-5 text-gray-500" />;
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
 
   const categorias = [
-    { nome: "Partitura Completa", count: 15, color: "bg-blue-100 text-blue-800" },
-    { nome: "Parte Individual", count: 32, color: "bg-green-100 text-green-800" },
-    { nome: "Redução Piano", count: 8, color: "bg-purple-100 text-purple-800" },
-    { nome: "Áudio de Referência", count: 12, color: "bg-orange-100 text-orange-800" }
+    'Partitura PDF',
+    'Áudio de Performance',
+    'Vídeo de Performance',
+    'Documento de Apoio',
+    'MIDI',
+    'Outros'
   ];
 
-  const handleUpload = (file: File, data: any) => {
-    console.log('Arquivo enviado:', file);
-    console.log('Dados do formulário:', data);
-    // Aqui seria implementada a lógica para salvar no banco de dados
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-500">Carregando repositório...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -59,95 +142,228 @@ const Repositorio = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Repositório</h1>
           <p className="text-gray-600 mt-2">
-            Organize e gerencie arquivos PDF das partituras
+            Gerencie arquivos digitais do acervo
           </p>
         </div>
-        <UploadDialog onUpload={handleUpload}>
-          <Button className="flex items-center space-x-2">
-            <Upload className="h-4 w-4" />
-            <span>Upload de Arquivo</span>
-          </Button>
-        </UploadDialog>
+        
+        <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="flex items-center space-x-2">
+              <Upload className="h-4 w-4" />
+              <span>Upload Arquivo</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Upload de Arquivo</DialogTitle>
+              <DialogDescription>
+                Faça upload de um novo arquivo para o repositório
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleUpload)} className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Arquivo</label>
+                  <Input
+                    type="file"
+                    onChange={handleFileSelect}
+                    className="mt-2"
+                    accept=".pdf,.doc,.docx,.mp3,.wav,.midi,.mid,.mp4,.avi,.mov"
+                  />
+                  {selectedFile && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Arquivo selecionado: {selectedFile.name} ({formatFileSize(selectedFile.size)})
+                    </p>
+                  )}
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="categoria"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Categoria *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione a categoria" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {categorias.map((categoria) => (
+                            <SelectItem key={categoria} value={categoria}>
+                              {categoria}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="obra"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome da Obra *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Digite o nome da obra" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="partitura_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Partitura Relacionada (Opcional)</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione uma partitura" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {partituras.map((partitura) => (
+                            <SelectItem key={partitura.id} value={partitura.id}>
+                              {partitura.titulo} - {partitura.compositor}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="performance_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Performance Relacionada (Opcional)</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione uma performance" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {performances.map((performance) => (
+                            <SelectItem key={performance.id} value={performance.id}>
+                              {performance.titulo_obra} - {new Date(performance.data).toLocaleDateString('pt-BR')}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setUploadDialogOpen(false)}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={uploadArquivo.isPending}>
+                    {uploadArquivo.isPending ? 'Enviando...' : 'Enviar'}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {categorias.map((categoria, index) => (
-          <Card key={index} className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <Folder className="h-6 w-6 text-gray-500" />
-                <Badge className={categoria.color}>
-                  {categoria.count}
-                </Badge>
+      <div className="flex items-center space-x-4">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Buscar arquivos..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Filtrar por categoria" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Todas as categorias</SelectItem>
+            {categorias.map((categoria) => (
+              <SelectItem key={categoria} value={categoria}>
+                {categoria}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredArquivos.map((arquivo) => (
+          <Card key={arquivo.id} className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="flex items-center space-x-2">
+                  {getFileIcon(arquivo.tipo)}
+                  <Badge variant="secondary">{arquivo.categoria}</Badge>
+                </div>
               </div>
+              <CardTitle className="text-lg truncate">{arquivo.nome}</CardTitle>
+              <CardDescription>{arquivo.obra}</CardDescription>
             </CardHeader>
             <CardContent>
-              <h3 className="font-semibold text-sm">{categoria.nome}</h3>
+              <div className="space-y-2 text-sm">
+                <div>
+                  <span className="font-medium">Tamanho:</span> {formatFileSize(arquivo.tamanho)}
+                </div>
+                <div>
+                  <span className="font-medium">Downloads:</span> {arquivo.downloads || 0}
+                </div>
+                <div>
+                  <span className="font-medium">Adicionado:</span> {new Date(arquivo.created_at).toLocaleDateString('pt-BR')}
+                </div>
+              </div>
+              
+              <div className="flex space-x-2 mt-4">
+                <Button 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => handleDownload(arquivo)}
+                  disabled={downloadArquivo.isPending}
+                >
+                  <Download className="h-3 w-3 mr-1" />
+                  Download
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => handleDelete(arquivo)}
+                  disabled={deleteArquivo.isPending}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Buscar Arquivos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Buscar por nome do arquivo, obra ou categoria..."
-              className="pl-10"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Arquivos Recentes</CardTitle>
-          <CardDescription>
-            Últimos arquivos adicionados ao repositório
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {arquivos.map((arquivo) => (
-              <div key={arquivo.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                <div className="flex items-center space-x-4">
-                  <FileText className="h-8 w-8 text-red-500" />
-                  <div>
-                    <h4 className="font-medium text-gray-900">{arquivo.nome}</h4>
-                    <p className="text-sm text-gray-500">{arquivo.obra}</p>
-                    <div className="flex items-center space-x-4 mt-1">
-                      <Badge variant="outline" className="text-xs">
-                        {arquivo.categoria}
-                      </Badge>
-                      <span className="text-xs text-gray-400">{arquivo.tamanho}</span>
-                      <span className="text-xs text-gray-400">
-                        {new Date(arquivo.dataUpload).toLocaleDateString('pt-BR')}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-3">
-                  <div className="text-right">
-                    <p className="text-sm text-gray-600">{arquivo.downloads} downloads</p>
-                  </div>
-                  <Button size="sm" variant="outline" className="flex items-center space-x-1">
-                    <Download className="h-3 w-3" />
-                    <span>Download</span>
-                  </Button>
-                  <Button size="sm" variant="ghost">
-                    <File className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {filteredArquivos.length === 0 && (
+        <div className="text-center py-8">
+          <p className="text-gray-500">Nenhum arquivo encontrado.</p>
+        </div>
+      )}
     </div>
   );
 };

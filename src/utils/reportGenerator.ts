@@ -1,94 +1,10 @@
+
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { Document, Packer, Paragraph, Table, TableCell, TableRow, WidthType } from 'docx';
 import { saveAs } from 'file-saver';
-import { getFieldLabels } from './formFields';
-
-// Dados mock atualizados com os campos dos formulários
-const mockPartituras = [
-  {
-    id: 1,
-    setor: "Acervo OSUFBA",
-    titulo: "Sinfonia nº 9 em Ré menor",
-    compositor: "Ludwig van Beethoven",
-    instrumentacao: "Orquestra Sinfônica",
-    tonalidade: "Ré menor",
-    genero: "Sinfonia",
-    edicao: "Primeira edição",
-    anoEdicao: "1824",
-    digitalizado: "sim",
-    numeroArmario: "A01",
-    numeroPrateleira: "P01",
-    numeroPasta: "PA001"
-  },
-  {
-    id: 2,
-    setor: "Acervo Schuwebel",
-    titulo: "Ave Maria",
-    compositor: "Franz Schubert",
-    instrumentacao: "Voz e Piano",
-    tonalidade: "Si bemol maior",
-    genero: "Lied",
-    edicao: "Segunda edição",
-    anoEdicao: "1825",
-    digitalizado: "sim",
-    numeroArmario: "A02",
-    numeroPrateleira: "P02",
-    numeroPasta: "PA002"
-  },
-  {
-    id: 3,
-    setor: "Compositores da Bahia",
-    titulo: "O Guarani - Abertura",
-    compositor: "Carlos Gomes",
-    instrumentacao: "Orquestra",
-    tonalidade: "Lá maior",
-    genero: "Abertura",
-    edicao: "Primeira edição",
-    anoEdicao: "1870",
-    digitalizado: "nao",
-    numeroArmario: "A03",
-    numeroPrateleira: "P03",
-    numeroPasta: "PA003"
-  }
-];
-
-const mockPerformances = [
-  {
-    id: 1,
-    tituloObra: "Sinfonia nº 9 em Ré menor",
-    nomeCompositor: "Ludwig van Beethoven",
-    local: "Sala Principal",
-    data: "2024-12-25",
-    horario: "19:30",
-    maestros: "Maestro Silva",
-    interpretes: "Orquestra Sinfônica da UFBA",
-    release: "Concerto especial de Natal com a obra mais famosa de Beethoven"
-  },
-  {
-    id: 2,
-    tituloObra: "Ave Maria",
-    nomeCompositor: "Franz Schubert",
-    local: "Auditório",
-    data: "2025-01-02",
-    horario: "20:00",
-    maestros: "Ana Costa",
-    interpretes: "Maria Santos (Soprano), João Silva (Piano)",
-    release: "Recital intimista de música sacra"
-  },
-  {
-    id: 3,
-    tituloObra: "O Guarani - Abertura",
-    nomeCompositor: "Carlos Gomes",
-    local: "Teatro Municipal",
-    data: "2024-11-15",
-    horario: "18:00",
-    maestros: "Maestro Santos",
-    interpretes: "Orquestra Sinfônica da Bahia",
-    release: "Festival de música brasileira com obras de compositores nacionais"
-  }
-];
+import { supabase } from '@/integrations/supabase/client';
 
 interface GenerateReportParams {
   type: 'partituras' | 'performances';
@@ -96,28 +12,79 @@ interface GenerateReportParams {
   format: 'pdf' | 'word' | 'excel';
 }
 
-export const generateReport = ({ type, fields, format }: GenerateReportParams) => {
-  const data = type === 'partituras' ? mockPartituras : mockPerformances;
-  const fieldLabels = getFieldLabels(type);
-  
-  const headers = fields.map(field => fieldLabels[field] || field);
-  const rows = data.map(item => 
-    fields.map(field => {
-      const value = item[field as keyof typeof item];
-      return typeof value === 'string' || typeof value === 'number' ? String(value) : '';
-    })
-  );
+const fieldLabels = {
+  partituras: {
+    setor: 'Setor',
+    titulo: 'Título',
+    compositor: 'Compositor',
+    instrumentacao: 'Instrumentação',
+    tonalidade: 'Tonalidade',
+    genero: 'Gênero/Forma',
+    edicao: 'Edição',
+    ano_edicao: 'Ano da Edição',
+    digitalizado: 'Digitalizado',
+    numero_armario: 'N° Armário',
+    numero_prateleira: 'N° Prateleira',
+    numero_pasta: 'N° Pasta',
+  },
+  performances: {
+    titulo_obra: 'Título da Obra',
+    nome_compositor: 'Compositor',
+    local: 'Local',
+    data: 'Data',
+    horario: 'Horário',
+    maestros: 'Maestro(s)',
+    interpretes: 'Intérprete(s)',
+    release: 'Release',
+  }
+};
 
-  switch (format) {
-    case 'pdf':
-      generatePDFReport(headers, rows, type);
-      break;
-    case 'word':
-      generateWordReport(headers, rows, type);
-      break;
-    case 'excel':
-      generateExcelReport(headers, rows, type);
-      break;
+export const generateReport = async ({ type, fields, format }: GenerateReportParams) => {
+  console.log('Generating report:', { type, fields, format });
+  
+  try {
+    // Buscar dados do banco
+    const { data, error } = await supabase
+      .from(type)
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching data for report:', error);
+      throw error;
+    }
+    
+    console.log('Data fetched for report:', data);
+    
+    const currentFieldLabels = fieldLabels[type];
+    const headers = fields.map(field => currentFieldLabels[field as keyof typeof currentFieldLabels] || field);
+    const rows = data.map(item => 
+      fields.map(field => {
+        const value = item[field as keyof typeof item];
+        if (field === 'digitalizado') {
+          return value ? 'Sim' : 'Não';
+        }
+        if (field === 'data') {
+          return new Date(value as string).toLocaleDateString('pt-BR');
+        }
+        return typeof value === 'string' || typeof value === 'number' ? String(value) : '';
+      })
+    );
+
+    switch (format) {
+      case 'pdf':
+        generatePDFReport(headers, rows, type);
+        break;
+      case 'word':
+        generateWordReport(headers, rows, type);
+        break;
+      case 'excel':
+        generateExcelReport(headers, rows, type);
+        break;
+    }
+  } catch (error) {
+    console.error('Error generating report:', error);
+    throw error;
   }
 };
 

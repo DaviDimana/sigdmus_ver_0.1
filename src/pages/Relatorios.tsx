@@ -8,12 +8,39 @@ import { Badge } from '@/components/ui/badge';
 import { FileText, Download, FileSpreadsheet, Printer, Tags } from 'lucide-react';
 import { generateReport } from '@/utils/reportGenerator';
 import { generateLabels } from '@/utils/labelGenerator';
-import { partiturasFields, performancesFields } from '@/utils/formFields';
+import { toast } from 'sonner';
 
 const Relatorios = () => {
   const [selectedType, setSelectedType] = useState<'partituras' | 'performances'>('partituras');
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
   const [outputFormat, setOutputFormat] = useState<'pdf' | 'word' | 'excel'>('pdf');
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const partiturasFields = [
+    { id: 'setor', label: 'Setor' },
+    { id: 'titulo', label: 'Título' },
+    { id: 'compositor', label: 'Compositor' },
+    { id: 'instrumentacao', label: 'Instrumentação' },
+    { id: 'tonalidade', label: 'Tonalidade' },
+    { id: 'genero', label: 'Gênero/Forma' },
+    { id: 'edicao', label: 'Edição' },
+    { id: 'ano_edicao', label: 'Ano da Edição' },
+    { id: 'digitalizado', label: 'Digitalizado' },
+    { id: 'numero_armario', label: 'N° Armário' },
+    { id: 'numero_prateleira', label: 'N° Prateleira' },
+    { id: 'numero_pasta', label: 'N° Pasta' },
+  ];
+
+  const performancesFields = [
+    { id: 'titulo_obra', label: 'Título da Obra' },
+    { id: 'nome_compositor', label: 'Nome do Compositor' },
+    { id: 'local', label: 'Local' },
+    { id: 'data', label: 'Data' },
+    { id: 'horario', label: 'Horário' },
+    { id: 'maestros', label: 'Maestro(s)' },
+    { id: 'interpretes', label: 'Intérprete(s)' },
+    { id: 'release', label: 'Release' },
+  ];
 
   const currentFields = selectedType === 'partituras' ? partiturasFields : performancesFields;
 
@@ -33,29 +60,47 @@ const Relatorios = () => {
     }
   };
 
-  const handleGenerateReport = () => {
+  const handleGenerateReport = async () => {
     if (selectedFields.length === 0) {
-      alert('Selecione pelo menos um campo para gerar o relatório');
+      toast.error('Selecione pelo menos um campo para gerar o relatório');
       return;
     }
 
-    generateReport({
-      type: selectedType,
-      fields: selectedFields,
-      format: outputFormat
-    });
+    setIsGenerating(true);
+    try {
+      await generateReport({
+        type: selectedType,
+        fields: selectedFields,
+        format: outputFormat
+      });
+      toast.success('Relatório gerado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao gerar relatório:', error);
+      toast.error('Erro ao gerar relatório. Tente novamente.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
-  const handleGenerateLabels = () => {
+  const handleGenerateLabels = async () => {
     if (selectedFields.length === 0) {
-      alert('Selecione pelo menos um campo para gerar as etiquetas');
+      toast.error('Selecione pelo menos um campo para gerar as etiquetas');
       return;
     }
 
-    generateLabels({
-      type: selectedType,
-      fields: selectedFields
-    });
+    setIsGenerating(true);
+    try {
+      await generateLabels({
+        type: selectedType,
+        fields: selectedFields
+      });
+      toast.success('Etiquetas geradas com sucesso!');
+    } catch (error) {
+      console.error('Erro ao gerar etiquetas:', error);
+      toast.error('Erro ao gerar etiquetas. Tente novamente.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -166,20 +211,20 @@ const Relatorios = () => {
               <Button 
                 className="w-full flex items-center justify-center space-x-2"
                 onClick={handleGenerateReport}
-                disabled={selectedFields.length === 0}
+                disabled={selectedFields.length === 0 || isGenerating}
               >
                 <Download className="h-4 w-4" />
-                <span>Gerar Relatório</span>
+                <span>{isGenerating ? 'Gerando...' : 'Gerar Relatório'}</span>
               </Button>
               
               <Button 
                 variant="outline"
                 className="w-full flex items-center justify-center space-x-2"
                 onClick={handleGenerateLabels}
-                disabled={selectedFields.length === 0}
+                disabled={selectedFields.length === 0 || isGenerating}
               >
                 <Tags className="h-4 w-4" />
-                <span>Gerar Etiquetas</span>
+                <span>{isGenerating ? 'Gerando...' : 'Gerar Etiquetas'}</span>
               </Button>
             </div>
 

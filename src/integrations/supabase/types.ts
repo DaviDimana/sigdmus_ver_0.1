@@ -42,6 +42,66 @@ export type Database = {
         }
         Relationships: []
       }
+      arquivos: {
+        Row: {
+          arquivo_url: string | null
+          categoria: string
+          created_at: string
+          downloads: number | null
+          id: string
+          nome: string
+          obra: string
+          partitura_id: string | null
+          performance_id: string | null
+          tamanho: number
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          arquivo_url?: string | null
+          categoria: string
+          created_at?: string
+          downloads?: number | null
+          id?: string
+          nome: string
+          obra: string
+          partitura_id?: string | null
+          performance_id?: string | null
+          tamanho: number
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          arquivo_url?: string | null
+          categoria?: string
+          created_at?: string
+          downloads?: number | null
+          id?: string
+          nome?: string
+          obra?: string
+          partitura_id?: string | null
+          performance_id?: string | null
+          tamanho?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arquivos_partitura_id_fkey"
+            columns: ["partitura_id"]
+            isOneToOne: false
+            referencedRelation: "partituras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arquivos_performance_id_fkey"
+            columns: ["performance_id"]
+            isOneToOne: false
+            referencedRelation: "performances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       Partitura: {
         Row: {
           anoAquisicao: number | null
@@ -102,6 +162,102 @@ export type Database = {
           titulo?: string
           tonalidade?: string | null
           updatedAt?: string
+        }
+        Relationships: []
+      }
+      partituras: {
+        Row: {
+          ano_edicao: string | null
+          compositor: string
+          created_at: string
+          digitalizado: boolean
+          edicao: string | null
+          genero: string | null
+          id: string
+          instrumentacao: string
+          numero_armario: string | null
+          numero_pasta: string | null
+          numero_prateleira: string | null
+          setor: string
+          titulo: string
+          tonalidade: string | null
+          updated_at: string
+        }
+        Insert: {
+          ano_edicao?: string | null
+          compositor: string
+          created_at?: string
+          digitalizado?: boolean
+          edicao?: string | null
+          genero?: string | null
+          id?: string
+          instrumentacao: string
+          numero_armario?: string | null
+          numero_pasta?: string | null
+          numero_prateleira?: string | null
+          setor: string
+          titulo: string
+          tonalidade?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ano_edicao?: string | null
+          compositor?: string
+          created_at?: string
+          digitalizado?: boolean
+          edicao?: string | null
+          genero?: string | null
+          id?: string
+          instrumentacao?: string
+          numero_armario?: string | null
+          numero_pasta?: string | null
+          numero_prateleira?: string | null
+          setor?: string
+          titulo?: string
+          tonalidade?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      performances: {
+        Row: {
+          created_at: string
+          data: string
+          horario: string
+          id: string
+          interpretes: string
+          local: string
+          maestros: string
+          nome_compositor: string
+          release: string | null
+          titulo_obra: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data: string
+          horario: string
+          id?: string
+          interpretes: string
+          local: string
+          maestros: string
+          nome_compositor: string
+          release?: string | null
+          titulo_obra: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          horario?: string
+          id?: string
+          interpretes?: string
+          local?: string
+          maestros?: string
+          nome_compositor?: string
+          release?: string | null
+          titulo_obra?: string
+          updated_at?: string
         }
         Relationships: []
       }
