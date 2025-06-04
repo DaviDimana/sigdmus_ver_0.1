@@ -64,10 +64,21 @@ const Repositorio = () => {
       return;
     }
 
+    // Garantir que categoria e obra não sejam vazios
+    if (!data.categoria || !data.obra) {
+      toast.error('Categoria e obra são obrigatórios');
+      return;
+    }
+
     try {
       await uploadArquivo.mutateAsync({
         file: selectedFile,
-        metadata: data
+        metadata: {
+          categoria: data.categoria,
+          obra: data.obra,
+          partitura_id: data.partitura_id || undefined,
+          performance_id: data.performance_id || undefined,
+        }
       });
       toast.success('Arquivo enviado com sucesso!');
       setUploadDialogOpen(false);
