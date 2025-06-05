@@ -16,6 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import PartituraViewer from '@/components/PartituraViewer';
 import RequestAuthDialog from '@/components/RequestAuthDialog';
+import ObraCard from '@/components/ObraCard';
 
 const uploadSchema = z.object({
   categoria: z.string().min(1, 'Categoria é obrigatória'),
@@ -39,6 +40,7 @@ const Repositorio = () => {
   const [selectedArquivo, setSelectedArquivo] = useState<any>(null);
   const [requestAuthDialogOpen, setRequestAuthDialogOpen] = useState(false);
   const [selectedArquivoForAuth, setSelectedArquivoForAuth] = useState<any>(null);
+  const [viewMode, setViewMode] = useState<'grouped' | 'individual'>('grouped');
 
   const form = useForm<UploadFormData>({
     resolver: zodResolver(uploadSchema),
@@ -57,6 +59,16 @@ const Repositorio = () => {
     const matchesCategory = categoryFilter === 'all' || arquivo.categoria === categoryFilter;
     return matchesSearch && matchesCategory;
   });
+
+  // Agrupar arquivos por obra
+  const arquivosPorObra = filteredArquivos.reduce((acc, arquivo) => {
+    const obra = arquivo.obra;
+    if (!acc[obra]) {
+      acc[obra] = [];
+    }
+    acc[obra].push(arquivo);
+    return acc;
+  }, {} as Record<string, any[]>);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -358,94 +370,132 @@ const Repositorio = () => {
         </Dialog>
       </div>
 
-      <div className="flex items-center space-x-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Buscar arquivos..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Buscar arquivos..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Filtrar por categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as categorias</SelectItem>
+              {categorias.map((categoria) => (
+                <SelectItem key={categoria} value={categoria}>
+                  {categoria}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filtrar por categoria" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas as categorias</SelectItem>
-            {categorias.map((categoria) => (
-              <SelectItem key={categoria} value={categoria}>
-                {categoria}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+
+        <div className="flex items-center space-x-2">
+          <Button
+            variant={viewMode === 'grouped' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('grouped')}
+          >
+            Por Obra
+          </Button>
+          <Button
+            variant={viewMode === 'individual' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('individual')}
+          >
+            Individual
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredArquivos.map((arquivo) => (
-          <Card key={arquivo.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-2">
-                  {getFileIcon(arquivo.tipo)}
-                  <Badge variant="secondary">{arquivo.categoria}</Badge>
-                  {arquivo.restricao_download && (
-                    <Badge variant="outline" className="text-xs">
-                      Restrito
-                    </Badge>
-                  )}
+      {viewMode === 'grouped' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+          {Object.entries(arquivosPorObra).map(([obra, arquivosObra]) => (
+            <ObraCard
+              key={obra}
+              obra={obra}
+              arquivos={arquivosObra}
+              onDownload={handleDownload}
+              onView={handleViewFile}
+              onDelete={handleDelete}
+              getFileIcon={getFileIcon}
+              formatFileSize={formatFileSize}
+              downloadArquivo={downloadArquivo}
+              deleteArquivo={deleteArquivo}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredArquivos.map((arquivo) => (
+            <Card key={arquivo.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-2">
+                    {getFileIcon(arquivo.tipo)}
+                    <Badge variant="secondary">{arquivo.categoria}</Badge>
+                    {arquivo.restricao_download && (
+                      <Badge variant="outline" className="text-xs">
+                        Restrito
+                      </Badge>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <CardTitle className="text-lg truncate">{arquivo.nome}</CardTitle>
-              <CardDescription>{arquivo.obra}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm">
-                <div>
-                  <span className="font-medium">Tamanho:</span> {formatFileSize(arquivo.tamanho)}
+                <CardTitle className="text-lg truncate">{arquivo.nome}</CardTitle>
+                <CardDescription>{arquivo.obra}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 text-sm">
+                  <div>
+                    <span className="font-medium">Tamanho:</span> {formatFileSize(arquivo.tamanho)}
+                  </div>
+                  <div>
+                    <span className="font-medium">Downloads:</span> {arquivo.downloads || 0}
+                  </div>
+                  <div>
+                    <span className="font-medium">Adicionado:</span> {new Date(arquivo.created_at).toLocaleDateString('pt-BR')}
+                  </div>
                 </div>
-                <div>
-                  <span className="font-medium">Downloads:</span> {arquivo.downloads || 0}
+                
+                <div className="flex space-x-2 mt-4">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => handleViewFile(arquivo)}
+                    className="flex-1"
+                  >
+                    <Eye className="h-3 w-3 mr-1" />
+                    Visualizar
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    onClick={() => handleDownload(arquivo)}
+                    disabled={downloadArquivo.isPending}
+                    className="flex-1"
+                  >
+                    <Download className="h-3 w-3 mr-1" />
+                    Download
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => handleDelete(arquivo)}
+                    disabled={deleteArquivo.isPending}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
                 </div>
-                <div>
-                  <span className="font-medium">Adicionado:</span> {new Date(arquivo.created_at).toLocaleDateString('pt-BR')}
-                </div>
-              </div>
-              
-              <div className="flex space-x-2 mt-4">
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => handleViewFile(arquivo)}
-                  className="flex-1"
-                >
-                  <Eye className="h-3 w-3 mr-1" />
-                  Visualizar
-                </Button>
-                <Button 
-                  size="sm" 
-                  onClick={() => handleDownload(arquivo)}
-                  disabled={downloadArquivo.isPending}
-                  className="flex-1"
-                >
-                  <Download className="h-3 w-3 mr-1" />
-                  Download
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => handleDelete(arquivo)}
-                  disabled={deleteArquivo.isPending}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {filteredArquivos.length === 0 && (
         <div className="text-center py-8">
