@@ -53,9 +53,11 @@ export type Database = {
           obra: string
           partitura_id: string | null
           performance_id: string | null
+          restricao_download: boolean
           tamanho: number
           tipo: string
           updated_at: string
+          usuario_upload: string | null
         }
         Insert: {
           arquivo_url?: string | null
@@ -67,9 +69,11 @@ export type Database = {
           obra: string
           partitura_id?: string | null
           performance_id?: string | null
+          restricao_download?: boolean
           tamanho: number
           tipo: string
           updated_at?: string
+          usuario_upload?: string | null
         }
         Update: {
           arquivo_url?: string | null
@@ -81,9 +85,11 @@ export type Database = {
           obra?: string
           partitura_id?: string | null
           performance_id?: string | null
+          restricao_download?: boolean
           tamanho?: number
           tipo?: string
           updated_at?: string
+          usuario_upload?: string | null
         }
         Relationships: [
           {
@@ -260,6 +266,47 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      solicitacoes_download: {
+        Row: {
+          arquivo_id: string
+          created_at: string
+          id: string
+          mensagem: string | null
+          status: string
+          updated_at: string
+          usuario_responsavel: string
+          usuario_solicitante: string
+        }
+        Insert: {
+          arquivo_id: string
+          created_at?: string
+          id?: string
+          mensagem?: string | null
+          status?: string
+          updated_at?: string
+          usuario_responsavel: string
+          usuario_solicitante: string
+        }
+        Update: {
+          arquivo_id?: string
+          created_at?: string
+          id?: string
+          mensagem?: string | null
+          status?: string
+          updated_at?: string
+          usuario_responsavel?: string
+          usuario_solicitante?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitacoes_download_arquivo_id_fkey"
+            columns: ["arquivo_id"]
+            isOneToOne: false
+            referencedRelation: "arquivos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       User: {
         Row: {

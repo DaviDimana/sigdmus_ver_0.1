@@ -15,18 +15,20 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import PartituraViewer from '@/components/PartituraViewer';
+import RequestAuthDialog from '@/components/RequestAuthDialog';
 
 const uploadSchema = z.object({
   categoria: z.string().min(1, 'Categoria é obrigatória'),
   obra: z.string().min(1, 'Obra é obrigatória'),
   partitura_id: z.string().optional(),
   performance_id: z.string().optional(),
+  restricao_download: z.boolean().optional(),
 });
 
 type UploadFormData = z.infer<typeof uploadSchema>;
 
 const Repositorio = () => {
-  const { arquivos, isLoading, uploadArquivo, downloadArquivo, deleteArquivo } = useArquivos();
+  const { arquivos, isLoading, uploadArquivo, downloadArquivo, deleteArquivo, solicitarAutorizacao } = useArquivos();
   const { partituras } = usePartituras();
   const { performances } = usePerformances();
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,6 +37,8 @@ const Repositorio = () => {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [selectedArquivo, setSelectedArquivo] = useState<any>(null);
+  const [requestAuthDialogOpen, setRequestAuthDialogOpen] = useState(false);
+  const [selectedArquivoForAuth, setSelectedArquivoForAuth] = useState<any>(null);
 
   const form = useForm<UploadFormData>({
     resolver: zodResolver(uploadSchema),
@@ -43,6 +47,7 @@ const Repositorio = () => {
       obra: '',
       partitura_id: '',
       performance_id: '',
+      restricao_download: false,
     },
   });
 
@@ -78,6 +83,7 @@ const Repositorio = () => {
         obra: data.obra,
         partitura_id: data.partitura_id && data.partitura_id !== 'none' ? data.partitura_id : undefined,
         performance_id: data.performance_id && data.performance_id !== 'none' ? data.performance_id : undefined,
+        restricao_download: data.restricao_download || false,
       };
 
       await uploadArquivo.mutateAsync({
@@ -99,9 +105,29 @@ const Repositorio = () => {
     try {
       await downloadArquivo.mutateAsync(arquivo);
       toast.success('Download iniciado!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao fazer download:', error);
-      toast.error('Erro ao fazer download. Tente novamente.');
+      if (error.message === 'AUTHORIZATION_REQUIRED') {
+        setSelectedArquivoForAuth(arquivo);
+        setRequestAuthDialogOpen(true);
+      } else {
+        toast.error('Erro ao fazer download. Tente novamente.');
+      }
+    }
+  };
+
+  const handleRequestAuth = async (mensagem: string) => {
+    if (!selectedArquivoForAuth) return;
+    
+    try {
+      await solicitarAutorizacao.mutateAsync({
+        arquivo: selectedArquivoForAuth,
+        mensagem
+      });
+      toast.success('Solicitação de autorização enviada!');
+    } catch (error) {
+      console.error('Erro ao solicitar autorização:', error);
+      toast.error('Erro ao enviar solicitação. Tente novamente.');
     }
   };
 
@@ -289,6 +315,31 @@ const Repositorio = () => {
                   )}
                 />
 
+                <FormField
+                  control={form.control}
+                  name="restricao_download"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <input
+                          type="checkbox"
+                          checked={field.value}
+                          onChange={field.onChange}
+                          className="mt-1"
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          Restringir download
+                        </FormLabel>
+                        <p className="text-xs text-gray-500">
+                          Quando marcado, outros usuários precisarão solicitar autorização para baixar este arquivo
+                        </p>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
                 <div className="flex justify-end space-x-2">
                   <Button
                     type="button"
@@ -340,6 +391,11 @@ const Repositorio = () => {
                 <div className="flex items-center space-x-2">
                   {getFileIcon(arquivo.tipo)}
                   <Badge variant="secondary">{arquivo.categoria}</Badge>
+                  {arquivo.restricao_download && (
+                    <Badge variant="outline" className="text-xs">
+                      Restrito
+                    </Badge>
+                  )}
                 </div>
               </div>
               <CardTitle className="text-lg truncate">{arquivo.nome}</CardTitle>
@@ -402,6 +458,13 @@ const Repositorio = () => {
         onClose={() => setViewerOpen(false)}
         arquivo={selectedArquivo}
         onDownload={() => selectedArquivo && handleDownload(selectedArquivo)}
+      />
+
+      <RequestAuthDialog
+        isOpen={requestAuthDialogOpen}
+        onClose={() => setRequestAuthDialogOpen(false)}
+        arquivo={selectedArquivoForAuth}
+        onSubmit={handleRequestAuth}
       />
     </div>
   );

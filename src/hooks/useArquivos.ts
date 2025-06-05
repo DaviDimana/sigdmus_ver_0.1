@@ -6,6 +6,7 @@ import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase
 export type Arquivo = Tables<'arquivos'>;
 export type ArquivoInsert = TablesInsert<'arquivos'>;
 export type ArquivoUpdate = TablesUpdate<'arquivos'>;
+export type SolicitacaoDownload = Tables<'solicitacoes_download'>;
 
 export const useArquivos = () => {
   const queryClient = useQueryClient();
@@ -30,7 +31,16 @@ export const useArquivos = () => {
   });
 
   const uploadArquivo = useMutation({
-    mutationFn: async ({ file, metadata }: { file: File; metadata: { categoria: string; obra: string; partitura_id?: string; performance_id?: string; } }) => {
+    mutationFn: async ({ file, metadata }: { 
+      file: File; 
+      metadata: { 
+        categoria: string; 
+        obra: string; 
+        partitura_id?: string; 
+        performance_id?: string;
+        restricao_download?: boolean;
+      } 
+    }) => {
       console.log('Uploading arquivo:', file.name);
       
       // Upload do arquivo para o storage
@@ -49,6 +59,9 @@ export const useArquivos = () => {
         .from('arquivos')
         .getPublicUrl(fileName);
       
+      // Obter usuário atual
+      const { data: { user } } = await supabase.auth.getUser();
+      
       // Criar entrada no banco de dados
       const arquivoData: ArquivoInsert = {
         ...metadata,
@@ -56,6 +69,8 @@ export const useArquivos = () => {
         tipo: file.type,
         tamanho: file.size,
         arquivo_url: urlData.publicUrl,
+        usuario_upload: user?.id,
+        restricao_download: metadata.restricao_download || false,
       };
       
       const { data, error } = await supabase
@@ -77,9 +92,55 @@ export const useArquivos = () => {
     },
   });
 
+  const solicitarAutorizacao = useMutation({
+    mutationFn: async ({ arquivo, mensagem }: { arquivo: Arquivo; mensagem?: string }) => {
+      console.log('Solicitando autorização para arquivo:', arquivo.id);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      const { data, error } = await supabase
+        .from('solicitacoes_download')
+        .insert({
+          arquivo_id: arquivo.id,
+          usuario_solicitante: user.id,
+          usuario_responsavel: arquivo.usuario_upload!,
+          mensagem: mensagem || `Solicitação de download para: ${arquivo.nome}`,
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error creating download request:', error);
+        throw error;
+      }
+      
+      console.log('Download request created:', data);
+      return data;
+    },
+  });
+
   const downloadArquivo = useMutation({
     mutationFn: async (arquivo: Arquivo) => {
       console.log('Downloading arquivo:', arquivo.nome);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Verificar se o arquivo tem restrição de download
+      if (arquivo.restricao_download && arquivo.usuario_upload !== user?.id) {
+        // Verificar se existe autorização aprovada
+        const { data: autorizacao } = await supabase
+          .from('solicitacoes_download')
+          .select('*')
+          .eq('arquivo_id', arquivo.id)
+          .eq('usuario_solicitante', user?.id)
+          .eq('status', 'aprovada')
+          .single();
+        
+        if (!autorizacao) {
+          throw new Error('AUTHORIZATION_REQUIRED');
+        }
+      }
       
       // Incrementar contador de downloads
       await supabase
@@ -143,5 +204,6 @@ export const useArquivos = () => {
     uploadArquivo,
     downloadArquivo,
     deleteArquivo,
+    solicitarAutorizacao,
   };
 };
