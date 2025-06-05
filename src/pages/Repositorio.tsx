@@ -30,7 +30,7 @@ const Repositorio = () => {
   const { partituras } = usePartituras();
   const { performances } = usePerformances();
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
@@ -47,7 +47,7 @@ const Repositorio = () => {
   const filteredArquivos = arquivos.filter(arquivo => {
     const matchesSearch = arquivo.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          arquivo.obra.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !categoryFilter || arquivo.categoria === categoryFilter;
+    const matchesCategory = categoryFilter === 'all' || arquivo.categoria === categoryFilter;
     return matchesSearch && matchesCategory;
   });
 
@@ -240,6 +240,7 @@ const Repositorio = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="none">Nenhuma partitura</SelectItem>
                           {partituras.map((partitura) => (
                             <SelectItem key={partitura.id} value={partitura.id}>
                               {partitura.titulo} - {partitura.compositor}
@@ -265,6 +266,7 @@ const Repositorio = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="none">Nenhuma performance</SelectItem>
                           {performances.map((performance) => (
                             <SelectItem key={performance.id} value={performance.id}>
                               {performance.titulo_obra} - {new Date(performance.data).toLocaleDateString('pt-BR')}
@@ -310,7 +312,7 @@ const Repositorio = () => {
             <SelectValue placeholder="Filtrar por categoria" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas as categorias</SelectItem>
+            <SelectItem value="all">Todas as categorias</SelectItem>
             {categorias.map((categoria) => (
               <SelectItem key={categoria} value={categoria}>
                 {categoria}
