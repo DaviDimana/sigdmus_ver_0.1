@@ -463,8 +463,8 @@ const Repositorio = () => {
       <RequestAuthDialog
         isOpen={requestAuthDialogOpen}
         onClose={() => setRequestAuthDialogOpen(false)}
-        arquivo={selectedArquivoForAuth}
         onSubmit={handleRequestAuth}
+        arquivoNome={selectedArquivoForAuth?.nome || ''}
       />
     </div>
   );
