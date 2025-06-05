@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Download, Search, FileText, Music, FileSpreadsheet, File, Trash2 } from 'lucide-react';
+import { Upload, Download, Search, FileText, Music, FileSpreadsheet, File, Trash2, Eye } from 'lucide-react';
 import { useArquivos } from '@/hooks/useArquivos';
 import { usePartituras } from '@/hooks/usePartituras';
 import { usePerformances } from '@/hooks/usePerformances';
@@ -14,6 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import PartituraViewer from '@/components/PartituraViewer';
 
 const uploadSchema = z.object({
   categoria: z.string().min(1, 'Categoria é obrigatória'),
@@ -32,6 +33,8 @@ const Repositorio = () => {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [selectedArquivo, setSelectedArquivo] = useState<any>(null);
 
   const form = useForm<UploadFormData>({
     resolver: zodResolver(uploadSchema),
@@ -112,6 +115,11 @@ const Repositorio = () => {
         toast.error('Erro ao excluir arquivo. Tente novamente.');
       }
     }
+  };
+
+  const handleViewFile = (arquivo: any) => {
+    setSelectedArquivo(arquivo);
+    setViewerOpen(true);
   };
 
   const getFileIcon = (tipo: string) => {
@@ -353,9 +361,18 @@ const Repositorio = () => {
               <div className="flex space-x-2 mt-4">
                 <Button 
                   size="sm" 
+                  variant="outline"
+                  onClick={() => handleViewFile(arquivo)}
                   className="flex-1"
+                >
+                  <Eye className="h-3 w-3 mr-1" />
+                  Visualizar
+                </Button>
+                <Button 
+                  size="sm" 
                   onClick={() => handleDownload(arquivo)}
                   disabled={downloadArquivo.isPending}
+                  className="flex-1"
                 >
                   <Download className="h-3 w-3 mr-1" />
                   Download
@@ -379,6 +396,13 @@ const Repositorio = () => {
           <p className="text-gray-500">Nenhum arquivo encontrado.</p>
         </div>
       )}
+
+      <PartituraViewer
+        isOpen={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+        arquivo={selectedArquivo}
+        onDownload={() => selectedArquivo && handleDownload(selectedArquivo)}
+      />
     </div>
   );
 };
