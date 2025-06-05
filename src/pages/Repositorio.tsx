@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -64,22 +63,25 @@ const Repositorio = () => {
       return;
     }
 
-    // Garantir que categoria e obra não sejam vazios
     if (!data.categoria || !data.obra) {
       toast.error('Categoria e obra são obrigatórios');
       return;
     }
 
     try {
+      // Filtrar valores "none" e strings vazias antes de enviar
+      const metadata = {
+        categoria: data.categoria,
+        obra: data.obra,
+        partitura_id: data.partitura_id && data.partitura_id !== 'none' ? data.partitura_id : undefined,
+        performance_id: data.performance_id && data.performance_id !== 'none' ? data.performance_id : undefined,
+      };
+
       await uploadArquivo.mutateAsync({
         file: selectedFile,
-        metadata: {
-          categoria: data.categoria,
-          obra: data.obra,
-          partitura_id: data.partitura_id || undefined,
-          performance_id: data.performance_id || undefined,
-        }
+        metadata
       });
+      
       toast.success('Arquivo enviado com sucesso!');
       setUploadDialogOpen(false);
       setSelectedFile(null);
