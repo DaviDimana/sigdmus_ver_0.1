@@ -41,7 +41,6 @@ const ObraCard: React.FC<ObraCardProps> = ({
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Badge variant="secondary">{arquivos.length} arquivo(s)</Badge>
               {hasRestrictedFiles && (
                 <Badge variant="outline" className="text-xs">
                   Partes Restritas
@@ -130,8 +129,9 @@ const ObraCard: React.FC<ObraCardProps> = ({
             </div>
           </CollapsibleContent>
 
-          {/* Seta de collapse centralizada na parte inferior */}
-          <div className="flex justify-center mt-4 pt-2 border-t">
+          {/* Badge de arquivos e seta de collapse centralizados na parte inferior */}
+          <div className="flex justify-center items-center space-x-2 mt-4 pt-2 border-t">
+            <Badge variant="secondary">{arquivos.length} arquivo(s)</Badge>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                 {isOpen ? (
