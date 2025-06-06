@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, ChevronRight, Download, Eye, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Download, Eye, Trash2 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface ObraCardProps {
@@ -41,15 +41,6 @@ const ObraCard: React.FC<ObraCardProps> = ({
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="p-0 h-auto">
-                  {isOpen ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
-                </Button>
-              </CollapsibleTrigger>
               <Badge variant="secondary">{arquivos.length} arquivo(s)</Badge>
               {hasRestrictedFiles && (
                 <Badge variant="outline" className="text-xs">
@@ -138,6 +129,19 @@ const ObraCard: React.FC<ObraCardProps> = ({
               ))}
             </div>
           </CollapsibleContent>
+
+          {/* Seta de collapse centralizada na parte inferior */}
+          <div className="flex justify-center mt-4 pt-2 border-t">
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                {isOpen ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
+          </div>
         </CardContent>
       </Collapsible>
     </Card>

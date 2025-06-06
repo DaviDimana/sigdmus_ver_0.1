@@ -34,7 +34,7 @@ const Repositorio = () => {
   const { performances } = usePerformances();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [selectedArquivo, setSelectedArquivo] = useState<any>(null);
@@ -53,15 +53,8 @@ const Repositorio = () => {
     },
   });
 
-  const filteredArquivos = arquivos.filter(arquivo => {
-    const matchesSearch = arquivo.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         arquivo.obra.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === 'all' || arquivo.categoria === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
-
   // Agrupar arquivos por obra
-  const arquivosPorObra = filteredArquivos.reduce((acc, arquivo) => {
+  const arquivosPorObra = arquivos.reduce((acc, arquivo) => {
     const obra = arquivo.obra;
     if (!acc[obra]) {
       acc[obra] = [];
@@ -71,15 +64,19 @@ const Repositorio = () => {
   }, {} as Record<string, any[]>);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
+    const files = Array.from(event.target.files || []);
+    if (files.length > 0) {
+      setSelectedFiles(files);
     }
   };
 
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleUpload = async (data: UploadFormData) => {
-    if (!selectedFile) {
-      toast.error('Selecione um arquivo para fazer upload');
+    if (selectedFiles.length === 0) {
+      toast.error('Selecione pelo menos um arquivo para fazer upload');
       return;
     }
 
@@ -89,27 +86,30 @@ const Repositorio = () => {
     }
 
     try {
-      // Filtrar valores "none" e strings vazias antes de enviar
-      const metadata = {
-        categoria: data.categoria,
-        obra: data.obra,
-        partitura_id: data.partitura_id && data.partitura_id !== 'none' ? data.partitura_id : undefined,
-        performance_id: data.performance_id && data.performance_id !== 'none' ? data.performance_id : undefined,
-        restricao_download: data.restricao_download || false,
-      };
+      const uploadPromises = selectedFiles.map(async (file) => {
+        const metadata = {
+          categoria: data.categoria,
+          obra: data.obra,
+          partitura_id: data.partitura_id && data.partitura_id !== 'none' ? data.partitura_id : undefined,
+          performance_id: data.performance_id && data.performance_id !== 'none' ? data.performance_id : undefined,
+          restricao_download: data.restricao_download || false,
+        };
 
-      await uploadArquivo.mutateAsync({
-        file: selectedFile,
-        metadata
+        return uploadArquivo.mutateAsync({
+          file,
+          metadata
+        });
       });
+
+      await Promise.all(uploadPromises);
       
-      toast.success('Arquivo enviado com sucesso!');
+      toast.success(`${selectedFiles.length} arquivo(s) enviado(s) com sucesso!`);
       setUploadDialogOpen(false);
-      setSelectedFile(null);
+      setSelectedFiles([]);
       form.reset();
     } catch (error) {
       console.error('Erro ao fazer upload:', error);
-      toast.error('Erro ao fazer upload do arquivo. Tente novamente.');
+      toast.error('Erro ao fazer upload dos arquivos. Tente novamente.');
     }
   };
 
@@ -209,30 +209,47 @@ const Repositorio = () => {
           <DialogTrigger asChild>
             <Button className="flex items-center space-x-2">
               <Upload className="h-4 w-4" />
-              <span>Upload Arquivo</span>
+              <span>Upload Arquivos</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Upload de Arquivo</DialogTitle>
+              <DialogTitle>Upload de Arquivos</DialogTitle>
               <DialogDescription>
-                Faça upload de um novo arquivo para o repositório
+                Faça upload de arquivos para o repositório (múltiplos arquivos permitidos)
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(handleUpload)} className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium">Arquivo</label>
+                  <label className="text-sm font-medium">Arquivos</label>
                   <Input
                     type="file"
                     onChange={handleFileSelect}
                     className="mt-2"
                     accept=".pdf,.doc,.docx,.mp3,.wav,.midi,.mid,.mp4,.avi,.mov"
+                    multiple
                   />
-                  {selectedFile && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Arquivo selecionado: {selectedFile.name} ({formatFileSize(selectedFile.size)})
-                    </p>
+                  {selectedFiles.length > 0 && (
+                    <div className="mt-2 space-y-1 max-h-32 overflow-y-auto">
+                      {selectedFiles.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between text-xs bg-gray-50 p-2 rounded">
+                          <span className="truncate flex-1">{file.name} ({formatFileSize(file.size)})</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFile(index)}
+                            className="h-4 w-4 p-0 ml-2"
+                          >
+                            ×
+                          </Button>
+                        </div>
+                      ))}
+                      <p className="text-xs text-gray-500 mt-1">
+                        Total: {selectedFiles.length} arquivo(s)
+                      </p>
+                    </div>
                   )}
                 </div>
 
