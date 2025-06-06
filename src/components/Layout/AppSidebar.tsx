@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
@@ -21,11 +20,20 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
 
 const AppSidebar: React.FC = () => {
   const { profile, user } = useAuth();
+  const { setOpenMobile, isMobile } = useSidebar();
+
+  const handleItemClick = () => {
+    // Fechar o menu mobile quando um item for clicado
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   const navigationItems = [
     {
@@ -130,6 +138,7 @@ const AppSidebar: React.FC = () => {
                       <SidebarMenuButton asChild className="w-full">
                         <NavLink
                           to={item.href}
+                          onClick={handleItemClick}
                           className={({ isActive }) =>
                             `flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors w-full ${
                               isActive
