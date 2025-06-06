@@ -36,9 +36,9 @@ const ObraCard: React.FC<ObraCardProps> = ({
   const hasRestrictedFiles = arquivos.some(arquivo => arquivo.restricao_download);
 
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="hover:shadow-lg transition-shadow w-full">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               {hasRestrictedFiles && (
@@ -48,22 +48,25 @@ const ObraCard: React.FC<ObraCardProps> = ({
               )}
             </div>
           </div>
-          <CardTitle className="text-lg">{obra}</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-base sm:text-lg leading-tight">{obra}</CardTitle>
+          <CardDescription className="text-sm">
             Conjunto de partituras da obra
           </CardDescription>
         </CardHeader>
         
-        <CardContent>
-          <div className="space-y-2 text-sm mb-4">
-            <div>
-              <span className="font-medium">Tamanho total:</span> {formatFileSize(totalSize)}
+        <CardContent className="pt-0">
+          <div className="space-y-2 text-xs sm:text-sm mb-4">
+            <div className="flex flex-wrap gap-2">
+              <span className="font-medium">Tamanho:</span> 
+              <span>{formatFileSize(totalSize)}</span>
             </div>
-            <div>
-              <span className="font-medium">Downloads totais:</span> {totalDownloads}
+            <div className="flex flex-wrap gap-2">
+              <span className="font-medium">Downloads:</span> 
+              <span>{totalDownloads}</span>
             </div>
-            <div>
-              <span className="font-medium">Categorias:</span> {[...new Set(arquivos.map(a => a.categoria))].join(', ')}
+            <div className="flex flex-wrap gap-2">
+              <span className="font-medium">Categorias:</span> 
+              <span className="break-words">{[...new Set(arquivos.map(a => a.categoria))].join(', ')}</span>
             </div>
           </div>
 
@@ -71,14 +74,16 @@ const ObraCard: React.FC<ObraCardProps> = ({
             <div className="space-y-3 mt-4 border-t pt-4">
               <h4 className="font-medium text-sm text-gray-700">Partes da obra:</h4>
               {arquivos.map((arquivo) => (
-                <div key={arquivo.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3 flex-1">
-                    {getFileIcon(arquivo.tipo)}
+                <div key={arquivo.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 rounded-lg space-y-3 sm:space-y-0">
+                  <div className="flex items-center space-x-3 flex-1 min-w-0">
+                    <div className="flex-shrink-0">
+                      {getFileIcon(arquivo.tipo)}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">
                         {arquivo.nome}
                       </p>
-                      <div className="flex items-center space-x-2 mt-1">
+                      <div className="flex flex-wrap items-center gap-2 mt-1">
                         <Badge variant="outline" className="text-xs">
                           {arquivo.categoria}
                         </Badge>
@@ -94,12 +99,12 @@ const ObraCard: React.FC<ObraCardProps> = ({
                     </div>
                   </div>
                   
-                  <div className="flex space-x-1">
+                  <div className="flex space-x-2 sm:space-x-1 justify-end">
                     <Button 
                       size="sm" 
                       variant="outline"
                       onClick={() => onView(arquivo)}
-                      className="h-8 w-8 p-0"
+                      className="h-8 w-8 p-0 flex-shrink-0"
                       title="Visualizar"
                     >
                       <Eye className="h-3 w-3" />
@@ -108,7 +113,7 @@ const ObraCard: React.FC<ObraCardProps> = ({
                       size="sm" 
                       onClick={() => onDownload(arquivo)}
                       disabled={downloadArquivo.isPending}
-                      className="h-8 w-8 p-0"
+                      className="h-8 w-8 p-0 flex-shrink-0"
                       title="Download"
                     >
                       <Download className="h-3 w-3" />
@@ -118,7 +123,7 @@ const ObraCard: React.FC<ObraCardProps> = ({
                       variant="outline"
                       onClick={() => onDelete(arquivo)}
                       disabled={deleteArquivo.isPending}
-                      className="h-8 w-8 p-0"
+                      className="h-8 w-8 p-0 flex-shrink-0"
                       title="Excluir"
                     >
                       <Trash2 className="h-3 w-3" />
@@ -131,7 +136,7 @@ const ObraCard: React.FC<ObraCardProps> = ({
 
           {/* Badge de arquivos e seta de collapse centralizados na parte inferior */}
           <div className="flex justify-center items-center space-x-2 mt-4 pt-2 border-t">
-            <Badge variant="secondary">{arquivos.length} arquivo(s)</Badge>
+            <Badge variant="secondary" className="text-xs">{arquivos.length} arquivo(s)</Badge>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                 {isOpen ? (

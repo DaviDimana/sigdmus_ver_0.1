@@ -204,23 +204,23 @@ const Repositorio = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6 p-2 sm:p-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Repositório</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Repositório</h1>
+          <p className="text-gray-600 mt-2 text-sm sm:text-base">
             Gerencie arquivos digitais do acervo
           </p>
         </div>
         
         <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="flex items-center space-x-2">
+            <Button className="flex items-center space-x-2 w-full sm:w-auto">
               <Upload className="h-4 w-4" />
               <span>Upload Arquivos</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md mx-4 sm:mx-auto">
             <DialogHeader>
               <DialogTitle>Upload de Arquivos</DialogTitle>
               <DialogDescription>
@@ -377,15 +377,16 @@ const Repositorio = () => {
                   )}
                 />
 
-                <div className="flex justify-end space-x-2">
+                <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setUploadDialogOpen(false)}
+                    className="w-full sm:w-auto"
                   >
                     Cancelar
                   </Button>
-                  <Button type="submit" disabled={uploadArquivo.isPending}>
+                  <Button type="submit" disabled={uploadArquivo.isPending} className="w-full sm:w-auto">
                     {uploadArquivo.isPending ? 'Enviando...' : 'Enviar'}
                   </Button>
                 </div>
@@ -395,9 +396,9 @@ const Repositorio = () => {
         </Dialog>
       </div>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <div className="relative flex-1 max-w-md">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
+        <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+          <div className="relative flex-1 max-w-full sm:max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Buscar arquivos..."
@@ -407,7 +408,7 @@ const Repositorio = () => {
             />
           </div>
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-full sm:w-48">
               <SelectValue placeholder="Filtrar por categoria" />
             </SelectTrigger>
             <SelectContent>
@@ -421,11 +422,12 @@ const Repositorio = () => {
           </Select>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 w-full sm:w-auto">
           <Button
             variant={viewMode === 'grouped' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setViewMode('grouped')}
+            className="flex-1 sm:flex-none"
           >
             Por Obra
           </Button>
@@ -433,6 +435,7 @@ const Repositorio = () => {
             variant={viewMode === 'individual' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setViewMode('individual')}
+            className="flex-1 sm:flex-none"
           >
             Individual
           </Button>
@@ -440,7 +443,7 @@ const Repositorio = () => {
       </div>
 
       {viewMode === 'grouped' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {Object.entries(arquivosPorObra).map(([obra, arquivosObra]) => (
             <ObraCard
               key={obra}
@@ -457,14 +460,14 @@ const Repositorio = () => {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredArquivos.map((arquivo) => (
             <Card key={arquivo.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
+              <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 flex-wrap">
                     {getFileIcon(arquivo.tipo)}
-                    <Badge variant="secondary">{arquivo.categoria}</Badge>
+                    <Badge variant="secondary" className="text-xs">{arquivo.categoria}</Badge>
                     {arquivo.restricao_download && (
                       <Badge variant="outline" className="text-xs">
                         Restrito
@@ -472,23 +475,23 @@ const Repositorio = () => {
                     )}
                   </div>
                 </div>
-                <CardTitle className="text-lg truncate">{arquivo.nome}</CardTitle>
-                <CardDescription>{arquivo.obra}</CardDescription>
+                <CardTitle className="text-base sm:text-lg truncate">{arquivo.nome}</CardTitle>
+                <CardDescription className="text-sm">{arquivo.obra}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 text-sm">
-                  <div>
+                  <div className="flex flex-wrap gap-2">
                     <span className="font-medium">Tamanho:</span> {formatFileSize(arquivo.tamanho)}
                   </div>
-                  <div>
+                  <div className="flex flex-wrap gap-2">
                     <span className="font-medium">Downloads:</span> {arquivo.downloads || 0}
                   </div>
-                  <div>
+                  <div className="flex flex-wrap gap-2">
                     <span className="font-medium">Adicionado:</span> {new Date(arquivo.created_at).toLocaleDateString('pt-BR')}
                   </div>
                 </div>
                 
-                <div className="flex space-x-2 mt-4">
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mt-4">
                   <Button 
                     size="sm" 
                     variant="outline"
@@ -512,6 +515,7 @@ const Repositorio = () => {
                     variant="outline"
                     onClick={() => handleDelete(arquivo)}
                     disabled={deleteArquivo.isPending}
+                    className="w-full sm:w-auto"
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
