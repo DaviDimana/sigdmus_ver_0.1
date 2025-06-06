@@ -63,6 +63,14 @@ const Repositorio = () => {
     return acc;
   }, {} as Record<string, any[]>);
 
+  // Filtrar arquivos para o modo individual
+  const filteredArquivos = arquivos.filter(arquivo => {
+    const matchesSearch = arquivo.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         arquivo.obra.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter === 'all' || arquivo.categoria === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
+
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     if (files.length > 0) {
