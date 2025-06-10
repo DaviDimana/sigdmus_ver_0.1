@@ -3,6 +3,8 @@ import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Music, Calendar, Download } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ObraDetailsDialogProps {
   isOpen: boolean;
@@ -19,6 +21,26 @@ const ObraDetailsDialog: React.FC<ObraDetailsDialogProps> = ({
   arquivos,
   formatFileSize
 }) => {
+  // Buscar partituras relacionadas à obra
+  const { data: partituras = [] } = useQuery({
+    queryKey: ['partituras-obra', obra],
+    queryFn: async () => {
+      console.log('Fetching partituras for obra:', obra);
+      const { data, error } = await supabase
+        .from('partituras')
+        .select('*')
+        .eq('titulo', obra);
+      
+      if (error) {
+        console.error('Error fetching partituras:', error);
+        return [];
+      }
+      
+      return data || [];
+    },
+    enabled: isOpen && !!obra,
+  });
+
   const totalSize = arquivos.reduce((sum, arquivo) => sum + arquivo.tamanho, 0);
   const totalDownloads = arquivos.reduce((sum, arquivo) => sum + (arquivo.downloads || 0), 0);
   const categorias = [...new Set(arquivos.map(a => a.categoria))];
@@ -32,7 +54,7 @@ const ObraDetailsDialog: React.FC<ObraDetailsDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">{obra}</DialogTitle>
           <DialogDescription>
@@ -60,6 +82,70 @@ const ObraDetailsDialog: React.FC<ObraDetailsDialogProps> = ({
               <div className="text-sm text-orange-600">Categorias</div>
             </div>
           </div>
+
+          {/* Informações das Partituras Cadastradas */}
+          {partituras.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Partituras Cadastradas</h3>
+              <div className="space-y-4">
+                {partituras.map((partitura) => (
+                  <div key={partitura.id} className="p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-start justify-between mb-2">
+                      <Badge variant="secondary">{partitura.setor}</Badge>
+                      {partitura.digitalizado && (
+                        <Badge variant="outline" className="bg-green-50 text-green-700">
+                          Digital
+                        </Badge>
+                      )}
+                    </div>
+                    <h4 className="font-semibold text-lg">{partitura.titulo}</h4>
+                    <p className="text-gray-600 mb-3">{partitura.compositor}</p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <span className="font-medium">Instrumentação:</span> {partitura.instrumentacao}
+                      </div>
+                      {partitura.tonalidade && (
+                        <div>
+                          <span className="font-medium">Tonalidade:</span> {partitura.tonalidade}
+                        </div>
+                      )}
+                      {partitura.genero && (
+                        <div>
+                          <span className="font-medium">Gênero:</span> {partitura.genero}
+                        </div>
+                      )}
+                      {partitura.edicao && (
+                        <div>
+                          <span className="font-medium">Edição:</span> {partitura.edicao}
+                        </div>
+                      )}
+                      {partitura.ano_edicao && (
+                        <div>
+                          <span className="font-medium">Ano da Edição:</span> {partitura.ano_edicao}
+                        </div>
+                      )}
+                      {partitura.numero_armario && (
+                        <div>
+                          <span className="font-medium">Armário:</span> {partitura.numero_armario}
+                        </div>
+                      )}
+                      {partitura.numero_prateleira && (
+                        <div>
+                          <span className="font-medium">Prateleira:</span> {partitura.numero_prateleira}
+                        </div>
+                      )}
+                      {partitura.numero_pasta && (
+                        <div>
+                          <span className="font-medium">Pasta:</span> {partitura.numero_pasta}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Categorias */}
           <div>
