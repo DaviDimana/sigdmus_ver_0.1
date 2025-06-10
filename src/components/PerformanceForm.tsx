@@ -56,16 +56,20 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 sm:space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
           <FormField
             control={form.control}
             name="titulo_obra"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Título da Obra *</FormLabel>
+                <FormLabel className="text-sm sm:text-base">Título da Obra *</FormLabel>
                 <FormControl>
-                  <Input placeholder="Digite o título da obra" {...field} />
+                  <Input 
+                    placeholder="Digite o título da obra" 
+                    className="text-sm sm:text-base h-9 sm:h-10"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -77,9 +81,13 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({
             name="nome_compositor"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nome do Compositor *</FormLabel>
+                <FormLabel className="text-sm sm:text-base">Nome do Compositor *</FormLabel>
                 <FormControl>
-                  <Input placeholder="Digite o nome do compositor" {...field} />
+                  <Input 
+                    placeholder="Digite o nome do compositor" 
+                    className="text-sm sm:text-base h-9 sm:h-10"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -87,15 +95,19 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
           <FormField
             control={form.control}
             name="local"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Local *</FormLabel>
+                <FormLabel className="text-sm sm:text-base">Local *</FormLabel>
                 <FormControl>
-                  <Input placeholder="Digite o local da performance" {...field} />
+                  <Input 
+                    placeholder="Digite o local da performance" 
+                    className="text-sm sm:text-base h-9 sm:h-10"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -107,9 +119,13 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({
             name="data"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Data *</FormLabel>
+                <FormLabel className="text-sm sm:text-base">Data *</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <Input 
+                    type="date" 
+                    className="text-sm sm:text-base h-9 sm:h-10"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -121,9 +137,13 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({
             name="horario"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Horário *</FormLabel>
+                <FormLabel className="text-sm sm:text-base">Horário *</FormLabel>
                 <FormControl>
-                  <Input type="time" {...field} />
+                  <Input 
+                    type="time" 
+                    className="text-sm sm:text-base h-9 sm:h-10"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -131,17 +151,17 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
           <FormField
             control={form.control}
             name="maestros"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Maestro(s) *</FormLabel>
+                <FormLabel className="text-sm sm:text-base">Maestro(s) *</FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder="Digite o(s) nome(s) do(s) maestro(s)"
-                    className="resize-none"
+                    className="resize-none text-sm sm:text-base min-h-[80px] sm:min-h-[100px]"
                     {...field}
                   />
                 </FormControl>
@@ -155,11 +175,11 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({
             name="interpretes"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Intérprete(s) *</FormLabel>
+                <FormLabel className="text-sm sm:text-base">Intérprete(s) *</FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder="Digite o(s) nome(s) do(s) intérprete(s)"
-                    className="resize-none"
+                    className="resize-none text-sm sm:text-base min-h-[80px] sm:min-h-[100px]"
                     {...field}
                   />
                 </FormControl>
@@ -174,11 +194,11 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({
           name="release"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Release</FormLabel>
+              <FormLabel className="text-sm sm:text-base">Release</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Digite informações adicionais sobre a performance"
-                  className="resize-none min-h-[100px]"
+                  className="resize-none min-h-[80px] sm:min-h-[100px] text-sm sm:text-base"
                   {...field}
                 />
               </FormControl>
@@ -187,18 +207,19 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({
           )}
         />
 
-        <div className="flex justify-end space-x-4 pt-6">
+        <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-4 sm:pt-6">
           <Button
             type="button"
             variant="outline"
             onClick={onCancel}
             disabled={isSubmitting}
+            className="w-full sm:w-auto text-sm sm:text-base h-9 sm:h-10"
           >
             Cancelar
           </Button>
           <Button 
             type="submit" 
-            className="flex items-center space-x-2"
+            className="flex items-center justify-center space-x-2 w-full sm:w-auto text-sm sm:text-base h-9 sm:h-10"
             disabled={isSubmitting}
           >
             <Save className="h-4 w-4" />
