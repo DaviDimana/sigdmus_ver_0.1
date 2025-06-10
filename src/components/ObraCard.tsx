@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, ChevronUp, Download, Eye, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Download, Eye, Trash2, Info, Calendar } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface ObraCardProps {
@@ -16,6 +16,8 @@ interface ObraCardProps {
   formatFileSize: (bytes: number) => string;
   downloadArquivo: any;
   deleteArquivo: any;
+  onViewDetails?: (obra: string) => void;
+  onViewPerformances?: (obra: string) => void;
 }
 
 const ObraCard: React.FC<ObraCardProps> = ({
@@ -27,7 +29,9 @@ const ObraCard: React.FC<ObraCardProps> = ({
   getFileIcon,
   formatFileSize,
   downloadArquivo,
-  deleteArquivo
+  deleteArquivo,
+  onViewDetails,
+  onViewPerformances
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -38,8 +42,8 @@ const ObraCard: React.FC<ObraCardProps> = ({
   return (
     <Card className="hover:shadow-lg transition-shadow w-full">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
+        <CardHeader className="pb-3 p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-2">
               {hasRestrictedFiles && (
                 <Badge variant="outline" className="text-xs">
@@ -54,7 +58,7 @@ const ObraCard: React.FC<ObraCardProps> = ({
           </CardDescription>
         </CardHeader>
         
-        <CardContent className="pt-0">
+        <CardContent className="pt-0 p-4 sm:p-6">
           <div className="space-y-2 text-xs sm:text-sm mb-4">
             <div className="flex flex-wrap gap-2">
               <span className="font-medium">Tamanho:</span> 
@@ -68,6 +72,28 @@ const ObraCard: React.FC<ObraCardProps> = ({
               <span className="font-medium">Categorias:</span> 
               <span className="break-words">{[...new Set(arquivos.map(a => a.categoria))].join(', ')}</span>
             </div>
+          </div>
+
+          {/* Botões de ação da obra */}
+          <div className="flex flex-col sm:flex-row gap-2 mb-4 p-3 bg-gray-50 rounded-lg">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onViewDetails?.(obra)}
+              className="flex-1"
+            >
+              <Info className="h-3 w-3 mr-2" />
+              Detalhes da Obra
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onViewPerformances?.(obra)}
+              className="flex-1"
+            >
+              <Calendar className="h-3 w-3 mr-2" />
+              Ver Performances
+            </Button>
           </div>
 
           <CollapsibleContent>

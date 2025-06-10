@@ -17,6 +17,8 @@ import * as z from 'zod';
 import PartituraViewer from '@/components/PartituraViewer';
 import RequestAuthDialog from '@/components/RequestAuthDialog';
 import ObraCard from '@/components/ObraCard';
+import ObraDetailsDialog from '@/components/ObraDetailsDialog';
+import ObraPerformancesDialog from '@/components/ObraPerformancesDialog';
 
 const uploadSchema = z.object({
   categoria: z.string().min(1, 'Categoria é obrigatória'),
@@ -41,6 +43,9 @@ const Repositorio = () => {
   const [requestAuthDialogOpen, setRequestAuthDialogOpen] = useState(false);
   const [selectedArquivoForAuth, setSelectedArquivoForAuth] = useState<any>(null);
   const [viewMode, setViewMode] = useState<'grouped' | 'individual'>('grouped');
+  const [obraDetailsOpen, setObraDetailsOpen] = useState(false);
+  const [obraPerformancesOpen, setObraPerformancesOpen] = useState(false);
+  const [selectedObra, setSelectedObra] = useState<string>('');
 
   const form = useForm<UploadFormData>({
     resolver: zodResolver(uploadSchema),
@@ -202,6 +207,16 @@ const Repositorio = () => {
       </div>
     );
   }
+
+  const handleViewObraDetails = (obra: string) => {
+    setSelectedObra(obra);
+    setObraDetailsOpen(true);
+  };
+
+  const handleViewObraPerformances = (obra: string) => {
+    setSelectedObra(obra);
+    setObraPerformancesOpen(true);
+  };
 
   return (
     <div className="space-y-4 sm:space-y-6 p-2 sm:p-0">
@@ -452,6 +467,8 @@ const Repositorio = () => {
               onDownload={handleDownload}
               onView={handleViewFile}
               onDelete={handleDelete}
+              onViewDetails={handleViewObraDetails}
+              onViewPerformances={handleViewObraPerformances}
               getFileIcon={getFileIcon}
               formatFileSize={formatFileSize}
               downloadArquivo={downloadArquivo}
@@ -544,6 +561,21 @@ const Repositorio = () => {
         onClose={() => setRequestAuthDialogOpen(false)}
         onSubmit={handleRequestAuth}
         arquivoNome={selectedArquivoForAuth?.nome || ''}
+      />
+
+      {/* Novos diálogos */}
+      <ObraDetailsDialog
+        isOpen={obraDetailsOpen}
+        onClose={() => setObraDetailsOpen(false)}
+        obra={selectedObra}
+        arquivos={selectedObra ? arquivosPorObra[selectedObra] || [] : []}
+        formatFileSize={formatFileSize}
+      />
+
+      <ObraPerformancesDialog
+        isOpen={obraPerformancesOpen}
+        onClose={() => setObraPerformancesOpen(false)}
+        obra={selectedObra}
       />
     </div>
   );
