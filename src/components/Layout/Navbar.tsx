@@ -59,7 +59,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
             <div className="flex-shrink-0 flex items-center">
               <Music className="h-8 w-8 text-blue-600" />
               <span className="ml-2 text-xl font-bold text-gray-900">
-                MusicManager
+                Sistema Integrado de Documentação e Consulta de Acervos Musicais
               </span>
             </div>
           </div>

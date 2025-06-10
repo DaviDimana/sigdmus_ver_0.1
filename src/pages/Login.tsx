@@ -25,7 +25,7 @@ const Login = () => {
               <Music className="h-8 w-8 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">MusicManager</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Sistema Integrado de Documentação e Consulta de Acervos Musicais</h1>
           <p className="text-gray-600 mt-2">
             Sistema de Gerenciamento Musical
           </p>

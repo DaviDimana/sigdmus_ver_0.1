@@ -112,7 +112,7 @@ const AppSidebar: React.FC = () => {
     <Sidebar className="border-r border-gray-200">
       <SidebarHeader className="px-4 py-6 border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-900">
-          Sistema Musical
+          ACO<em>R</em>DES
         </h2>
         {/* Debug info no header */}
         <div className="text-xs text-gray-500 mt-1">
