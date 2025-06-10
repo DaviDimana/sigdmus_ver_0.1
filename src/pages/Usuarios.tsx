@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,9 @@ import { Search, UserPlus, Edit, Trash2, Mail, Calendar, Shield } from 'lucide-r
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import type { Tables } from '@/integrations/supabase/types';
+
+type UserRole = Tables<'user_profiles'>['role'];
 
 const Usuarios = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -29,7 +31,7 @@ const Usuarios = () => {
   });
 
   const updateUserRole = useMutation({
-    mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
+    mutationFn: async ({ userId, role }: { userId: string; role: UserRole }) => {
       const { error } = await supabase
         .from('user_profiles')
         .update({ role })
@@ -74,7 +76,7 @@ const Usuarios = () => {
     return matchesSearch && matchesRole;
   });
 
-  const handleRoleChange = (userId: string, newRole: string) => {
+  const handleRoleChange = (userId: string, newRole: UserRole) => {
     updateUserRole.mutate({ userId, role: newRole });
   };
 
@@ -179,7 +181,7 @@ const Usuarios = () => {
                   <Shield className="h-4 w-4 text-gray-400 flex-shrink-0" />
                   <Select
                     value={usuario.role}
-                    onValueChange={(value) => handleRoleChange(usuario.id, value)}
+                    onValueChange={(value: UserRole) => handleRoleChange(usuario.id, value)}
                   >
                     <SelectTrigger className="h-8 text-xs">
                       <SelectValue />
