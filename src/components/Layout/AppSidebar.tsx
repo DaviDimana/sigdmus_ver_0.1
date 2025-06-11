@@ -21,6 +21,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
+  SidebarFooter,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
@@ -118,10 +119,6 @@ const AppSidebar: React.FC = () => {
             ACO<em>R</em>DES
           </h2>
         </div>
-        {/* Debug info no header */}
-        <div className="text-xs text-gray-500 mt-1">
-          Role: {profile?.role || 'Carregando...'}
-        </div>
       </SidebarHeader>
       <SidebarContent className="px-2 py-4">
         <SidebarGroup>
@@ -160,6 +157,11 @@ const AppSidebar: React.FC = () => {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter className="px-4 py-3 border-t border-gray-200 mt-auto">
+        <div className="text-xs text-gray-500">
+          Role: {profile?.role || 'Carregando...'}
+        </div>
+      </SidebarFooter>
     </Sidebar>
   );
 };
