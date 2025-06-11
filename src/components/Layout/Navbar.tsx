@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Settings, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -55,10 +56,20 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
     <nav className="bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="hidden sm:block">
+          {/* Título versão desktop */}
+          <div className="hidden md:block">
             <span className="text-xs sm:text-sm md:text-base lg:text-lg font-medium text-gray-700">
               Sistema Integrado de Documentação e Consulta de Acervos Musicais
             </span>
+          </div>
+
+          {/* Título versão mobile - 3 linhas */}
+          <div className="block md:hidden">
+            <div className="text-[10px] leading-tight font-medium text-gray-700">
+              <div>Sistema Integrado de</div>
+              <div>Documentação e Consulta de</div>
+              <div>Acervos Musicais</div>
+            </div>
           </div>
 
           <div className="flex items-center space-x-4 flex-shrink-0 ml-auto">
@@ -120,3 +131,4 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
 };
 
 export default Navbar;
+
