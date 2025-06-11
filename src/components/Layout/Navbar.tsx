@@ -86,10 +86,10 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
               </div>
             </div>
 
-            {/* Título versão mobile com estilo melhorado */}
+            {/* Título versão mobile com estilo melhorado e tamanho original */}
             <div className="block md:hidden">
               <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent font-serif">
-                <div className="text-[11px] leading-tight font-bold uppercase tracking-wide">
+                <div className="text-[9px] leading-tight font-bold uppercase tracking-wide">
                   <div>SISTEMA INTEGRADO DE</div>
                   <div>DOCUMENTAÇÃO E CONSULTA</div>
                   <div>DE ACERVOS MUSICAIS</div>
