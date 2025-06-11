@@ -21,6 +21,8 @@ const fieldLabels = {
     numero_armario: 'N° Armário',
     numero_prateleira: 'N° Prateleira',
     numero_pasta: 'N° Pasta',
+    instituicao: 'Instituição',
+    observacoes: 'Observações',
   },
   performances: {
     titulo_obra: 'Título da Obra',
@@ -90,14 +92,16 @@ export const generateLabels = async ({ type, fields }: GenerateLabelsParams) => 
         if (lineY + lineHeight > y + labelHeight - 2) return; // Não ultrapassar a etiqueta
         
         const value = item[field as keyof typeof item];
+        const fieldLabel = fieldLabels[type][field as keyof typeof fieldLabels[typeof type]] || field;
         let text = '';
         
         if (field === 'digitalizado') {
-          text = value ? 'Digital: Sim' : 'Digital: Não';
+          text = `${fieldLabel}: ${value ? 'Sim' : 'Não'}`;
         } else if (field === 'data') {
-          text = `Data: ${new Date(value as string).toLocaleDateString('pt-BR')}`;
+          text = `${fieldLabel}: ${new Date(value as string).toLocaleDateString('pt-BR')}`;
         } else {
-          text = typeof value === 'string' || typeof value === 'number' ? String(value) : '';
+          const displayValue = typeof value === 'string' || typeof value === 'number' ? String(value) : '';
+          text = `${fieldLabel}: ${displayValue}`;
         }
         
         // Truncar texto se for muito longo
