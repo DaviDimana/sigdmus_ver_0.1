@@ -12,6 +12,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 interface NavbarProps {
   currentUser?: {
@@ -54,16 +55,17 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center flex-1 min-w-0">
-            <div className="flex items-center bg-white border-r border-gray-200 pr-4 mr-4 h-16">
-              <Music className="h-8 w-8 text-blue-600 flex-shrink-0" />
-              <span className="ml-2 font-bold text-gray-900 whitespace-nowrap">
+        <div className="flex justify-between items-center h-16">
+          <div className="flex items-center space-x-4">
+            <SidebarTrigger />
+            <div className="flex items-center">
+              <Music className="h-8 w-8 text-blue-600" />
+              <span className="ml-2 text-xl font-bold text-gray-900">
                 ACO<em>R</em>DES
               </span>
             </div>
-            <div className="bg-white flex-1 min-w-0 h-16 flex items-center">
-              <span className="text-sm sm:text-base md:text-lg lg:text-xl font-bold text-gray-900 truncate">
+            <div className="hidden sm:block">
+              <span className="text-xs sm:text-sm md:text-base lg:text-lg font-medium text-gray-700">
                 Sistema Integrado de Documentação e Consulta de Acervos Musicais
               </span>
             </div>
