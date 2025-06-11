@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -48,8 +47,6 @@ const ProfileSettings: React.FC = () => {
     
     console.log('=== INICIANDO SUBMIT DO FORMULÁRIO ===');
     console.log('FormData:', formData);
-    console.log('User:', user);
-    console.log('Profile:', profile);
     
     if (!formData.name.trim()) {
       toast({
@@ -70,34 +67,23 @@ const ProfileSettings: React.FC = () => {
       return;
     }
 
-    if (!profile) {
-      console.error('Profile não encontrado');
-      toast({
-        title: "Erro",
-        description: "Perfil não encontrado. Recarregue a página.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setLoading(true);
 
     try {
       console.log('Preparando updates...');
       
       const updates: Partial<Tables<'user_profiles'>> = {
-        name: formData.name.trim(),
-        updated_at: new Date().toISOString()
+        name: formData.name.trim()
       };
 
       // Apenas gerentes e admins podem alterar setor
-      if ((profile.role === 'GERENTE' || profile.role === 'ADMIN') && formData.setor) {
+      if (profile && (profile.role === 'GERENTE' || profile.role === 'ADMIN') && formData.setor) {
         updates.setor = formData.setor as any;
         console.log('Adicionando setor:', formData.setor);
       }
 
       // Apenas músicos podem alterar instrumento
-      if (profile.role === 'MUSICO' && formData.instrumento) {
+      if (profile && profile.role === 'MUSICO' && formData.instrumento) {
         updates.instrumento = formData.instrumento as any;
         console.log('Adicionando instrumento:', formData.instrumento);
       }
@@ -118,28 +104,19 @@ const ProfileSettings: React.FC = () => {
       console.error('=== ERRO NO SUBMIT ===');
       console.error('Erro completo:', error);
       
-      let errorMessage = "Erro ao atualizar perfil. Tente novamente.";
+      let errorMessage = "Erro ao atualizar perfil.";
       
       if (error instanceof Error) {
         console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
         
-        // Tratamento específico de erros comuns
-        if (error.message.includes('JWT') || error.message.includes('auth')) {
+        if (error.message.includes('política de segurança')) {
+          errorMessage = "Erro de permissão. Você não tem acesso para editar este perfil.";
+        } else if (error.message.includes('JWT') || error.message.includes('auth')) {
           errorMessage = "Sessão expirada. Faça login novamente.";
-        } else if (error.message.includes('RLS') || error.message.includes('policy')) {
-          errorMessage = "Erro de permissão. Verifique se você tem acesso para editar este perfil.";
         } else if (error.message.includes('network') || error.message.includes('fetch')) {
-          errorMessage = "Erro de conexão. Verifique sua internet e tente novamente.";
-        } else if (error.message.includes('duplicate') || error.message.includes('unique')) {
-          errorMessage = "Erro: dados duplicados. Verifique as informações inseridas.";
-        } else if (error.message.includes('PGRST116')) {
-          errorMessage = "Perfil não encontrado. Recarregue a página e tente novamente.";
-        }
-        
-        // Se temos mais detalhes do erro, incluir na mensagem
-        if (error.message && !error.message.includes('Erro ao atualizar perfil')) {
-          errorMessage += ` Detalhes: ${error.message}`;
+          errorMessage = "Erro de conexão. Verifique sua internet.";
+        } else {
+          errorMessage = `Erro: ${error.message}`;
         }
       }
       
@@ -273,7 +250,7 @@ const ProfileSettings: React.FC = () => {
       <div className="flex justify-end">
         <Button 
           type="submit" 
-          disabled={loading || !user || !profile} 
+          disabled={loading || !user} 
           className="min-w-[140px] transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-blue-300/50 group"
         >
           {loading ? (

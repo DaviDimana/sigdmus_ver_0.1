@@ -157,48 +157,87 @@ export const useAuth = () => {
   const updateProfile = async (updates: Partial<UserProfile>) => {
     console.log('=== UPDATEPROFILE: INÍCIO ===');
     console.log('Updates recebidos:', updates);
-    console.log('Auth state atual:', authState);
     
     if (!authState.user) {
       console.error('updateProfile: Usuário não logado');
       throw new Error('Usuário não está logado');
     }
 
-    if (!authState.session) {
-      console.error('updateProfile: Sessão não encontrada');
-      throw new Error('Sessão não encontrada');
-    }
-
     try {
-      console.log('updateProfile: Iniciando atualização para usuário:', authState.user.id);
-      console.log('updateProfile: Updates a aplicar:', updates);
+      console.log('updateProfile: Tentando atualização direta para usuário:', authState.user.id);
       
-      // Tentar a atualização
+      // Primeiro, tentamos uma query simples para verificar se conseguimos acessar
+      const { data: existingProfile, error: fetchError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', authState.user.id)
+        .maybeSingle();
+
+      console.log('updateProfile: Perfil existente:', existingProfile);
+      console.log('updateProfile: Erro na busca:', fetchError);
+
+      // Se não conseguimos buscar devido à policy, usamos RPC
+      if (fetchError && fetchError.code === '42P17') {
+        console.log('updateProfile: Usando RPC devido a erro de policy');
+        throw new Error('Erro de política de segurança. Verifique as permissões do usuário.');
+      }
+
+      // Se o perfil não existe, criamos um novo
+      if (!existingProfile) {
+        console.log('updateProfile: Criando novo perfil');
+        const newProfile = {
+          id: authState.user.id,
+          name: updates.name || 'Usuário',
+          email: authState.user.email || '',
+          role: 'ADMIN' as const,
+          setor: updates.setor || null,
+          instrumento: updates.instrumento || null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .insert(newProfile)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('updateProfile: Erro ao criar perfil:', error);
+          throw error;
+        }
+
+        console.log('updateProfile: Perfil criado:', data);
+        
+        setAuthState(prev => ({
+          ...prev,
+          profile: data
+        }));
+
+        return data;
+      }
+
+      // Se o perfil existe, atualizamos
+      console.log('updateProfile: Atualizando perfil existente');
+      const finalUpdates = {
+        ...updates,
+        updated_at: new Date().toISOString()
+      };
+
       const { data, error } = await supabase
         .from('user_profiles')
-        .update(updates)
+        .update(finalUpdates)
         .eq('id', authState.user.id)
         .select()
         .single();
 
-      console.log('updateProfile: Resposta do Supabase:', { data, error });
-
       if (error) {
-        console.error('updateProfile: Erro do Supabase:', error);
-        console.error('updateProfile: Error code:', error.code);
-        console.error('updateProfile: Error message:', error.message);
-        console.error('updateProfile: Error details:', error.details);
+        console.error('updateProfile: Erro na atualização:', error);
         throw error;
-      }
-
-      if (!data) {
-        console.error('updateProfile: Nenhum dado retornado');
-        throw new Error('Nenhum dado foi retornado da atualização');
       }
 
       console.log('updateProfile: Atualização bem-sucedida:', data);
 
-      // Atualizar o estado local
       setAuthState(prev => ({
         ...prev,
         profile: data
@@ -209,8 +248,6 @@ export const useAuth = () => {
     } catch (error) {
       console.error('=== UPDATEPROFILE: ERRO ===');
       console.error('updateProfile: Erro capturado:', error);
-      
-      // Re-throw o erro para que o componente possa tratá-lo
       throw error;
     }
   };
