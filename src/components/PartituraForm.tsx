@@ -75,17 +75,17 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 sm:space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
           <FormField
             control={form.control}
             name="setor"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Setor *</FormLabel>
+                <FormLabel className="text-sm sm:text-base">Setor *</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="text-sm sm:text-base h-9 sm:h-10">
                       <SelectValue placeholder="Selecione o setor" />
                     </SelectTrigger>
                   </FormControl>
@@ -107,10 +107,10 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
             name="digitalizado"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Digitalizado? *</FormLabel>
+                <FormLabel className="text-sm sm:text-base">Digitalizado? *</FormLabel>
                 <Select onValueChange={(value) => field.onChange(value === 'true')} value={field.value ? 'true' : 'false'}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="text-sm sm:text-base h-9 sm:h-10">
                       <SelectValue placeholder="Selecione uma opção" />
                     </SelectTrigger>
                   </FormControl>
@@ -125,15 +125,19 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
           <FormField
             control={form.control}
             name="titulo"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Título da Obra *</FormLabel>
+                <FormLabel className="text-sm sm:text-base">Título da Obra *</FormLabel>
                 <FormControl>
-                  <Input placeholder="Digite o título da obra" {...field} />
+                  <Input 
+                    placeholder="Digite o título da obra" 
+                    className="text-sm sm:text-base h-9 sm:h-10"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -145,9 +149,13 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
             name="compositor"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nome do Compositor *</FormLabel>
+                <FormLabel className="text-sm sm:text-base">Nome do Compositor *</FormLabel>
                 <FormControl>
-                  <Input placeholder="Digite o nome do compositor" {...field} />
+                  <Input 
+                    placeholder="Digite o nome do compositor" 
+                    className="text-sm sm:text-base h-9 sm:h-10"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -160,11 +168,11 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
           name="instrumentacao"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Instrumentação *</FormLabel>
+              <FormLabel className="text-sm sm:text-base">Instrumentação *</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Descreva a instrumentação da obra"
-                  className="resize-none"
+                  className="resize-none text-sm sm:text-base min-h-[80px] sm:min-h-[100px]"
                   {...field}
                 />
               </FormControl>
@@ -173,15 +181,19 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
           )}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
           <FormField
             control={form.control}
             name="tonalidade"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tonalidade</FormLabel>
+                <FormLabel className="text-sm sm:text-base">Tonalidade</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ex: Dó maior" {...field} />
+                  <Input 
+                    placeholder="Ex: Dó maior" 
+                    className="text-sm sm:text-base h-9 sm:h-10"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -193,9 +205,13 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
             name="genero"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Gênero/Forma</FormLabel>
+                <FormLabel className="text-sm sm:text-base">Gênero/Forma</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ex: Sinfonia, Sonata" {...field} />
+                  <Input 
+                    placeholder="Ex: Sinfonia, Sonata" 
+                    className="text-sm sm:text-base h-9 sm:h-10"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -207,9 +223,13 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
             name="edicao"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Edição</FormLabel>
+                <FormLabel className="text-sm sm:text-base">Edição</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ex: Primeira edição" {...field} />
+                  <Input 
+                    placeholder="Ex: Primeira edição" 
+                    className="text-sm sm:text-base h-9 sm:h-10"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -217,15 +237,19 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
           <FormField
             control={form.control}
             name="ano_edicao"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Ano da Edição</FormLabel>
+                <FormLabel className="text-sm sm:text-base">Ano da Edição</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ex: 2024" {...field} />
+                  <Input 
+                    placeholder="Ex: 2024" 
+                    className="text-sm sm:text-base h-9 sm:h-10"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -237,9 +261,13 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
             name="numero_armario"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>N° Armário</FormLabel>
+                <FormLabel className="text-sm sm:text-base">N° Armário</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ex: A01" {...field} />
+                  <Input 
+                    placeholder="Ex: A01" 
+                    className="text-sm sm:text-base h-9 sm:h-10"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -251,9 +279,13 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
             name="numero_prateleira"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>N° Prateleira</FormLabel>
+                <FormLabel className="text-sm sm:text-base">N° Prateleira</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ex: P01" {...field} />
+                  <Input 
+                    placeholder="Ex: P01" 
+                    className="text-sm sm:text-base h-9 sm:h-10"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -265,9 +297,13 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
             name="numero_pasta"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>N° Pasta</FormLabel>
+                <FormLabel className="text-sm sm:text-base">N° Pasta</FormLabel>
                 <FormControl>
-                  <Input placeholder="Ex: PA001" {...field} />
+                  <Input 
+                    placeholder="Ex: PA001" 
+                    className="text-sm sm:text-base h-9 sm:h-10"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -275,18 +311,19 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
           />
         </div>
 
-        <div className="flex justify-end space-x-4 pt-6">
+        <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-4 sm:pt-6">
           <Button
             type="button"
             variant="outline"
             onClick={onCancel}
             disabled={isSubmitting}
+            className="w-full sm:w-auto text-sm sm:text-base h-9 sm:h-10"
           >
             Cancelar
           </Button>
           <Button 
             type="submit" 
-            className="flex items-center space-x-2"
+            className="flex items-center justify-center space-x-2 w-full sm:w-auto text-sm sm:text-base h-9 sm:h-10"
             disabled={isSubmitting}
           >
             <Save className="h-4 w-4" />
