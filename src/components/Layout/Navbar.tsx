@@ -93,12 +93,11 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
               <>
                 {/* Botão de Logout visível */}
                 <Button 
-                  size="sm"
                   variant="outline" 
                   onClick={handleSignOut}
-                  className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700 hover:border-red-400 shadow-lg shadow-blue-200/50"
+                  className="h-7 px-2 text-xs text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700 hover:border-red-400 shadow-lg shadow-blue-200/50"
                 >
-                  <LogOut className="mr-2 h-4 w-4" />
+                  <LogOut className="mr-1 h-3 w-3" />
                   <span className="hidden sm:inline">Sair</span>
                 </Button>
 
@@ -151,18 +150,16 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
             ) : user && !profile ? (
               <>
                 <Button 
-                  size="sm"
                   variant="outline" 
                   onClick={handleSignOut}
-                  className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700 hover:border-red-400 shadow-lg shadow-blue-200/50"
+                  className="h-7 px-2 text-xs text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700 hover:border-red-400 shadow-lg shadow-blue-200/50"
                 >
-                  <LogOut className="mr-2 h-4 w-4" />
+                  <LogOut className="mr-1 h-3 w-3" />
                   <span className="hidden sm:inline">Sair</span>
                 </Button>
                 <Button 
-                  size="sm"
                   onClick={handleCreateProfile} 
-                  className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200/50"
+                  className="h-7 px-2 text-xs bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200/50"
                 >
                   <span>Criar Perfil</span>
                 </Button>
