@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,7 @@ const Partituras = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { partituras, isLoading } = usePartituras();
-  const { getArquivosByPartitura, downloadArquivo } = useArquivos();
+  const { arquivos, getArquivosByPartitura, downloadArquivo } = useArquivos();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
@@ -42,11 +43,11 @@ const Partituras = () => {
 
   const handleView = async (partitura: any) => {
     try {
-      const arquivos = await getArquivosByPartitura.mutateAsync(partitura.id);
-      if (arquivos && arquivos.length > 0) {
-        const arquivo = arquivos[0];
+      const arquivosPartitura = arquivos?.filter(arquivo => arquivo.partitura_id === partitura.id);
+      if (arquivosPartitura && arquivosPartitura.length > 0) {
+        const arquivo = arquivosPartitura[0];
         
-        if (arquivo.requer_autorizacao && profile?.role !== 'ADMIN' && profile?.role !== 'GERENTE') {
+        if (arquivo.restricao_download && profile?.role !== 'ADMIN' && profile?.role !== 'GERENTE') {
           setSelectedArquivo(arquivo);
           setRequestAuthOpen(true);
           return;
@@ -65,11 +66,11 @@ const Partituras = () => {
 
   const handleDownload = async (partitura: any) => {
     try {
-      const arquivos = await getArquivosByPartitura.mutateAsync(partitura.id);
-      if (arquivos && arquivos.length > 0) {
-        const arquivo = arquivos[0];
+      const arquivosPartitura = arquivos?.filter(arquivo => arquivo.partitura_id === partitura.id);
+      if (arquivosPartitura && arquivosPartitura.length > 0) {
+        const arquivo = arquivosPartitura[0];
         
-        if (arquivo.requer_autorizacao && profile?.role !== 'ADMIN' && profile?.role !== 'GERENTE') {
+        if (arquivo.restricao_download && profile?.role !== 'ADMIN' && profile?.role !== 'GERENTE') {
           setSelectedArquivo(arquivo);
           setRequestAuthOpen(true);
           return;
@@ -108,49 +109,49 @@ const Partituras = () => {
   };
 
   return (
-    <div className="space-y-3 sm:space-y-6 p-1 sm:p-0">
-      <div className="flex flex-col space-y-3 sm:space-y-4">
+    <div className="space-y-6">
+      <div className="flex flex-col space-y-4">
         <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Partituras</h1>
-          <p className="text-gray-600 mt-1 sm:mt-2 text-xs sm:text-sm md:text-base">
+          <h1 className="text-3xl font-bold text-gray-900">Partituras</h1>
+          <p className="text-gray-600 mt-2">
             Gerencie e consulte o acervo de partituras
           </p>
         </div>
         
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
             <div className="relative flex-1 sm:w-80">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 placeholder="Buscar partituras..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 text-sm"
+                className="pl-10"
               />
             </div>
             <Button variant="outline" size="sm" className="w-full sm:w-auto">
               <Filter className="h-4 w-4 mr-2" />
-              <span className="text-sm">Filtros</span>
+              Filtros
             </Button>
           </div>
           
           <Button onClick={() => navigate('/partituras/nova')} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
-            <span className="text-sm">Nova Partitura</span>
+            Nova Partitura
           </Button>
         </div>
       </div>
 
-      <Card className="w-full">
-        <CardHeader className="p-3 sm:p-4 md:p-6">
-          <CardTitle className="text-base sm:text-lg md:text-xl">Lista de Partituras</CardTitle>
-          <CardDescription className="text-xs sm:text-sm md:text-base">
+      <Card>
+        <CardHeader>
+          <CardTitle>Lista de Partituras</CardTitle>
+          <CardDescription>
             {filteredPartituras.length} partitura(s) encontrada(s)
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-3 sm:p-4 md:p-6 space-y-3">
+            <div className="p-6 space-y-3">
               {[...Array(5)].map((_, i) => (
                 <Skeleton key={i} className="h-12 w-full" />
               ))}
@@ -160,38 +161,37 @@ const Partituras = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-xs sm:text-sm">Título</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Compositor</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Setor</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Instrumentação</TableHead>
-                    <TableHead className="text-xs sm:text-sm">Status</TableHead>
-                    <TableHead className="text-xs sm:text-sm text-center">Ações</TableHead>
+                    <TableHead>Título</TableHead>
+                    <TableHead>Compositor</TableHead>
+                    <TableHead>Setor</TableHead>
+                    <TableHead>Instrumentação</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-center">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredPartituras.map((partitura) => (
                     <TableRow key={partitura.id}>
-                      <TableCell className="font-medium text-xs sm:text-sm">
+                      <TableCell className="font-medium">
                         {partitura.titulo}
                       </TableCell>
-                      <TableCell className="text-xs sm:text-sm">{partitura.compositor}</TableCell>
-                      <TableCell className="text-xs sm:text-sm">
-                        <Badge variant="secondary" className="text-xs">
+                      <TableCell>{partitura.compositor}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">
                           {partitura.setor}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-xs sm:text-sm">{partitura.instrumentacao}</TableCell>
-                      <TableCell className="text-xs sm:text-sm">
+                      <TableCell>{partitura.instrumentacao}</TableCell>
+                      <TableCell>
                         <Badge 
-                          variant={partitura.digitalizado === 'Sim' ? 'default' : 'outline'}
-                          className="text-xs"
+                          variant={partitura.digitalizado ? 'default' : 'outline'}
                         >
-                          {partitura.digitalizado === 'Sim' ? 'Digital' : 'Físico'}
+                          {partitura.digitalizado ? 'Digital' : 'Físico'}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="flex justify-center space-x-1">
-                          {partitura.digitalizado === 'Sim' && (
+                          {partitura.digitalizado && (
                             <>
                               <Button
                                 variant="ghost"
@@ -231,8 +231,8 @@ const Partituras = () => {
       </Card>
 
       <UploadDialog
-        isOpen={uploadDialogOpen}
-        onClose={() => setUploadDialogOpen(false)}
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
         partituraId={selectedPartitura?.id}
         partituraTitle={selectedPartitura?.titulo}
       />
