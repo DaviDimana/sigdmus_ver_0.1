@@ -17,7 +17,7 @@ const Partituras = () => {
   const navigate = useNavigate();
   const { partituras, isLoading } = usePartituras();
   const { arquivos, downloadArquivo } = useArquivos();
-  const { authState } = useAuth();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPartitura, setSelectedPartitura] = useState<any>(null);
   const [viewerOpen, setViewerOpen] = useState(false);
@@ -30,9 +30,9 @@ const Partituras = () => {
     (partitura.genero && partitura.genero.toLowerCase().includes(searchTerm.toLowerCase()))
   ) || [];
 
-  const handleDownload = async (arquivoId: string) => {
+  const handleDownload = async (arquivo: any) => {
     try {
-      await downloadArquivo.mutateAsync(arquivoId);
+      await downloadArquivo.mutateAsync(arquivo);
       toast.success('Download iniciado com sucesso!');
     } catch (error) {
       console.error('Erro ao fazer download:', error);
@@ -62,10 +62,10 @@ const Partituras = () => {
     return colors[genre as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
-  const canUpload = authState.user && (
-    authState.user.role === 'ADMIN' || 
-    authState.user.role === 'GERENTE' || 
-    authState.user.role === 'ARQUIVISTA'
+  const canUpload = user && (
+    user.role === 'ADMIN' || 
+    user.role === 'GERENTE' || 
+    user.role === 'ARQUIVISTA'
   );
 
   if (isLoading) {
@@ -176,7 +176,7 @@ const Partituras = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleDownload(relatedArquivos[0].id)}
+                        onClick={() => handleDownload(relatedArquivos[0])}
                         className="flex-1"
                       >
                         <Download className="h-4 w-4 mr-1" />
@@ -225,12 +225,12 @@ const Partituras = () => {
       )}
 
       {/* Dialogs */}
-      {selectedPartitura && relatedArquivos.length > 0 && (
+      {selectedPartitura && relatedArquivos && relatedArquivos.length > 0 && (
         <PartituraViewer
-          isOpen={viewerOpen}
-          onClose={() => setViewerOpen(false)}
+          open={viewerOpen}
+          onOpenChange={setViewerOpen}
           arquivo={relatedArquivos[0]}
-          onDownload={() => handleDownload(relatedArquivos[0].id)}
+          onDownload={() => handleDownload(relatedArquivos[0])}
         />
       )}
 

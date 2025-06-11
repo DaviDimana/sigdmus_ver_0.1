@@ -1,4 +1,3 @@
-
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
@@ -26,6 +25,8 @@ const fieldLabels = {
     numero_armario: 'N° Armário',
     numero_prateleira: 'N° Prateleira',
     numero_pasta: 'N° Pasta',
+    instituicao: 'Instituição',
+    observacoes: 'Observações',
   },
   performances: {
     titulo_obra: 'Título da Obra',

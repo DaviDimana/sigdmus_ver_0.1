@@ -15,6 +15,8 @@ const partituraSchema = z.object({
   numeroArmario: z.string().optional(),
   numeroPrateleira: z.string().optional(),
   numeroPasta: z.string().optional(),
+  instituicao: z.string().optional(),
+  observacoes: z.string().optional(),
 });
 
 // Schema da Nova Performance (extraído do formulário)
@@ -43,6 +45,8 @@ export const partiturasFields = [
   { id: 'numeroArmario', label: 'N° Armário' },
   { id: 'numeroPrateleira', label: 'N° Prateleira' },
   { id: 'numeroPasta', label: 'N° Pasta' },
+  { id: 'instituicao', label: 'Instituição' },
+  { id: 'observacoes', label: 'Observações' },
 ];
 
 export const performancesFields = [

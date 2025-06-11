@@ -29,6 +29,8 @@ const Relatorios = () => {
     { id: 'numero_armario', label: 'N° Armário' },
     { id: 'numero_prateleira', label: 'N° Prateleira' },
     { id: 'numero_pasta', label: 'N° Pasta' },
+    { id: 'instituicao', label: 'Instituição' },
+    { id: 'observacoes', label: 'Observações' },
   ];
 
   const performancesFields = [
