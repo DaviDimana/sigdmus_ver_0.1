@@ -147,15 +147,15 @@ const AppSidebar: React.FC = () => {
                           to={item.href}
                           onClick={handleItemClick}
                           className={({ isActive }) =>
-                            `flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors w-full ${
+                            `flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 w-full group ${
                               isActive
-                                ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                                : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                                ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700 shadow-md'
+                                : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600 hover:scale-105 hover:shadow-lg hover:shadow-blue-200/50'
                             }`
                           }
                         >
-                          <IconComponent className="h-5 w-5 flex-shrink-0" />
-                          <span className="truncate">{item.name}</span>
+                          <IconComponent className="h-5 w-5 flex-shrink-0 transition-all duration-200 group-hover:scale-110 group-hover:text-blue-600" />
+                          <span className="truncate transition-all duration-200 group-hover:font-semibold">{item.name}</span>
                         </NavLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
