@@ -36,21 +36,26 @@ const Auth = () => {
 
     try {
       if (isLogin) {
+        console.log('Auth: Tentando fazer login com:', formData.email);
         await signIn(formData.email, formData.password);
+        console.log('Auth: Login realizado com sucesso');
         toast({
           title: "Login realizado com sucesso!",
-          description: "Bem-vindo ao MusicManager.",
+          description: "Bem-vindo ao sistema.",
         });
+        // Force page reload for clean state
         window.location.href = '/';
       } else {
+        console.log('Auth: Tentando cadastrar usuário:', formData.email);
         await signUp(formData.email, formData.password, formData.name);
+        console.log('Auth: Cadastro realizado com sucesso');
         toast({
           title: "Conta criada com sucesso!",
           description: "Verifique seu email para confirmar a conta.",
         });
       }
     } catch (error: any) {
-      console.error('Auth error:', error);
+      console.error('Auth: Erro na autenticação:', error);
       toast({
         title: "Erro na autenticação",
         description: error.message || "Ocorreu um erro inesperado.",
@@ -70,7 +75,7 @@ const Auth = () => {
               <Music className="h-8 w-8 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">MusicManager</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Sistema Integrado de Documentação e Consulta de Acervos Musicais</h1>
           <p className="text-gray-600 mt-2">
             Sistema de Gerenciamento Musical
           </p>
