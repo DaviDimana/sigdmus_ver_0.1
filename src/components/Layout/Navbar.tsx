@@ -90,54 +90,77 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
 
           <div className="flex items-center space-x-4 flex-shrink-0 ml-auto">
             {user && profile ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center space-x-3 hover:bg-blue-50 hover:text-blue-600">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-blue-100 text-blue-600">
-                        {profile.name.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="hidden md:block text-left">
-                      <div className="text-sm font-medium text-gray-900">
-                        {profile.name}
+              <>
+                {/* Botão de Logout visível */}
+                <Button 
+                  variant="outline" 
+                  onClick={handleSignOut}
+                  className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700 hover:border-red-400"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span className="hidden sm:inline">Sair</span>
+                </Button>
+
+                {/* Dropdown do usuário */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center space-x-3 hover:bg-blue-50 hover:text-blue-600">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-blue-100 text-blue-600">
+                          {profile.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="hidden md:block text-left">
+                        <div className="text-sm font-medium text-gray-900">
+                          {profile.name}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Badge variant={getRoleBadgeVariant(profile.role)} className="text-xs">
+                            {getRoleLabel(profile.role)}
+                          </Badge>
+                          {profile.setor && (
+                            <span className="text-xs text-gray-500">
+                              {profile.setor.replace('ACERVO_', '')}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant={getRoleBadgeVariant(profile.role)} className="text-xs">
-                          {getRoleLabel(profile.role)}
-                        </Badge>
-                        {profile.setor && (
-                          <span className="text-xs text-gray-500">
-                            {profile.setor.replace('ACERVO_', '')}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem className="hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 cursor-pointer">
-                    <User className="mr-2 h-4 w-4 transition-all duration-200 group-hover:scale-110" />
-                    <span className="transition-all duration-200 group-hover:font-semibold">Perfil</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 cursor-pointer">
-                    <Settings className="mr-2 h-4 w-4 transition-all duration-200 group-hover:scale-110" />
-                    <span className="transition-all duration-200 group-hover:font-semibold">Configurações</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    className="text-red-600 focus:text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 cursor-pointer"
-                    onClick={handleSignOut}
-                  >
-                    <LogOut className="mr-2 h-4 w-4 transition-all duration-200 group-hover:scale-110" />
-                    <span className="transition-all duration-200 group-hover:font-semibold">Sair</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuItem className="hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 cursor-pointer">
+                      <User className="mr-2 h-4 w-4 transition-all duration-200 group-hover:scale-110" />
+                      <span className="transition-all duration-200 group-hover:font-semibold">Perfil</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 cursor-pointer">
+                      <Settings className="mr-2 h-4 w-4 transition-all duration-200 group-hover:scale-110" />
+                      <span className="transition-all duration-200 group-hover:font-semibold">Configurações</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      className="text-red-600 focus:text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 cursor-pointer"
+                      onClick={handleSignOut}
+                    >
+                      <LogOut className="mr-2 h-4 w-4 transition-all duration-200 group-hover:scale-110" />
+                      <span className="transition-all duration-200 group-hover:font-semibold">Sair</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
             ) : user && !profile ? (
-              <Button onClick={handleCreateProfile} className="bg-blue-600 hover:bg-blue-700">
-                <span>Criar Perfil</span>
-              </Button>
+              <>
+                <Button 
+                  variant="outline" 
+                  onClick={handleSignOut}
+                  className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700 hover:border-red-400"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span className="hidden sm:inline">Sair</span>
+                </Button>
+                <Button onClick={handleCreateProfile} className="bg-blue-600 hover:bg-blue-700">
+                  <span>Criar Perfil</span>
+                </Button>
+              </>
             ) : (
               <Button onClick={() => navigate('/auth')}>
                 <span>Entrar</span>
