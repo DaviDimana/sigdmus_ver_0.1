@@ -79,12 +79,12 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
             </span>
           </div>
 
-          {/* Título versão mobile - 3 linhas */}
+          {/* Título versão mobile - 3 linhas conforme solicitado */}
           <div className="block md:hidden">
             <div className="text-[11px] leading-tight font-bold text-blue-600 uppercase tracking-wide">
-              <div>Sistema Integrado de</div>
-              <div>Documentação e Consulta de</div>
-              <div>Acervos Musicais</div>
+              <div>SISTEMA INTEGRADO DE</div>
+              <div>DOCUMENTAÇÃO E CONSULTA DE</div>
+              <div>ACERVOS MUSICAIS</div>
             </div>
           </div>
 
