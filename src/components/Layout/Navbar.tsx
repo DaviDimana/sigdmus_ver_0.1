@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Settings, LogOut, User } from 'lucide-react';
+import { Settings, LogOut, User, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 interface NavbarProps {
   currentUser?: {
@@ -72,19 +73,28 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
     <nav className="bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Título versão desktop */}
-          <div className="hidden md:block">
-            <span className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-blue-600 uppercase tracking-wide">
-              Sistema Integrado de Documentação e Consulta de Acervos Musicais
-            </span>
-          </div>
+          {/* Ícone de collapse aumentado */}
+          <div className="flex items-center space-x-4">
+            <SidebarTrigger className="h-8 w-8" />
+            
+            {/* Título versão desktop com estilo melhorado */}
+            <div className="hidden md:block">
+              <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+                <span className="text-xs sm:text-sm md:text-base lg:text-lg font-bold uppercase tracking-wide font-serif">
+                  Sistema Integrado de Documentação e Consulta de Acervos Musicais
+                </span>
+              </div>
+            </div>
 
-          {/* Título versão mobile - 3 linhas conforme solicitado */}
-          <div className="block md:hidden">
-            <div className="text-[11px] leading-tight font-bold text-blue-600 uppercase tracking-wide">
-              <div>SISTEMA INTEGRADO DE</div>
-              <div>DOCUMENTAÇÃO E CONSULTA</div>
-              <div>DE ACERVOS MUSICAIS</div>
+            {/* Título versão mobile com estilo melhorado */}
+            <div className="block md:hidden">
+              <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent font-serif">
+                <div className="text-[11px] leading-tight font-bold uppercase tracking-wide">
+                  <div>SISTEMA INTEGRADO DE</div>
+                  <div>DOCUMENTAÇÃO E CONSULTA</div>
+                  <div>DE ACERVOS MUSICAIS</div>
+                </div>
+              </div>
             </div>
           </div>
 
