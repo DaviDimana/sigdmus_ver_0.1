@@ -91,11 +91,11 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
           <div className="flex items-center space-x-4 flex-shrink-0 ml-auto">
             {user && profile ? (
               <>
-                {/* Botão de Logout visível */}
+                {/* Botão de Logout visível apenas no desktop */}
                 <Button 
                   variant="outline" 
                   onClick={handleSignOut}
-                  className="h-7 px-2 text-xs text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700 hover:border-red-400 shadow-lg shadow-blue-200/50"
+                  className="hidden md:flex h-7 px-2 text-xs text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700 hover:border-red-400 shadow-lg shadow-blue-200/50"
                 >
                   <LogOut className="mr-1 h-3 w-3" />
                   <span className="hidden sm:inline">Sair</span>
@@ -149,20 +149,40 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
               </>
             ) : user && !profile ? (
               <>
-                <Button 
-                  variant="outline" 
-                  onClick={handleSignOut}
-                  className="h-7 px-2 text-xs text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700 hover:border-red-400 shadow-lg shadow-blue-200/50"
-                >
-                  <LogOut className="mr-1 h-3 w-3" />
-                  <span className="hidden sm:inline">Sair</span>
-                </Button>
-                <Button 
-                  onClick={handleCreateProfile} 
-                  className="h-7 px-2 text-xs bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200/50"
-                >
-                  <span>Criar Perfil</span>
-                </Button>
+                {/* Layout desktop - botões lado a lado */}
+                <div className="hidden md:flex items-center space-x-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleSignOut}
+                    className="h-7 px-2 text-xs text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700 hover:border-red-400 shadow-lg shadow-blue-200/50"
+                  >
+                    <LogOut className="mr-1 h-3 w-3" />
+                    <span className="hidden sm:inline">Sair</span>
+                  </Button>
+                  <Button 
+                    onClick={handleCreateProfile} 
+                    className="h-7 px-2 text-xs bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200/50"
+                  >
+                    <span>Criar Perfil</span>
+                  </Button>
+                </div>
+
+                {/* Layout mobile - botões empilhados */}
+                <div className="flex md:hidden flex-col space-y-1">
+                  <Button 
+                    onClick={handleCreateProfile} 
+                    className="h-6 px-2 text-xs bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200/50 min-w-[60px]"
+                  >
+                    <span>Novo</span>
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleSignOut}
+                    className="h-6 px-2 text-xs text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700 hover:border-red-400 shadow-lg shadow-blue-200/50 min-w-[60px]"
+                  >
+                    <LogOut className="h-3 w-3" />
+                  </Button>
+                </div>
               </>
             ) : (
               <Button onClick={() => navigate('/auth')}>
