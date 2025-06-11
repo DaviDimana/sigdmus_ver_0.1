@@ -43,7 +43,7 @@ const AppContent = () => {
     );
   }
 
-  // Show auth page if not authenticated
+  // Always show auth page if not authenticated - this ensures app always starts with login
   if (!user) {
     console.log('App: No user found, showing auth page');
     return (
