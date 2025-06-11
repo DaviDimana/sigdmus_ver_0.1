@@ -22,10 +22,10 @@ const formSchema = z.object({
   numero_armario: z.string().optional(),
   numero_prateleira: z.string().optional(),
   numero_pasta: z.string().optional(),
-  digitalizado: z.boolean(),
-  observacoes: z.string().optional(),
   tonalidade: z.string().optional(),
   genero: z.string().optional(),
+  digitalizado: z.boolean(),
+  observacoes: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -56,10 +56,10 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
       numero_armario: partitura?.numero_armario || '',
       numero_prateleira: partitura?.numero_prateleira || '',
       numero_pasta: partitura?.numero_pasta || '',
-      digitalizado: partitura?.digitalizado || false,
-      observacoes: partitura?.observacoes || '',
       tonalidade: partitura?.tonalidade || '',
       genero: partitura?.genero || '',
+      digitalizado: partitura?.digitalizado || false,
+      observacoes: partitura?.observacoes || '',
     },
   });
 
@@ -281,7 +281,46 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
           />
         </div>
 
-        {/* Linha 5: Digitalizado e Observações */}
+        {/* Linha 5: Tonalidade e Gênero/Forma */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
+          <FormField
+            control={form.control}
+            name="tonalidade"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm sm:text-base">Tonalidade</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="Ex: Dó maior" 
+                    className="text-sm sm:text-base h-9 sm:h-10"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="genero"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm sm:text-base">Gênero/Forma</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="Ex: Sinfonia, Sonata" 
+                    className="text-sm sm:text-base h-9 sm:h-10"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Linha 6: Digitalizado e Observações */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
           <FormField
             control={form.control}
@@ -316,45 +355,6 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
                     placeholder="Observações adicionais sobre a partitura"
                     className="resize-none text-sm sm:text-base min-h-[80px] sm:min-h-[100px]"
                     {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        {/* Campos adicionais não mencionados na reorganização mas que já existiam */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
-          <FormField
-            control={form.control}
-            name="tonalidade"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm sm:text-base">Tonalidade</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Ex: Dó maior" 
-                    className="text-sm sm:text-base h-9 sm:h-10"
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="genero"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm sm:text-base">Gênero/Forma</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Ex: Sinfonia, Sonata" 
-                    className="text-sm sm:text-base h-9 sm:h-10"
-                    {...field} 
                   />
                 </FormControl>
                 <FormMessage />
