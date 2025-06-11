@@ -201,10 +201,12 @@ export type Database = {
           edicao: string | null
           genero: string | null
           id: string
+          instituicao: string | null
           instrumentacao: string
           numero_armario: string | null
           numero_pasta: string | null
           numero_prateleira: string | null
+          observacoes: string | null
           setor: string
           titulo: string
           tonalidade: string | null
@@ -218,10 +220,12 @@ export type Database = {
           edicao?: string | null
           genero?: string | null
           id?: string
+          instituicao?: string | null
           instrumentacao: string
           numero_armario?: string | null
           numero_pasta?: string | null
           numero_prateleira?: string | null
+          observacoes?: string | null
           setor: string
           titulo: string
           tonalidade?: string | null
@@ -235,10 +239,12 @@ export type Database = {
           edicao?: string | null
           genero?: string | null
           id?: string
+          instituicao?: string | null
           instrumentacao?: string
           numero_armario?: string | null
           numero_pasta?: string | null
           numero_prateleira?: string | null
+          observacoes?: string | null
           setor?: string
           titulo?: string
           tonalidade?: string | null

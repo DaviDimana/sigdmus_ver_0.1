@@ -12,18 +12,20 @@ import { Save } from 'lucide-react';
 import type { Partitura, PartituraInsert } from '@/hooks/usePartituras';
 
 const formSchema = z.object({
+  instituicao: z.string().optional(),
   setor: z.string().min(1, 'Setor é obrigatório'),
   titulo: z.string().min(1, 'Título da obra é obrigatório'),
   compositor: z.string().min(1, 'Nome do compositor é obrigatório'),
   instrumentacao: z.string().min(1, 'Instrumentação é obrigatória'),
-  tonalidade: z.string().optional(),
-  genero: z.string().optional(),
   edicao: z.string().optional(),
   ano_edicao: z.string().optional(),
-  digitalizado: z.boolean(),
   numero_armario: z.string().optional(),
   numero_prateleira: z.string().optional(),
   numero_pasta: z.string().optional(),
+  digitalizado: z.boolean(),
+  observacoes: z.string().optional(),
+  tonalidade: z.string().optional(),
+  genero: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -38,24 +40,26 @@ interface PartituraFormProps {
 const PartituraForm: React.FC<PartituraFormProps> = ({ 
   partitura, 
   onSubmit, 
-  onCancel, 
+  onCancel,
   isSubmitting = false 
 }) => {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      instituicao: partitura?.instituicao || '',
       setor: partitura?.setor || '',
       titulo: partitura?.titulo || '',
       compositor: partitura?.compositor || '',
       instrumentacao: partitura?.instrumentacao || '',
-      tonalidade: partitura?.tonalidade || '',
-      genero: partitura?.genero || '',
       edicao: partitura?.edicao || '',
       ano_edicao: partitura?.ano_edicao || '',
-      digitalizado: partitura?.digitalizado || false,
       numero_armario: partitura?.numero_armario || '',
       numero_prateleira: partitura?.numero_prateleira || '',
       numero_pasta: partitura?.numero_pasta || '',
+      digitalizado: partitura?.digitalizado || false,
+      observacoes: partitura?.observacoes || '',
+      tonalidade: partitura?.tonalidade || '',
+      genero: partitura?.genero || '',
     },
   });
 
@@ -76,7 +80,26 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 sm:space-y-6">
+        {/* Linha 1: Instituição e Setor */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
+          <FormField
+            control={form.control}
+            name="instituicao"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm sm:text-base">Instituição</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="Digite a instituição"
+                    className="text-sm sm:text-base h-9 sm:h-10"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="setor"
@@ -101,30 +124,9 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
               </FormItem>
             )}
           />
-
-          <FormField
-            control={form.control}
-            name="digitalizado"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm sm:text-base">Digitalizado? *</FormLabel>
-                <Select onValueChange={(value) => field.onChange(value === 'true')} value={field.value ? 'true' : 'false'}>
-                  <FormControl>
-                    <SelectTrigger className="text-sm sm:text-base h-9 sm:h-10">
-                      <SelectValue placeholder="Selecione uma opção" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="true">Sim</SelectItem>
-                    <SelectItem value="false">Não</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
         </div>
 
+        {/* Linha 2: Título da Obra e Nome do Compositor */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
           <FormField
             control={form.control}
@@ -163,36 +165,19 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
           />
         </div>
 
-        <FormField
-          control={form.control}
-          name="instrumentacao"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-sm sm:text-base">Instrumentação *</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Descreva a instrumentação da obra"
-                  className="resize-none text-sm sm:text-base min-h-[80px] sm:min-h-[100px]"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+        {/* Linha 3: Instrumentação, Edição e Ano de Edição */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
           <FormField
             control={form.control}
-            name="tonalidade"
+            name="instrumentacao"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm sm:text-base">Tonalidade</FormLabel>
+              <FormItem className="lg:col-span-1">
+                <FormLabel className="text-sm sm:text-base">Instrumentação *</FormLabel>
                 <FormControl>
-                  <Input 
-                    placeholder="Ex: Dó maior" 
-                    className="text-sm sm:text-base h-9 sm:h-10"
-                    {...field} 
+                  <Textarea
+                    placeholder="Descreva a instrumentação da obra"
+                    className="resize-none text-sm sm:text-base min-h-[80px] sm:min-h-[100px]"
+                    {...field}
                   />
                 </FormControl>
                 <FormMessage />
@@ -200,62 +185,47 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="genero"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm sm:text-base">Gênero/Forma</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Ex: Sinfonia, Sonata" 
-                    className="text-sm sm:text-base h-9 sm:h-10"
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="lg:col-span-1 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
+            <FormField
+              control={form.control}
+              name="edicao"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm sm:text-base">Edição</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Ex: Primeira edição" 
+                      className="text-sm sm:text-base h-9 sm:h-10"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="edicao"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm sm:text-base">Edição</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Ex: Primeira edição" 
-                    className="text-sm sm:text-base h-9 sm:h-10"
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="ano_edicao"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm sm:text-base">Ano da Edição</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Ex: 2024" 
+                      className="text-sm sm:text-base h-9 sm:h-10"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-          <FormField
-            control={form.control}
-            name="ano_edicao"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm sm:text-base">Ano da Edição</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Ex: 2024" 
-                    className="text-sm sm:text-base h-9 sm:h-10"
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
+        {/* Linha 4: N° Armário, N° Prateleira, N° Pasta */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
           <FormField
             control={form.control}
             name="numero_armario"
@@ -301,6 +271,88 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
                 <FormControl>
                   <Input 
                     placeholder="Ex: PA001" 
+                    className="text-sm sm:text-base h-9 sm:h-10"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Linha 5: Digitalizado e Observações */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+          <FormField
+            control={form.control}
+            name="digitalizado"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm sm:text-base">Digitalizado? *</FormLabel>
+                <Select onValueChange={(value) => field.onChange(value === 'true')} value={field.value ? 'true' : 'false'}>
+                  <FormControl>
+                    <SelectTrigger className="text-sm sm:text-base h-9 sm:h-10">
+                      <SelectValue placeholder="Selecione uma opção" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="true">Sim</SelectItem>
+                    <SelectItem value="false">Não</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="observacoes"
+            render={({ field }) => (
+              <FormItem className="lg:col-span-2">
+                <FormLabel className="text-sm sm:text-base">Observações</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Observações adicionais sobre a partitura"
+                    className="resize-none text-sm sm:text-base min-h-[80px] sm:min-h-[100px]"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Campos adicionais não mencionados na reorganização mas que já existiam */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
+          <FormField
+            control={form.control}
+            name="tonalidade"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm sm:text-base">Tonalidade</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="Ex: Dó maior" 
+                    className="text-sm sm:text-base h-9 sm:h-10"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="genero"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm sm:text-base">Gênero/Forma</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="Ex: Sinfonia, Sonata" 
                     className="text-sm sm:text-base h-9 sm:h-10"
                     {...field} 
                   />
