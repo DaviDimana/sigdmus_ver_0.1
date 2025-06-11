@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
 import MainLayout from "./components/Layout/MainLayout";
 import Dashboard from "./pages/Dashboard";
@@ -23,8 +23,16 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   const { user, profile, loading } = useAuth();
 
+  console.log('App: Rendering with state:', { 
+    hasUser: !!user, 
+    hasProfile: !!profile, 
+    loading,
+    userEmail: user?.email 
+  });
+
   // Show loading while checking auth state
   if (loading) {
+    console.log('App: Still loading auth state...');
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -37,13 +45,18 @@ const AppContent = () => {
 
   // Show auth page if not authenticated
   if (!user) {
+    console.log('App: No user found, showing auth page');
     return (
-      <Routes>
-        <Route path="/auth" element={<Auth />} />
-        <Route path="*" element={<Auth />} />
-      </Routes>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/auth" element={<Auth />} />
+          <Route path="*" element={<Navigate to="/auth" replace />} />
+        </Routes>
+      </BrowserRouter>
     );
   }
+
+  console.log('App: User authenticated, showing main app');
 
   // Convert profile to format expected by MainLayout
   const currentUser = profile ? {
@@ -55,21 +68,23 @@ const AppContent = () => {
   };
 
   return (
-    <MainLayout currentUser={currentUser}>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/partituras" element={<Partituras />} />
-        <Route path="/partituras/nova" element={<NovaPartitura />} />
-        <Route path="/performances" element={<Performances />} />
-        <Route path="/performances/nova" element={<NovaPerformance />} />
-        <Route path="/repositorio" element={<Repositorio />} />
-        <Route path="/relatorios" element={<Relatorios />} />
-        <Route path="/configuracoes" element={<Configuracoes />} />
-        <Route path="/usuarios" element={<Usuarios />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </MainLayout>
+    <BrowserRouter>
+      <MainLayout currentUser={currentUser}>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/partituras" element={<Partituras />} />
+          <Route path="/partituras/nova" element={<NovaPartitura />} />
+          <Route path="/performances" element={<Performances />} />
+          <Route path="/performances/nova" element={<NovaPerformance />} />
+          <Route path="/repositorio" element={<Repositorio />} />
+          <Route path="/relatorios" element={<Relatorios />} />
+          <Route path="/configuracoes" element={<Configuracoes />} />
+          <Route path="/usuarios" element={<Usuarios />} />
+          <Route path="/auth" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </MainLayout>
+    </BrowserRouter>
   );
 };
 
@@ -79,9 +94,7 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
+        <AppContent />
       </TooltipProvider>
     </QueryClientProvider>
   );

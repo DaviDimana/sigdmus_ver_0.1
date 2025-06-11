@@ -19,15 +19,16 @@ export const useAuthState = () => {
       async (event, session) => {
         console.log('useAuthState: Auth event:', event, session?.user?.email);
         
+        // Update session and user immediately
         setAuthState(prev => ({
           ...prev,
           session,
           user: session?.user ?? null,
         }));
 
-        // Clear profile if no session
+        // If no session, clear everything and stop loading
         if (!session?.user) {
-          console.log('useAuthState: No user, clearing profile');
+          console.log('useAuthState: No user, clearing profile and stopping loading');
           setAuthState(prev => ({
             ...prev,
             profile: null,
@@ -36,7 +37,7 @@ export const useAuthState = () => {
           return;
         }
 
-        // Try to fetch profile, but don't fail if RLS blocks it
+        // Try to fetch profile for authenticated users
         try {
           console.log('useAuthState: User found, fetching profile...');
           const { data: profile, error } = await supabase
@@ -67,20 +68,48 @@ export const useAuthState = () => {
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('useAuthState: Initial session check:', session?.user?.email);
-      
-      setAuthState(prev => ({
-        ...prev,
-        session,
-        user: session?.user ?? null,
-      }));
+    // Check for existing session
+    const checkInitialSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('useAuthState: Error getting initial session:', error);
+          setAuthState(prev => ({ ...prev, loading: false }));
+          return;
+        }
 
-      if (!session?.user) {
+        console.log('useAuthState: Initial session check:', session?.user?.email);
+        
+        // If no session, stop loading immediately
+        if (!session) {
+          console.log('useAuthState: No initial session found');
+          setAuthState(prev => ({
+            ...prev,
+            session: null,
+            user: null,
+            profile: null,
+            loading: false
+          }));
+          return;
+        }
+
+        // Update with session data but don't set loading to false yet
+        // Let the auth state change handler deal with profile fetching
+        setAuthState(prev => ({
+          ...prev,
+          session,
+          user: session.user,
+        }));
+        
+      } catch (error) {
+        console.error('useAuthState: Unexpected error during session check:', error);
         setAuthState(prev => ({ ...prev, loading: false }));
       }
-    });
+    };
+
+    // Run initial session check
+    checkInitialSession();
 
     return () => {
       console.log('useAuthState: Cleaning up subscription');
