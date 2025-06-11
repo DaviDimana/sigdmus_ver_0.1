@@ -43,7 +43,7 @@ const AppContent = () => {
     );
   }
 
-  // If no user, show auth page
+  // If no user, show auth page and redirect any other route to /auth
   if (!user) {
     console.log('App: No user found, showing auth page');
     return (
@@ -74,7 +74,7 @@ const AppContent = () => {
         {/* Redirect /auth to dashboard if user is authenticated */}
         <Route path="/auth" element={<Navigate to="/" replace />} />
         
-        {/* Main app routes */}
+        {/* Main app routes - all redirect to Dashboard (/) */}
         <Route path="/*" element={
           <MainLayout currentUser={currentUser}>
             <Routes>
