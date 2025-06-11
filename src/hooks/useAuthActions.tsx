@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { UserProfile, AuthState } from '@/types/auth';
 
@@ -7,58 +6,87 @@ export const useAuthActions = (
   setAuthState: React.Dispatch<React.SetStateAction<AuthState>>
 ) => {
   const signIn = async (email: string, password: string) => {
-    console.log('useAuthActions: Signing in with email:', email);
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    console.log('useAuthActions: Starting sign in for:', email);
+    
+    try {
+      // Clear any existing session first
+      await supabase.auth.signOut({ scope: 'global' });
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
-      console.error('useAuthActions: Sign in error:', error);
+      if (error) {
+        console.error('useAuthActions: Sign in error:', error);
+        throw error;
+      }
+      
+      console.log('useAuthActions: Sign in successful');
+      return data;
+    } catch (error) {
+      console.error('useAuthActions: Sign in failed:', error);
       throw error;
     }
-    
-    console.log('useAuthActions: Sign in successful');
-    return data;
   };
 
   const signUp = async (email: string, password: string, name: string) => {
-    console.log('useAuthActions: Signing up with email:', email);
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name,
+    console.log('useAuthActions: Starting sign up for:', email);
+    
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+          },
         },
-      },
-    });
+      });
 
-    if (error) {
-      console.error('useAuthActions: Sign up error:', error);
+      if (error) {
+        console.error('useAuthActions: Sign up error:', error);
+        throw error;
+      }
+      
+      console.log('useAuthActions: Sign up successful');
+      return data;
+    } catch (error) {
+      console.error('useAuthActions: Sign up failed:', error);
       throw error;
     }
-    
-    console.log('useAuthActions: Sign up successful');
-    return data;
   };
 
   const signOut = async () => {
-    console.log('useAuthActions: Signing out');
-    const { error } = await supabase.auth.signOut({ scope: 'global' });
-    if (error) {
-      console.error('useAuthActions: Sign out error:', error);
+    console.log('useAuthActions: Starting sign out');
+    
+    try {
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      if (error) {
+        console.error('useAuthActions: Sign out error:', error);
+        throw error;
+      }
+      
+      console.log('useAuthActions: Sign out successful');
+      
+      // Clear local state immediately
+      setAuthState({
+        user: null,
+        session: null,
+        profile: null,
+        loading: false
+      });
+    } catch (error) {
+      console.error('useAuthActions: Sign out failed:', error);
+      // Clear state even if signOut fails
+      setAuthState({
+        user: null,
+        session: null,
+        profile: null,
+        loading: false
+      });
       throw error;
     }
-    
-    console.log('useAuthActions: Sign out successful');
-    // Clear local state
-    setAuthState({
-      user: null,
-      session: null,
-      profile: null,
-      loading: false
-    });
   };
 
   const updateProfile = async (updates: Partial<UserProfile>) => {

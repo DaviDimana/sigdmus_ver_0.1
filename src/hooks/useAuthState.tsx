@@ -12,127 +12,102 @@ export const useAuthState = () => {
   });
 
   useEffect(() => {
-    console.log('=== useAuthState: Initializing ===');
+    console.log('=== useAuthState: Starting initialization ===');
     
     let mounted = true;
 
-    const initializeAuth = async () => {
+    // Clear any existing auth state first
+    const clearAuthState = () => {
+      if (!mounted) return;
+      setAuthState({
+        user: null,
+        session: null,
+        profile: null,
+        loading: false
+      });
+    };
+
+    // Function to handle successful authentication
+    const handleAuthSuccess = async (session: any) => {
+      if (!mounted) return;
+      
+      console.log('useAuthState: Processing auth success for:', session.user.email);
+      
+      setAuthState(prev => ({
+        ...prev,
+        session,
+        user: session.user,
+        loading: true
+      }));
+
       try {
-        console.log('useAuthState: Getting initial session...');
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('useAuthState: Session error:', error);
-        }
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .maybeSingle();
 
         if (!mounted) return;
 
-        if (session?.user) {
-          console.log('useAuthState: Found existing session for:', session.user.email);
-          
-          // Set user and session first
-          setAuthState(prev => ({
-            ...prev,
-            session,
-            user: session.user,
-            loading: true // Keep loading while fetching profile
-          }));
-
-          // Fetch profile
-          try {
-            const { data: profile } = await supabase
-              .from('user_profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .maybeSingle();
-
-            if (!mounted) return;
-
-            console.log('useAuthState: Profile loaded:', !!profile);
-            setAuthState(prev => ({
-              ...prev,
-              profile: profile || null,
-              loading: false
-            }));
-          } catch (profileError) {
-            console.error('useAuthState: Profile error:', profileError);
-            if (!mounted) return;
-            setAuthState(prev => ({ ...prev, loading: false }));
-          }
-        } else {
-          console.log('useAuthState: No existing session found');
-          setAuthState(prev => ({
-            ...prev,
-            session: null,
-            user: null,
-            profile: null,
-            loading: false
-          }));
-        }
+        console.log('useAuthState: Profile fetched:', !!profile);
+        setAuthState(prev => ({
+          ...prev,
+          profile: profile || null,
+          loading: false
+        }));
       } catch (error) {
-        console.error('useAuthState: Initialization error:', error);
+        console.error('useAuthState: Profile fetch error:', error);
         if (!mounted) return;
         setAuthState(prev => ({ ...prev, loading: false }));
       }
     };
 
-    // Set up auth listener
+    // Initialize auth state
+    const initializeAuth = async () => {
+      try {
+        console.log('useAuthState: Checking for existing session...');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('useAuthState: Session error:', error);
+          clearAuthState();
+          return;
+        }
+
+        if (session?.user) {
+          console.log('useAuthState: Found existing session');
+          await handleAuthSuccess(session);
+        } else {
+          console.log('useAuthState: No existing session found');
+          clearAuthState();
+        }
+      } catch (error) {
+        console.error('useAuthState: Initialization error:', error);
+        clearAuthState();
+      }
+    };
+
+    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('useAuthState: Auth event:', event, !!session);
+        console.log('useAuthState: Auth state change:', event, !!session);
         
         if (!mounted) return;
 
         if (event === 'SIGNED_OUT' || !session) {
-          console.log('useAuthState: User signed out');
-          setAuthState({
-            user: null,
-            session: null,
-            profile: null,
-            loading: false
-          });
+          console.log('useAuthState: User signed out or no session');
+          clearAuthState();
           return;
         }
 
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          console.log('useAuthState: User signed in, updating state');
-          
-          setAuthState(prev => ({
-            ...prev,
-            session,
-            user: session.user,
-            loading: true
-          }));
-
-          // Fetch profile after a short delay to avoid conflicts
-          setTimeout(async () => {
-            if (!mounted) return;
-            
-            try {
-              const { data: profile } = await supabase
-                .from('user_profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .maybeSingle();
-
-              if (!mounted) return;
-
-              setAuthState(prev => ({
-                ...prev,
-                profile: profile || null,
-                loading: false
-              }));
-            } catch (error) {
-              console.error('useAuthState: Profile fetch error:', error);
-              if (!mounted) return;
-              setAuthState(prev => ({ ...prev, loading: false }));
-            }
-          }, 100);
+          console.log('useAuthState: User signed in or token refreshed');
+          await handleAuthSuccess(session);
         }
       }
     );
 
-    // Initialize
+    // Start initialization
     initializeAuth();
 
     return () => {
