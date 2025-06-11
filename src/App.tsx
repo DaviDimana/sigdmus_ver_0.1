@@ -30,7 +30,7 @@ const AppContent = () => {
     userEmail: user?.email 
   });
 
-  // Show loading while checking auth state
+  // Show loading spinner while checking auth state
   if (loading) {
     console.log('App: Still loading auth state...');
     return (

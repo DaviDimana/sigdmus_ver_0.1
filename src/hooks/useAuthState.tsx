@@ -12,78 +12,54 @@ export const useAuthState = () => {
   });
 
   useEffect(() => {
-    console.log('=== useAuthState: Setting up auth listener ===');
+    console.log('=== useAuthState: Initializing auth listener ===');
     
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('useAuthState: Auth event:', event, session?.user?.email);
-        
-        // Update session and user immediately
-        setAuthState(prev => ({
-          ...prev,
-          session,
-          user: session?.user ?? null,
-        }));
+    let mounted = true;
 
-        // If no session, clear everything and stop loading
-        if (!session?.user) {
-          console.log('useAuthState: No user, clearing profile and stopping loading');
-          setAuthState(prev => ({
-            ...prev,
-            profile: null,
-            loading: false
-          }));
-          return;
-        }
-
-        // Try to fetch profile for authenticated users
-        try {
-          console.log('useAuthState: User found, fetching profile...');
-          const { data: profile, error } = await supabase
-            .from('user_profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .maybeSingle();
-
-          if (error) {
-            console.log('useAuthState: Profile fetch error (continuing anyway):', error.message);
-          }
-
-          console.log('useAuthState: Profile fetched:', profile);
-          
-          setAuthState(prev => ({
-            ...prev,
-            profile: profile || null,
-            loading: false
-          }));
-        } catch (error) {
-          console.log('useAuthState: Profile fetch failed (continuing anyway):', error);
-          setAuthState(prev => ({ 
-            ...prev, 
-            profile: null, 
-            loading: false 
-          }));
-        }
-      }
-    );
-
-    // Check for existing session
-    const checkInitialSession = async () => {
+    const initializeAuth = async () => {
       try {
+        // Get initial session
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('useAuthState: Error getting initial session:', error);
-          setAuthState(prev => ({ ...prev, loading: false }));
-          return;
         }
 
-        console.log('useAuthState: Initial session check:', session?.user?.email);
-        
-        // If no session, stop loading immediately
-        if (!session) {
-          console.log('useAuthState: No initial session found');
+        console.log('useAuthState: Initial session:', session?.user?.email || 'No session');
+
+        if (!mounted) return;
+
+        // Update state with initial session
+        if (session?.user) {
+          setAuthState(prev => ({
+            ...prev,
+            session,
+            user: session.user,
+            loading: false // Will be set to true again if we need to fetch profile
+          }));
+
+          // Try to fetch profile
+          try {
+            const { data: profile } = await supabase
+              .from('user_profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .maybeSingle();
+
+            if (!mounted) return;
+
+            setAuthState(prev => ({
+              ...prev,
+              profile: profile || null,
+              loading: false
+            }));
+          } catch (profileError) {
+            console.log('useAuthState: Profile fetch failed:', profileError);
+            if (!mounted) return;
+            setAuthState(prev => ({ ...prev, loading: false }));
+          }
+        } else {
+          // No session - stop loading
           setAuthState(prev => ({
             ...prev,
             session: null,
@@ -91,31 +67,79 @@ export const useAuthState = () => {
             profile: null,
             loading: false
           }));
-          return;
         }
-
-        // Update with session data but don't set loading to false yet
-        // Let the auth state change handler deal with profile fetching
-        setAuthState(prev => ({
-          ...prev,
-          session,
-          user: session.user,
-        }));
-        
       } catch (error) {
-        console.error('useAuthState: Unexpected error during session check:', error);
+        console.error('useAuthState: Initialization error:', error);
+        if (!mounted) return;
         setAuthState(prev => ({ ...prev, loading: false }));
       }
     };
 
-    // Run initial session check
-    checkInitialSession();
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('useAuthState: Auth event:', event, session?.user?.email || 'No session');
+        
+        if (!mounted) return;
+
+        // Update session and user immediately
+        setAuthState(prev => ({
+          ...prev,
+          session,
+          user: session?.user ?? null,
+        }));
+
+        // Handle different auth events
+        if (event === 'SIGNED_OUT' || !session?.user) {
+          console.log('useAuthState: User signed out or no session');
+          setAuthState(prev => ({
+            ...prev,
+            profile: null,
+            loading: false
+          }));
+          return;
+        }
+
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          // Defer profile fetching to avoid deadlocks
+          setTimeout(async () => {
+            if (!mounted) return;
+            
+            try {
+              console.log('useAuthState: Fetching profile for user...');
+              const { data: profile } = await supabase
+                .from('user_profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .maybeSingle();
+
+              if (!mounted) return;
+
+              console.log('useAuthState: Profile fetched:', profile);
+              setAuthState(prev => ({
+                ...prev,
+                profile: profile || null,
+                loading: false
+              }));
+            } catch (error) {
+              console.log('useAuthState: Profile fetch failed:', error);
+              if (!mounted) return;
+              setAuthState(prev => ({ ...prev, loading: false }));
+            }
+          }, 0);
+        }
+      }
+    );
+
+    // Initialize auth state
+    initializeAuth();
 
     return () => {
       console.log('useAuthState: Cleaning up subscription');
+      mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, []); // Empty dependency array - only run once
 
   return { authState, setAuthState };
 };
