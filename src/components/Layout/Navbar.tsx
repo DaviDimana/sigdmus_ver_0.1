@@ -58,14 +58,14 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
         <div className="flex justify-between items-center h-16">
           {/* Título versão desktop */}
           <div className="hidden md:block">
-            <span className="text-xs sm:text-sm md:text-base lg:text-lg font-medium text-gray-700">
+            <span className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-blue-600 uppercase tracking-wide">
               Sistema Integrado de Documentação e Consulta de Acervos Musicais
             </span>
           </div>
 
           {/* Título versão mobile - 3 linhas */}
           <div className="block md:hidden">
-            <div className="text-[10px] leading-tight font-medium text-gray-700">
+            <div className="text-[11px] leading-tight font-bold text-blue-600 uppercase tracking-wide">
               <div>Sistema Integrado de</div>
               <div>Documentação e Consulta de</div>
               <div>Acervos Musicais</div>
