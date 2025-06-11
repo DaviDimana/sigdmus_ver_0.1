@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -154,23 +155,40 @@ export const useAuth = () => {
   };
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
-    if (!authState.user) throw new Error('No user logged in');
+    console.log('updateProfile: Starting update with:', updates);
+    
+    if (!authState.user) {
+      console.error('updateProfile: No user logged in');
+      throw new Error('No user logged in');
+    }
 
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .update(updates)
-      .eq('id', authState.user.id)
-      .select()
-      .single();
+    try {
+      console.log('updateProfile: Updating profile for user:', authState.user.id);
+      
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .update(updates)
+        .eq('id', authState.user.id)
+        .select()
+        .single();
 
-    if (error) throw error;
+      if (error) {
+        console.error('updateProfile: Supabase error:', error);
+        throw error;
+      }
 
-    setAuthState(prev => ({
-      ...prev,
-      profile: data
-    }));
+      console.log('updateProfile: Update successful:', data);
 
-    return data;
+      setAuthState(prev => ({
+        ...prev,
+        profile: data
+      }));
+
+      return data;
+    } catch (error) {
+      console.error('updateProfile: Error in updateProfile:', error);
+      throw error;
+    }
   };
 
   const hasRole = (role: UserProfile['role']) => {

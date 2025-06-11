@@ -11,7 +11,7 @@ import { Upload, User } from 'lucide-react';
 import type { Tables } from '@/integrations/supabase/types';
 
 const ProfileSettings: React.FC = () => {
-  const { profile, updateProfile } = useAuth();
+  const { profile, updateProfile, user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -55,24 +55,41 @@ const ProfileSettings: React.FC = () => {
       return;
     }
 
+    if (!user) {
+      toast({
+        title: "Erro",
+        description: "Usuário não encontrado. Faça login novamente.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      console.log('Atualizando perfil com dados:', formData);
+      console.log('Iniciando atualização do perfil...');
+      console.log('Dados do formulário:', formData);
+      console.log('Profile atual:', profile);
+      console.log('User ID:', user.id);
       
       const updates: Partial<Tables<'user_profiles'>> = {
         name: formData.name.trim(),
+        updated_at: new Date().toISOString()
       };
 
       // Apenas gerentes e admins podem alterar setor
       if (profile?.role === 'GERENTE' || profile?.role === 'ADMIN') {
-        updates.setor = formData.setor as any;
+        if (formData.setor) {
+          updates.setor = formData.setor as any;
+        }
         console.log('Adicionando setor ao update:', formData.setor);
       }
 
       // Apenas músicos podem alterar instrumento
       if (profile?.role === 'MUSICO') {
-        updates.instrumento = formData.instrumento as any;
+        if (formData.instrumento) {
+          updates.instrumento = formData.instrumento as any;
+        }
         console.log('Adicionando instrumento ao update:', formData.instrumento);
       }
 
@@ -82,8 +99,8 @@ const ProfileSettings: React.FC = () => {
       console.log('Perfil atualizado com sucesso:', result);
 
       toast({
-        title: "Perfil atualizado",
-        description: "Suas informações foram atualizadas com sucesso.",
+        title: "Sucesso",
+        description: "Perfil atualizado com sucesso!",
       });
     } catch (error) {
       console.error('Erro detalhado ao atualizar perfil:', error);
@@ -92,10 +109,16 @@ const ProfileSettings: React.FC = () => {
       
       if (error instanceof Error) {
         console.error('Error message:', error.message);
-        if (error.message.includes('RLS')) {
+        console.error('Error stack:', error.stack);
+        
+        if (error.message.includes('JWT') || error.message.includes('auth')) {
+          errorMessage = "Sessão expirada. Faça login novamente.";
+        } else if (error.message.includes('RLS') || error.message.includes('policy')) {
           errorMessage = "Erro de permissão. Verifique se você tem acesso para editar este perfil.";
-        } else if (error.message.includes('network')) {
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
           errorMessage = "Erro de conexão. Verifique sua internet e tente novamente.";
+        } else if (error.message.includes('duplicate') || error.message.includes('unique')) {
+          errorMessage = "Erro: dados duplicados. Verifique as informações inseridas.";
         }
       }
       
