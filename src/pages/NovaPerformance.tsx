@@ -14,7 +14,14 @@ const NovaPerformance = () => {
 
   const handleSubmit = async (data: any) => {
     try {
-      await createPerformance.mutateAsync(data);
+      const { programaPdf, ...performanceData } = data;
+      
+      // Por enquanto, salvamos apenas os dados da performance
+      // O upload do arquivo PDF seria implementado com Supabase Storage
+      console.log('Arquivo do programa:', programaPdf);
+      console.log('Dados da performance:', performanceData);
+      
+      await createPerformance.mutateAsync(performanceData);
       toast.success('Performance cadastrada com sucesso!');
       navigate('/performances');
     } catch (error) {
@@ -46,7 +53,7 @@ const NovaPerformance = () => {
         <CardHeader>
           <CardTitle>Informações da Performance</CardTitle>
           <CardDescription>
-            Preencha todos os campos obrigatórios para cadastrar a performance
+            Preencha todos os campos obrigatórios para cadastrar a performance. Você também pode fazer upload do programa do concerto em PDF.
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-0">

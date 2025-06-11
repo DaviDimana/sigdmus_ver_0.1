@@ -8,11 +8,13 @@ import { usePerformances } from '@/hooks/usePerformances';
 import { Skeleton } from '@/components/ui/skeleton';
 import PerformanceCard from '@/components/PerformanceCard';
 import PerformancePageHeader from '@/components/PerformancePageHeader';
+import ProgramViewer from '@/components/ProgramViewer';
 
 const Performances = () => {
   const navigate = useNavigate();
   const { performances, isLoading } = usePerformances();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedPerformance, setSelectedPerformance] = useState<any>(null);
 
   const filteredPerformances = performances?.filter(performance =>
     performance.titulo_obra?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -20,6 +22,10 @@ const Performances = () => {
     performance.local?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     performance.maestros?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
+
+  const handleViewProgram = (performance: any) => {
+    setSelectedPerformance(performance);
+  };
 
   if (isLoading) {
     return (
@@ -55,7 +61,11 @@ const Performances = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredPerformances.map((performance) => (
-          <PerformanceCard key={performance.id} performance={performance} />
+          <PerformanceCard 
+            key={performance.id} 
+            performance={performance} 
+            onViewProgram={handleViewProgram}
+          />
         ))}
       </div>
 
@@ -79,6 +89,17 @@ const Performances = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Dialog para visualizar programa */}
+      <ProgramViewer
+        isOpen={!!selectedPerformance}
+        onClose={() => setSelectedPerformance(null)}
+        performance={selectedPerformance || {}}
+        onDownload={() => {
+          // Implementar lógica de download se necessário
+          console.log('Download programa:', selectedPerformance);
+        }}
+      />
     </div>
   );
 };

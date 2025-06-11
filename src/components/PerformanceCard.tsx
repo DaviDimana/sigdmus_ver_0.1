@@ -2,15 +2,17 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, Clock, User, Music } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar, MapPin, Clock, User, Music, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface PerformanceCardProps {
   performance: any;
+  onViewProgram?: (performance: any) => void;
 }
 
-const PerformanceCard: React.FC<PerformanceCardProps> = ({ performance }) => {
+const PerformanceCard: React.FC<PerformanceCardProps> = ({ performance, onViewProgram }) => {
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
@@ -18,6 +20,8 @@ const PerformanceCard: React.FC<PerformanceCardProps> = ({ performance }) => {
       return dateString;
     }
   };
+
+  const hasProgram = performance.programa_url || performance.programaPdf;
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
@@ -80,6 +84,21 @@ const PerformanceCard: React.FC<PerformanceCardProps> = ({ performance }) => {
             <div className="pt-2 border-t">
               <p className="text-xs text-gray-600 mb-1">Release:</p>
               <p className="text-sm text-gray-700 line-clamp-3">{performance.release}</p>
+            </div>
+          )}
+
+          {/* Botão Visualizar Programa */}
+          {hasProgram && (
+            <div className="pt-3 border-t">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onViewProgram?.(performance)}
+                className="w-full flex items-center justify-center space-x-2"
+              >
+                <FileText className="h-4 w-4" />
+                <span>Visualizar Programa</span>
+              </Button>
             </div>
           )}
         </div>
