@@ -20,7 +20,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, currentUser }) => {
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <SidebarInset className="flex-1">
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white">
+          <header className="flex h-20 shrink-0 items-center gap-2 border-b px-4 bg-white">
             <SidebarTrigger className="h-6 w-6 text-gray-600 hover:text-gray-900" />
             <div className="flex-1 ml-2">
               <Navbar currentUser={currentUser} />

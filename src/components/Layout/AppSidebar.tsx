@@ -17,12 +17,10 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
-  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
@@ -113,9 +111,8 @@ const AppSidebar: React.FC = () => {
 
   return (
     <Sidebar className="border-r border-gray-200">
-      <SidebarHeader className="px-4 py-6 border-b border-gray-200">
+      <SidebarHeader className="px-4 py-6 border-b border-gray-200 h-20 bg-white">
         <div className="flex items-center space-x-3">
-          <SidebarTrigger />
           <Music className="h-8 w-8 text-blue-600" />
           <h2 className="text-lg font-semibold text-gray-900">
             ACO<em>R</em>DES
@@ -128,9 +125,6 @@ const AppSidebar: React.FC = () => {
       </SidebarHeader>
       <SidebarContent className="px-2 py-4">
         <SidebarGroup>
-          <SidebarGroupLabel className="px-2 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Navegação ({filteredItems.length} itens)
-          </SidebarGroupLabel>
           <SidebarGroupContent className="mt-2">
             <SidebarMenu className="space-y-1">
               {filteredItems.length === 0 ? (
