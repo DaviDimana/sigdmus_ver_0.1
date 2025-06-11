@@ -28,7 +28,7 @@ const Partituras = () => {
   const [uploadPartituraId, setUploadPartituraId] = useState<string>('');
   const [uploadPartituraTitle, setUploadPartituraTitle] = useState<string>('');
 
-  const { data: partituras, isLoading, error } = usePartituras();
+  const { partituras, isLoading, error } = usePartituras();
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
@@ -70,9 +70,9 @@ const Partituras = () => {
     setSelectedPartitura(partitura);
   };
 
-  const handleUpload = (partituraId: string, partituraTitle: string) => {
-    setUploadPartituraId(partituraId);
-    setUploadPartituraTitle(partituraTitle);
+  const handleUpload = (partitura: any) => {
+    setUploadPartituraId(partitura.id);
+    setUploadPartituraTitle(partitura.titulo);
     setIsUploadOpen(true);
   };
 
@@ -135,7 +135,7 @@ const Partituras = () => {
 
   return (
     <div className="space-y-6">
-      <PartituraPageHeader onNewPartitura={handleNewPartitura} />
+      <PartituraPageHeader onNewPartitura={() => navigate('/nova-partitura')} />
 
       {/* Barra de pesquisa e filtros */}
       <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 md:space-x-4">
@@ -235,7 +235,10 @@ const Partituras = () => {
             <PartituraCard
               key={partitura.id}
               partitura={partitura}
-              onViewDetails={handleViewDetails}
+              relatedArquivos={[]}
+              canUpload={true}
+              onView={handleViewDetails}
+              onDownload={() => {}}
               onUpload={handleUpload}
             />
           ))}
@@ -243,7 +246,7 @@ const Partituras = () => {
       ) : (
         <PartituraEmptyState 
           searchTerm={searchTerm}
-          onAddPartitura={handleNewPartitura}
+          onAddPartitura={() => navigate('/nova-partitura')}
         />
       )}
 
@@ -254,19 +257,24 @@ const Partituras = () => {
             <DialogTitle>{selectedPartitura?.titulo}</DialogTitle>
           </DialogHeader>
           {selectedPartitura && (
-            <PartituraViewer partitura={selectedPartitura} />
+            <PartituraViewer 
+              isOpen={!!selectedPartitura}
+              onClose={() => setSelectedPartitura(null)}
+              arquivo={{
+                nome: selectedPartitura.titulo,
+                tipo: 'application/pdf',
+                arquivo_url: selectedPartitura.arquivo_url
+              }}
+              onDownload={() => {}}
+            />
           )}
         </DialogContent>
       </Dialog>
 
       {/* Dialog de Upload */}
-      <UploadDialog
-        open={isUploadOpen}
-        onOpenChange={setIsUploadOpen}
-        partituraId={uploadPartituraId}
-        partituraTitle={uploadPartituraTitle}
-        onClose={handleUploadClose}
-      />
+      <UploadDialog>
+        <div></div>
+      </UploadDialog>
     </div>
   );
 };
