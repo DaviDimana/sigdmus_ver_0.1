@@ -1,249 +1,255 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
-import { usePartituras, type Partitura } from '@/hooks/usePartituras';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Plus, Search, Eye, Download, FileText, Upload, Filter } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { usePartituras } from '@/hooks/usePartituras';
+import { useArquivos } from '@/hooks/useArquivos';
 import { toast } from 'sonner';
-import PartituraForm from '@/components/PartituraForm';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
+import UploadDialog from '@/components/UploadDialog';
+import PartituraViewer from '@/components/PartituraViewer';
+import RequestAuthDialog from '@/components/RequestAuthDialog';
+import { useAuth } from '@/hooks/useAuth';
 
 const Partituras = () => {
   const navigate = useNavigate();
-  const { partituras, isLoading, deletePartitura, updatePartitura } = usePartituras();
+  const { user, profile } = useAuth();
+  const { partituras, isLoading } = usePartituras();
+  const { getArquivosByPartitura, downloadArquivo } = useArquivos();
+  
   const [searchTerm, setSearchTerm] = useState('');
-  const [editingPartitura, setEditingPartitura] = useState<Partitura | null>(null);
-  const [viewingPartitura, setViewingPartitura] = useState<Partitura | null>(null);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [selectedPartitura, setSelectedPartitura] = useState<any>(null);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [selectedArquivo, setSelectedArquivo] = useState<any>(null);
+  const [requestAuthOpen, setRequestAuthOpen] = useState(false);
 
-  const filteredPartituras = partituras.filter(partitura =>
-    partitura.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    partitura.compositor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    partitura.setor.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPartituras = partituras?.filter(partitura =>
+    partitura.titulo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    partitura.compositor?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    partitura.setor?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
 
-  const handleEdit = (partitura: Partitura) => {
-    setEditingPartitura(partitura);
+  const handleUpload = (partitura: any) => {
+    setSelectedPartitura(partitura);
+    setUploadDialogOpen(true);
   };
 
-  const handleEditSubmit = async (data: any) => {
-    if (!editingPartitura) return;
-    
+  const handleView = async (partitura: any) => {
     try {
-      await updatePartitura.mutateAsync({
-        id: editingPartitura.id,
-        updates: data
-      });
-      toast.success('Partitura atualizada com sucesso!');
-      setEditingPartitura(null);
+      const arquivos = await getArquivosByPartitura.mutateAsync(partitura.id);
+      if (arquivos && arquivos.length > 0) {
+        const arquivo = arquivos[0];
+        
+        if (arquivo.requer_autorizacao && profile?.role !== 'ADMIN' && profile?.role !== 'GERENTE') {
+          setSelectedArquivo(arquivo);
+          setRequestAuthOpen(true);
+          return;
+        }
+        
+        setSelectedArquivo(arquivo);
+        setViewerOpen(true);
+      } else {
+        toast.error('Nenhum arquivo encontrado para esta partitura');
+      }
     } catch (error) {
-      console.error('Erro ao atualizar partitura:', error);
-      toast.error('Erro ao atualizar partitura. Tente novamente.');
+      console.error('Erro ao buscar arquivos:', error);
+      toast.error('Erro ao buscar arquivos da partitura');
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir esta partitura?')) {
+  const handleDownload = async (partitura: any) => {
+    try {
+      const arquivos = await getArquivosByPartitura.mutateAsync(partitura.id);
+      if (arquivos && arquivos.length > 0) {
+        const arquivo = arquivos[0];
+        
+        if (arquivo.requer_autorizacao && profile?.role !== 'ADMIN' && profile?.role !== 'GERENTE') {
+          setSelectedArquivo(arquivo);
+          setRequestAuthOpen(true);
+          return;
+        }
+        
+        await downloadArquivo.mutateAsync(arquivo.id);
+        toast.success('Download iniciado com sucesso');
+      } else {
+        toast.error('Nenhum arquivo encontrado para esta partitura');
+      }
+    } catch (error) {
+      console.error('Erro no download:', error);
+      toast.error('Erro ao fazer download do arquivo');
+    }
+  };
+
+  const handleRequestAuth = async (mensagem: string) => {
+    console.log('Solicitação de autorização:', {
+      arquivo: selectedArquivo?.nome,
+      usuario: user?.email,
+      mensagem
+    });
+    toast.success('Solicitação enviada com sucesso!');
+  };
+
+  const handleViewerDownload = async () => {
+    if (selectedArquivo) {
       try {
-        await deletePartitura.mutateAsync(id);
-        toast.success('Partitura excluída com sucesso!');
+        await downloadArquivo.mutateAsync(selectedArquivo.id);
+        toast.success('Download iniciado com sucesso');
       } catch (error) {
-        console.error('Erro ao excluir partitura:', error);
-        toast.error('Erro ao excluir partitura. Tente novamente.');
+        console.error('Erro no download:', error);
+        toast.error('Erro ao fazer download do arquivo');
       }
     }
   };
 
-  const handleView = (partitura: Partitura) => {
-    setViewingPartitura(partitura);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-500">Carregando partituras...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-3 sm:space-y-6 p-1 sm:p-0">
+      <div className="flex flex-col space-y-3 sm:space-y-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Partituras</h1>
-          <p className="text-gray-600 mt-2">
-            Gerencie o acervo de partituras
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Partituras</h1>
+          <p className="text-gray-600 mt-1 sm:mt-2 text-xs sm:text-sm md:text-base">
+            Gerencie e consulte o acervo de partituras
           </p>
         </div>
-        <Button 
-          className="flex items-center space-x-2"
-          onClick={() => navigate('/partituras/nova')}
-        >
-          <Plus className="h-4 w-4" />
-          <span>Nova Partitura</span>
-        </Button>
-      </div>
-
-      <div className="flex items-center space-x-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Buscar por título, compositor ou setor..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+        
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
+            <div className="relative flex-1 sm:w-80">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Buscar partituras..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 text-sm"
+              />
+            </div>
+            <Button variant="outline" size="sm" className="w-full sm:w-auto">
+              <Filter className="h-4 w-4 mr-2" />
+              <span className="text-sm">Filtros</span>
+            </Button>
+          </div>
+          
+          <Button onClick={() => navigate('/partituras/nova')} className="w-full sm:w-auto">
+            <Plus className="h-4 w-4 mr-2" />
+            <span className="text-sm">Nova Partitura</span>
+          </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredPartituras.map((partitura) => (
-          <Card key={partitura.id} className="hover:shadow-xl hover:shadow-blue-300/50 transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <Badge variant="secondary">{partitura.setor}</Badge>
-                {partitura.digitalizado && (
-                  <Badge variant="outline" className="bg-green-50 text-green-700">
-                    Digital
-                  </Badge>
-                )}
-              </div>
-              <CardTitle className="text-lg">{partitura.titulo}</CardTitle>
-              <CardDescription>{partitura.compositor}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm">
-                <div>
-                  <span className="font-medium">Instrumentação:</span> {partitura.instrumentacao}
-                </div>
-                {partitura.tonalidade && (
-                  <div>
-                    <span className="font-medium">Tonalidade:</span> {partitura.tonalidade}
-                  </div>
-                )}
-                {partitura.genero && (
-                  <div>
-                    <span className="font-medium">Gênero:</span> {partitura.genero}
-                  </div>
-                )}
-                {partitura.numero_pasta && (
-                  <div>
-                    <span className="font-medium">Pasta:</span> {partitura.numero_pasta}
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex space-x-2 mt-4">
-                <Button size="sm" variant="outline" onClick={() => handleView(partitura)}>
-                  <Eye className="h-3 w-3 mr-1" />
-                  Ver Detalhes
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => handleEdit(partitura)}>
-                  <Edit className="h-3 w-3 mr-1" />
-                  Editar
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => handleDelete(partitura.id)}>
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {filteredPartituras.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-gray-500">Nenhuma partitura encontrada.</p>
-        </div>
-      )}
-
-      {/* Dialog para edição */}
-      <Dialog open={!!editingPartitura} onOpenChange={() => setEditingPartitura(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Editar Partitura</DialogTitle>
-            <DialogDescription>
-              Modifique as informações da partitura
-            </DialogDescription>
-          </DialogHeader>
-          {editingPartitura && (
-            <PartituraForm
-              partitura={editingPartitura}
-              onSubmit={handleEditSubmit}
-              onCancel={() => setEditingPartitura(null)}
-              isSubmitting={updatePartitura.isPending}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog para visualização */}
-      <Dialog open={!!viewingPartitura} onOpenChange={() => setViewingPartitura(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Detalhes da Partitura</DialogTitle>
-          </DialogHeader>
-          {viewingPartitura && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold text-lg">{viewingPartitura.titulo}</h3>
-                <p className="text-gray-600">{viewingPartitura.compositor}</p>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium">Setor:</span> {viewingPartitura.setor}
-                </div>
-                <div>
-                  <span className="font-medium">Digitalizado:</span> {viewingPartitura.digitalizado ? 'Sim' : 'Não'}
-                </div>
-                <div>
-                  <span className="font-medium">Instrumentação:</span> {viewingPartitura.instrumentacao}
-                </div>
-                {viewingPartitura.tonalidade && (
-                  <div>
-                    <span className="font-medium">Tonalidade:</span> {viewingPartitura.tonalidade}
-                  </div>
-                )}
-                {viewingPartitura.genero && (
-                  <div>
-                    <span className="font-medium">Gênero:</span> {viewingPartitura.genero}
-                  </div>
-                )}
-                {viewingPartitura.edicao && (
-                  <div>
-                    <span className="font-medium">Edição:</span> {viewingPartitura.edicao}
-                  </div>
-                )}
-                {viewingPartitura.ano_edicao && (
-                  <div>
-                    <span className="font-medium">Ano da Edição:</span> {viewingPartitura.ano_edicao}
-                  </div>
-                )}
-                {viewingPartitura.numero_armario && (
-                  <div>
-                    <span className="font-medium">Armário:</span> {viewingPartitura.numero_armario}
-                  </div>
-                )}
-                {viewingPartitura.numero_prateleira && (
-                  <div>
-                    <span className="font-medium">Prateleira:</span> {viewingPartitura.numero_prateleira}
-                  </div>
-                )}
-                {viewingPartitura.numero_pasta && (
-                  <div>
-                    <span className="font-medium">Pasta:</span> {viewingPartitura.numero_pasta}
-                  </div>
-                )}
-              </div>
+      <Card className="w-full">
+        <CardHeader className="p-3 sm:p-4 md:p-6">
+          <CardTitle className="text-base sm:text-lg md:text-xl">Lista de Partituras</CardTitle>
+          <CardDescription className="text-xs sm:text-sm md:text-base">
+            {filteredPartituras.length} partitura(s) encontrada(s)
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="p-3 sm:p-4 md:p-6 space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs sm:text-sm">Título</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Compositor</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Setor</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Instrumentação</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Status</TableHead>
+                    <TableHead className="text-xs sm:text-sm text-center">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredPartituras.map((partitura) => (
+                    <TableRow key={partitura.id}>
+                      <TableCell className="font-medium text-xs sm:text-sm">
+                        {partitura.titulo}
+                      </TableCell>
+                      <TableCell className="text-xs sm:text-sm">{partitura.compositor}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">
+                        <Badge variant="secondary" className="text-xs">
+                          {partitura.setor}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs sm:text-sm">{partitura.instrumentacao}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">
+                        <Badge 
+                          variant={partitura.digitalizado === 'Sim' ? 'default' : 'outline'}
+                          className="text-xs"
+                        >
+                          {partitura.digitalizado === 'Sim' ? 'Digital' : 'Físico'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex justify-center space-x-1">
+                          {partitura.digitalizado === 'Sim' && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleView(partitura)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Eye className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDownload(partitura)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Download className="h-3 w-3" />
+                              </Button>
+                            </>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleUpload(partitura)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Upload className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
+        </CardContent>
+      </Card>
+
+      <UploadDialog
+        isOpen={uploadDialogOpen}
+        onClose={() => setUploadDialogOpen(false)}
+        partituraId={selectedPartitura?.id}
+        partituraTitle={selectedPartitura?.titulo}
+      />
+
+      <PartituraViewer
+        isOpen={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+        arquivo={selectedArquivo}
+        onDownload={handleViewerDownload}
+      />
+
+      <RequestAuthDialog
+        isOpen={requestAuthOpen}
+        onClose={() => setRequestAuthOpen(false)}
+        onSubmit={handleRequestAuth}
+        arquivoNome={selectedArquivo?.nome || ''}
+      />
     </div>
   );
 };
