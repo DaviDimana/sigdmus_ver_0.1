@@ -3,8 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Download, Eye, Upload, FileText, Music, User } from 'lucide-react';
+import { Plus, Search, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePartituras } from '@/hooks/usePartituras';
 import { useArquivos } from '@/hooks/useArquivos';
@@ -12,6 +11,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import PartituraViewer from '@/components/PartituraViewer';
 import UploadDialog from '@/components/UploadDialog';
+import PartituraCard from '@/components/PartituraCard';
+import PartiuraPageHeader from '@/components/PartituraPageHeader';
+import PartituraEmptyState from '@/components/PartituraEmptyState';
 
 const Partituras = () => {
   const navigate = useNavigate();
@@ -50,18 +52,6 @@ const Partituras = () => {
     setUploadDialogOpen(true);
   };
 
-  const getGenreColor = (genre: string) => {
-    const colors = {
-      'CLASSICO': 'bg-blue-100 text-blue-800',
-      'BARROCO': 'bg-purple-100 text-purple-800',
-      'ROMANTICO': 'bg-pink-100 text-pink-800',
-      'MODERNO': 'bg-green-100 text-green-800',
-      'CONTEMPORANEO': 'bg-orange-100 text-orange-800',
-      'POPULAR': 'bg-yellow-100 text-yellow-800',
-    };
-    return colors[genre as keyof typeof colors] || 'bg-gray-100 text-gray-800';
-  };
-
   const canUpload = user && (
     user.role === 'ADMIN' || 
     user.role === 'GERENTE' || 
@@ -76,35 +66,23 @@ const Partituras = () => {
     );
   }
 
+  const selectedPartituraArquivos = selectedPartitura 
+    ? arquivos?.filter(arquivo => arquivo.partitura_id === selectedPartitura.id) || []
+    : [];
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Partituras</h1>
-            <p className="text-gray-600 mt-2">
-              Gerencie o acervo de partituras musicais
-            </p>
-          </div>
-          <Button 
-            onClick={() => navigate('/nova-partitura')}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Partitura
-          </Button>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Buscar por título, compositor ou gênero..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+      <PartiuraPageHeader onNewPartitura={() => navigate('/nova-partitura')} />
+      
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Buscar por título, compositor ou gênero..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
         </div>
       </div>
 
@@ -113,115 +91,24 @@ const Partituras = () => {
           const relatedArquivos = arquivos?.filter(arquivo => arquivo.partitura_id === partitura.id) || [];
           
           return (
-            <Card key={partitura.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg font-semibold line-clamp-2">
-                    {partitura.titulo}
-                  </CardTitle>
-                  <Badge className="bg-green-100 text-green-800">
-                    ATIVO
-                  </Badge>
-                </div>
-                <CardDescription className="space-y-1">
-                  <div className="flex items-center text-sm text-gray-600">
-                    <User className="h-4 w-4 mr-1" />
-                    {partitura.compositor}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    {partitura.genero && (
-                      <Badge variant="outline" className={getGenreColor(partitura.genero)}>
-                        {partitura.genero}
-                      </Badge>
-                    )}
-                    {partitura.ano_edicao && (
-                      <span className="text-xs text-gray-500">
-                        {partitura.ano_edicao}
-                      </span>
-                    )}
-                  </div>
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm text-gray-600">
-                    <span>Instrumentação:</span>
-                    <span className="font-medium">{partitura.instrumentacao}</span>
-                  </div>
-                  
-                  {partitura.edicao && (
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                      <span>Edição:</span>
-                      <span className="font-medium">{partitura.edicao}</span>
-                    </div>
-                  )}
-                  
-                  <div className="flex items-center justify-between text-sm text-gray-600">
-                    <span>Arquivos:</span>
-                    <span className="font-medium">{relatedArquivos.length}</span>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleView(partitura)}
-                      className="flex-1"
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      Ver
-                    </Button>
-                    
-                    {relatedArquivos.length > 0 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDownload(relatedArquivos[0])}
-                        className="flex-1"
-                      >
-                        <Download className="h-4 w-4 mr-1" />
-                        Download
-                      </Button>
-                    )}
-                    
-                    {canUpload && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleUpload(partitura)}
-                        className="flex-1"
-                      >
-                        <Upload className="h-4 w-4 mr-1" />
-                        Upload
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <PartituraCard
+              key={partitura.id}
+              partitura={partitura}
+              relatedArquivos={relatedArquivos}
+              canUpload={canUpload}
+              onView={handleView}
+              onDownload={handleDownload}
+              onUpload={handleUpload}
+            />
           );
         })}
       </div>
 
       {filteredPartituras.length === 0 && !isLoading && (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <FileText className="h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Nenhuma partitura encontrada
-            </h3>
-            <p className="text-gray-600 text-center mb-4">
-              {searchTerm 
-                ? "Tente ajustar os termos de busca ou limpar os filtros."
-                : "Comece adicionando sua primeira partitura ao acervo."
-              }
-            </p>
-            <Button onClick={() => navigate('/nova-partitura')}>
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar Partitura
-            </Button>
-          </CardContent>
-        </Card>
+        <PartituraEmptyState 
+          searchTerm={searchTerm}
+          onAddPartitura={() => navigate('/nova-partitura')}
+        />
       )}
 
       {/* Dialogs */}
@@ -229,8 +116,8 @@ const Partituras = () => {
         <PartituraViewer
           isOpen={viewerOpen}
           onClose={() => setViewerOpen(false)}
-          arquivo={relatedArquivos.length > 0 ? relatedArquivos[0] : null}
-          onDownload={() => relatedArquivos.length > 0 && handleDownload(relatedArquivos[0])}
+          arquivo={selectedPartituraArquivos.length > 0 ? selectedPartituraArquivos[0] : null}
+          onDownload={() => selectedPartituraArquivos.length > 0 && handleDownload(selectedPartituraArquivos[0])}
         />
       )}
 
