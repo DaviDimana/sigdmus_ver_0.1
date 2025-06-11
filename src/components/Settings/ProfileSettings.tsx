@@ -46,6 +46,11 @@ const ProfileSettings: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('=== INICIANDO SUBMIT DO FORMULÁRIO ===');
+    console.log('FormData:', formData);
+    console.log('User:', user);
+    console.log('Profile:', profile);
+    
     if (!formData.name.trim()) {
       toast({
         title: "Erro",
@@ -56,6 +61,7 @@ const ProfileSettings: React.FC = () => {
     }
 
     if (!user) {
+      console.error('Usuário não encontrado');
       toast({
         title: "Erro",
         description: "Usuário não encontrado. Faça login novamente.",
@@ -64,13 +70,20 @@ const ProfileSettings: React.FC = () => {
       return;
     }
 
+    if (!profile) {
+      console.error('Profile não encontrado');
+      toast({
+        title: "Erro",
+        description: "Perfil não encontrado. Recarregue a página.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      console.log('Iniciando atualização do perfil...');
-      console.log('Dados do formulário:', formData);
-      console.log('Profile atual:', profile);
-      console.log('User ID:', user.id);
+      console.log('Preparando updates...');
       
       const updates: Partial<Tables<'user_profiles'>> = {
         name: formData.name.trim(),
@@ -78,32 +91,32 @@ const ProfileSettings: React.FC = () => {
       };
 
       // Apenas gerentes e admins podem alterar setor
-      if (profile?.role === 'GERENTE' || profile?.role === 'ADMIN') {
-        if (formData.setor) {
-          updates.setor = formData.setor as any;
-        }
-        console.log('Adicionando setor ao update:', formData.setor);
+      if ((profile.role === 'GERENTE' || profile.role === 'ADMIN') && formData.setor) {
+        updates.setor = formData.setor as any;
+        console.log('Adicionando setor:', formData.setor);
       }
 
       // Apenas músicos podem alterar instrumento
-      if (profile?.role === 'MUSICO') {
-        if (formData.instrumento) {
-          updates.instrumento = formData.instrumento as any;
-        }
-        console.log('Adicionando instrumento ao update:', formData.instrumento);
+      if (profile.role === 'MUSICO' && formData.instrumento) {
+        updates.instrumento = formData.instrumento as any;
+        console.log('Adicionando instrumento:', formData.instrumento);
       }
 
-      console.log('Updates a serem aplicados:', updates);
+      console.log('Updates finais:', updates);
+      console.log('Chamando updateProfile...');
       
       const result = await updateProfile(updates);
-      console.log('Perfil atualizado com sucesso:', result);
+      console.log('Resultado da atualização:', result);
 
       toast({
-        title: "Sucesso",
+        title: "Sucesso!",
         description: "Perfil atualizado com sucesso!",
       });
+
+      console.log('=== SUBMIT CONCLUÍDO COM SUCESSO ===');
     } catch (error) {
-      console.error('Erro detalhado ao atualizar perfil:', error);
+      console.error('=== ERRO NO SUBMIT ===');
+      console.error('Erro completo:', error);
       
       let errorMessage = "Erro ao atualizar perfil. Tente novamente.";
       
@@ -111,6 +124,7 @@ const ProfileSettings: React.FC = () => {
         console.error('Error message:', error.message);
         console.error('Error stack:', error.stack);
         
+        // Tratamento específico de erros comuns
         if (error.message.includes('JWT') || error.message.includes('auth')) {
           errorMessage = "Sessão expirada. Faça login novamente.";
         } else if (error.message.includes('RLS') || error.message.includes('policy')) {
@@ -119,6 +133,13 @@ const ProfileSettings: React.FC = () => {
           errorMessage = "Erro de conexão. Verifique sua internet e tente novamente.";
         } else if (error.message.includes('duplicate') || error.message.includes('unique')) {
           errorMessage = "Erro: dados duplicados. Verifique as informações inseridas.";
+        } else if (error.message.includes('PGRST116')) {
+          errorMessage = "Perfil não encontrado. Recarregue a página e tente novamente.";
+        }
+        
+        // Se temos mais detalhes do erro, incluir na mensagem
+        if (error.message && !error.message.includes('Erro ao atualizar perfil')) {
+          errorMessage += ` Detalhes: ${error.message}`;
         }
       }
       
@@ -127,6 +148,8 @@ const ProfileSettings: React.FC = () => {
         description: errorMessage,
         variant: "destructive",
       });
+      
+      console.log('=== FIM DO TRATAMENTO DE ERRO ===');
     } finally {
       setLoading(false);
     }
@@ -248,8 +271,19 @@ const ProfileSettings: React.FC = () => {
       </div>
 
       <div className="flex justify-end">
-        <Button type="submit" disabled={loading} className="min-w-[140px]">
-          {loading ? 'Salvando...' : 'Salvar Alterações'}
+        <Button 
+          type="submit" 
+          disabled={loading || !user || !profile} 
+          className="min-w-[140px] transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-blue-300/50 group"
+        >
+          {loading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Salvando...
+            </>
+          ) : (
+            <span className="transition-all duration-200 group-hover:font-semibold">Salvar Alterações</span>
+          )}
         </Button>
       </div>
     </form>

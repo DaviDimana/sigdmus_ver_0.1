@@ -155,16 +155,25 @@ export const useAuth = () => {
   };
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
-    console.log('updateProfile: Starting update with:', updates);
+    console.log('=== UPDATEPROFILE: INÍCIO ===');
+    console.log('Updates recebidos:', updates);
+    console.log('Auth state atual:', authState);
     
     if (!authState.user) {
-      console.error('updateProfile: No user logged in');
-      throw new Error('No user logged in');
+      console.error('updateProfile: Usuário não logado');
+      throw new Error('Usuário não está logado');
+    }
+
+    if (!authState.session) {
+      console.error('updateProfile: Sessão não encontrada');
+      throw new Error('Sessão não encontrada');
     }
 
     try {
-      console.log('updateProfile: Updating profile for user:', authState.user.id);
+      console.log('updateProfile: Iniciando atualização para usuário:', authState.user.id);
+      console.log('updateProfile: Updates a aplicar:', updates);
       
+      // Tentar a atualização
       const { data, error } = await supabase
         .from('user_profiles')
         .update(updates)
@@ -172,21 +181,36 @@ export const useAuth = () => {
         .select()
         .single();
 
+      console.log('updateProfile: Resposta do Supabase:', { data, error });
+
       if (error) {
-        console.error('updateProfile: Supabase error:', error);
+        console.error('updateProfile: Erro do Supabase:', error);
+        console.error('updateProfile: Error code:', error.code);
+        console.error('updateProfile: Error message:', error.message);
+        console.error('updateProfile: Error details:', error.details);
         throw error;
       }
 
-      console.log('updateProfile: Update successful:', data);
+      if (!data) {
+        console.error('updateProfile: Nenhum dado retornado');
+        throw new Error('Nenhum dado foi retornado da atualização');
+      }
 
+      console.log('updateProfile: Atualização bem-sucedida:', data);
+
+      // Atualizar o estado local
       setAuthState(prev => ({
         ...prev,
         profile: data
       }));
 
+      console.log('=== UPDATEPROFILE: SUCESSO ===');
       return data;
     } catch (error) {
-      console.error('updateProfile: Error in updateProfile:', error);
+      console.error('=== UPDATEPROFILE: ERRO ===');
+      console.error('updateProfile: Erro capturado:', error);
+      
+      // Re-throw o erro para que o componente possa tratá-lo
       throw error;
     }
   };
