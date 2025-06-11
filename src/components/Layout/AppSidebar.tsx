@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
@@ -8,7 +9,8 @@ import {
   Users, 
   Settings,
   Home,
-  Plus
+  Plus,
+  Music
 } from 'lucide-react';
 import {
   Sidebar,
@@ -20,6 +22,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
+  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
@@ -111,9 +114,13 @@ const AppSidebar: React.FC = () => {
   return (
     <Sidebar className="border-r border-gray-200">
       <SidebarHeader className="px-4 py-6 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900">
-          ACO<em>R</em>DES
-        </h2>
+        <div className="flex items-center space-x-3">
+          <SidebarTrigger />
+          <Music className="h-8 w-8 text-blue-600" />
+          <h2 className="text-lg font-semibold text-gray-900">
+            ACO<em>R</em>DES
+          </h2>
+        </div>
         {/* Debug info no header */}
         <div className="text-xs text-gray-500 mt-1">
           Role: {profile?.role || 'Carregando...'}
