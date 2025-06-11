@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Music, Mail, Lock, User, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -27,6 +26,7 @@ const Auth = () => {
 
   // Redirect if already authenticated
   if (user) {
+    console.log('Auth: User already authenticated, redirecting...');
     return <Navigate to="/" replace />;
   }
 
@@ -36,26 +36,25 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        console.log('Auth: Tentando fazer login com:', formData.email);
+        console.log('Auth: Attempting login for:', formData.email);
         await signIn(formData.email, formData.password);
-        console.log('Auth: Login realizado com sucesso');
+        console.log('Auth: Login successful');
         toast({
           title: "Login realizado com sucesso!",
           description: "Bem-vindo ao sistema.",
         });
-        // Force page reload for clean state
-        window.location.href = '/';
+        // The auth state change will trigger a redirect automatically
       } else {
-        console.log('Auth: Tentando cadastrar usuário:', formData.email);
+        console.log('Auth: Attempting signup for:', formData.email);
         await signUp(formData.email, formData.password, formData.name);
-        console.log('Auth: Cadastro realizado com sucesso');
+        console.log('Auth: Signup successful');
         toast({
           title: "Conta criada com sucesso!",
           description: "Verifique seu email para confirmar a conta.",
         });
       }
     } catch (error: any) {
-      console.error('Auth: Erro na autenticação:', error);
+      console.error('Auth: Authentication error:', error);
       toast({
         title: "Erro na autenticação",
         description: error.message || "Ocorreu um erro inesperado.",

@@ -23,16 +23,16 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   const { user, profile, loading } = useAuth();
 
-  console.log('App: Rendering with state:', { 
+  console.log('App: Current state:', { 
     hasUser: !!user, 
     hasProfile: !!profile, 
     loading,
     userEmail: user?.email 
   });
 
-  // Show loading spinner while checking auth state
+  // Show loading while checking auth state
   if (loading) {
-    console.log('App: Still loading auth state...');
+    console.log('App: Loading auth state...');
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -43,13 +43,14 @@ const AppContent = () => {
     );
   }
 
-  // If no user, always show auth page regardless of route
+  // If no authenticated user, show only auth routes
   if (!user) {
-    console.log('App: No user found, forcing auth page');
+    console.log('App: No user, showing auth page');
     return (
       <BrowserRouter>
         <Routes>
-          <Route path="*" element={<Auth />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="*" element={<Navigate to="/auth" replace />} />
         </Routes>
       </BrowserRouter>
     );
@@ -57,7 +58,7 @@ const AppContent = () => {
 
   console.log('App: User authenticated, showing main app');
 
-  // Convert profile to format expected by MainLayout
+  // User is authenticated, show main app
   const currentUser = profile ? {
     name: profile.name,
     role: profile.role.toLowerCase() as 'admin' | 'supervisor' | 'user'

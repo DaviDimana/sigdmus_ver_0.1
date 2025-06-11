@@ -7,16 +7,23 @@ export const useAuthActions = (
   setAuthState: React.Dispatch<React.SetStateAction<AuthState>>
 ) => {
   const signIn = async (email: string, password: string) => {
+    console.log('useAuthActions: Signing in with email:', email);
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('useAuthActions: Sign in error:', error);
+      throw error;
+    }
+    
+    console.log('useAuthActions: Sign in successful');
     return data;
   };
 
   const signUp = async (email: string, password: string, name: string) => {
+    console.log('useAuthActions: Signing up with email:', email);
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -27,30 +34,42 @@ export const useAuthActions = (
       },
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('useAuthActions: Sign up error:', error);
+      throw error;
+    }
+    
+    console.log('useAuthActions: Sign up successful');
     return data;
   };
 
   const signOut = async () => {
+    console.log('useAuthActions: Signing out');
     const { error } = await supabase.auth.signOut({ scope: 'global' });
-    if (error) throw error;
+    if (error) {
+      console.error('useAuthActions: Sign out error:', error);
+      throw error;
+    }
     
-    // Force page reload for clean state
-    window.location.href = '/auth';
+    console.log('useAuthActions: Sign out successful');
+    // Clear local state
+    setAuthState({
+      user: null,
+      session: null,
+      profile: null,
+      loading: false
+    });
   };
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
-    console.log('=== UPDATEPROFILE: INÍCIO ===');
-    console.log('Updates recebidos:', updates);
+    console.log('useAuthActions: Updating profile:', updates);
     
     if (!authState.user) {
-      console.error('updateProfile: Usuário não logado');
+      console.error('useAuthActions: No user to update profile for');
       throw new Error('Usuário não está logado');
     }
 
     try {
-      console.log('updateProfile: Atualizando perfil para usuário:', authState.user.id);
-      
       // Try to get existing profile first
       const { data: existingProfile } = await supabase
         .from('user_profiles')
@@ -58,13 +77,13 @@ export const useAuthActions = (
         .eq('id', authState.user.id)
         .maybeSingle();
 
-      console.log('updateProfile: Perfil existente:', existingProfile);
+      console.log('useAuthActions: Existing profile:', !!existingProfile);
 
       let result;
 
       if (!existingProfile) {
         // Create new profile
-        console.log('updateProfile: Criando novo perfil');
+        console.log('useAuthActions: Creating new profile');
         const newProfile = {
           id: authState.user.id,
           name: updates.name || authState.user.user_metadata?.name || 'Usuário',
@@ -86,7 +105,7 @@ export const useAuthActions = (
         result = data;
       } else {
         // Update existing profile
-        console.log('updateProfile: Atualizando perfil existente');
+        console.log('useAuthActions: Updating existing profile');
         const finalUpdates = {
           ...updates,
           updated_at: new Date().toISOString()
@@ -103,18 +122,16 @@ export const useAuthActions = (
         result = data;
       }
 
-      console.log('updateProfile: Sucesso:', result);
+      console.log('useAuthActions: Profile update successful');
 
       setAuthState(prev => ({
         ...prev,
         profile: result
       }));
 
-      console.log('=== UPDATEPROFILE: SUCESSO ===');
       return result;
     } catch (error) {
-      console.error('=== UPDATEPROFILE: ERRO ===');
-      console.error('updateProfile: Erro capturado:', error);
+      console.error('useAuthActions: Profile update error:', error);
       throw error;
     }
   };
