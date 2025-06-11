@@ -87,25 +87,12 @@ export const useAuth = () => {
 
       if (error && error.code !== 'PGRST116') {
         console.error('useAuth: Error fetching profile:', error);
-        // Em caso de erro de policy, vamos definir um perfil temporário
-        if (error.code === '42P17') {
-          console.log('useAuth: Policy error detected, setting temporary profile');
-          setAuthState(prev => ({
-            ...prev,
-            profile: {
-              id: userId,
-              name: 'Usuário Temporário',
-              email: prev.user?.email || '',
-              role: 'ADMIN', // Temporariamente admin para acessar tudo
-              setor: null,
-              instrumento: null,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            } as UserProfile,
-            loading: false
-          }));
-          return;
-        }
+        setAuthState(prev => ({
+          ...prev,
+          profile: null,
+          loading: false
+        }));
+        return;
       }
 
       console.log('useAuth: Profile fetched:', profile);
@@ -164,32 +151,27 @@ export const useAuth = () => {
     }
 
     try {
-      console.log('updateProfile: Tentando atualização direta para usuário:', authState.user.id);
+      console.log('updateProfile: Atualizando perfil para usuário:', authState.user.id);
       
-      // Primeiro, tentamos uma query simples para verificar se conseguimos acessar
-      const { data: existingProfile, error: fetchError } = await supabase
+      // Check if profile exists first
+      const { data: existingProfile } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('id', authState.user.id)
         .maybeSingle();
 
       console.log('updateProfile: Perfil existente:', existingProfile);
-      console.log('updateProfile: Erro na busca:', fetchError);
 
-      // Se não conseguimos buscar devido à policy, usamos RPC
-      if (fetchError && fetchError.code === '42P17') {
-        console.log('updateProfile: Usando RPC devido a erro de policy');
-        throw new Error('Erro de política de segurança. Verifique as permissões do usuário.');
-      }
+      let result;
 
-      // Se o perfil não existe, criamos um novo
       if (!existingProfile) {
+        // Create new profile
         console.log('updateProfile: Criando novo perfil');
         const newProfile = {
           id: authState.user.id,
           name: updates.name || 'Usuário',
           email: authState.user.email || '',
-          role: 'ADMIN' as const,
+          role: 'MUSICO' as const,
           setor: updates.setor || null,
           instrumento: updates.instrumento || null,
           created_at: new Date().toISOString(),
@@ -202,49 +184,36 @@ export const useAuth = () => {
           .select()
           .single();
 
-        if (error) {
-          console.error('updateProfile: Erro ao criar perfil:', error);
-          throw error;
-        }
+        if (error) throw error;
+        result = data;
+      } else {
+        // Update existing profile
+        console.log('updateProfile: Atualizando perfil existente');
+        const finalUpdates = {
+          ...updates,
+          updated_at: new Date().toISOString()
+        };
 
-        console.log('updateProfile: Perfil criado:', data);
-        
-        setAuthState(prev => ({
-          ...prev,
-          profile: data
-        }));
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .update(finalUpdates)
+          .eq('id', authState.user.id)
+          .select()
+          .single();
 
-        return data;
+        if (error) throw error;
+        result = data;
       }
 
-      // Se o perfil existe, atualizamos
-      console.log('updateProfile: Atualizando perfil existente');
-      const finalUpdates = {
-        ...updates,
-        updated_at: new Date().toISOString()
-      };
-
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .update(finalUpdates)
-        .eq('id', authState.user.id)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('updateProfile: Erro na atualização:', error);
-        throw error;
-      }
-
-      console.log('updateProfile: Atualização bem-sucedida:', data);
+      console.log('updateProfile: Sucesso:', result);
 
       setAuthState(prev => ({
         ...prev,
-        profile: data
+        profile: result
       }));
 
       console.log('=== UPDATEPROFILE: SUCESSO ===');
-      return data;
+      return result;
     } catch (error) {
       console.error('=== UPDATEPROFILE: ERRO ===');
       console.error('updateProfile: Erro capturado:', error);

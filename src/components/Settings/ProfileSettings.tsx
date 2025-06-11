@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -104,25 +105,9 @@ const ProfileSettings: React.FC = () => {
       console.error('=== ERRO NO SUBMIT ===');
       console.error('Erro completo:', error);
       
-      let errorMessage = "Erro ao atualizar perfil.";
-      
-      if (error instanceof Error) {
-        console.error('Error message:', error.message);
-        
-        if (error.message.includes('política de segurança')) {
-          errorMessage = "Erro de permissão. Você não tem acesso para editar este perfil.";
-        } else if (error.message.includes('JWT') || error.message.includes('auth')) {
-          errorMessage = "Sessão expirada. Faça login novamente.";
-        } else if (error.message.includes('network') || error.message.includes('fetch')) {
-          errorMessage = "Erro de conexão. Verifique sua internet.";
-        } else {
-          errorMessage = `Erro: ${error.message}`;
-        }
-      }
-      
       toast({
         title: "Erro",
-        description: errorMessage,
+        description: "Erro ao atualizar perfil. Tente novamente.",
         variant: "destructive",
       });
       
