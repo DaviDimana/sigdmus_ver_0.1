@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Save, Upload, FileText, X } from 'lucide-react';
+import { Save, Upload, FileText, X, File, Image } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import type { Performance, PerformanceInsert } from '@/hooks/usePerformances';
 
@@ -26,7 +25,7 @@ type FormData = z.infer<typeof formSchema>;
 
 interface PerformanceFormProps {
   performance?: Performance;
-  onSubmit: (data: PerformanceInsert & { programaPdf?: File }) => void;
+  onSubmit: (data: PerformanceInsert & { programFile?: File }) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
 }
@@ -54,9 +53,39 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({
     },
   });
 
+  const acceptedTypes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'image/jpeg',
+    'image/png',
+    'image/jpg'
+  ];
+
+  const acceptedExtensions = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png'];
+
+  const isValidFile = (file: File) => {
+    const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+    return acceptedTypes.includes(file.type) || acceptedExtensions.includes(extension);
+  };
+
+  const getFileIcon = (file: File) => {
+    const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+    
+    if (extension === '.pdf') {
+      return <FileText className="h-6 w-6 text-red-500" />;
+    } else if (['.jpg', '.jpeg', '.png'].includes(extension)) {
+      return <Image className="h-6 w-6 text-blue-500" />;
+    } else if (['.doc', '.docx'].includes(extension)) {
+      return <File className="h-6 w-6 text-blue-600" />;
+    }
+    
+    return <File className="h-6 w-6 text-gray-500" />;
+  };
+
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
+    if (file && isValidFile(file)) {
       setSelectedFile(file);
     }
   };
@@ -66,7 +95,7 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({
     setIsDragOver(false);
     
     const file = event.dataTransfer.files[0];
-    if (file && (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'))) {
+    if (file && isValidFile(file)) {
       setSelectedFile(file);
     }
   };
@@ -85,7 +114,7 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({
   };
 
   const handleSubmit = (data: FormData) => {
-    onSubmit({ ...data, programaPdf: selectedFile || undefined } as PerformanceInsert & { programaPdf?: File });
+    onSubmit({ ...data, programFile: selectedFile || undefined } as PerformanceInsert & { programFile?: File });
   };
 
   return (
@@ -243,7 +272,7 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({
 
         {/* Seção de Upload do Programa */}
         <div className="space-y-2">
-          <Label className="text-sm sm:text-base font-medium">Programa do Concerto (PDF)</Label>
+          <Label className="text-sm sm:text-base font-medium">Programa do Concerto</Label>
           <div
             className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
               isDragOver 
@@ -259,8 +288,13 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({
             {selectedFile ? (
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <FileText className="h-6 w-6 text-red-500" />
-                  <span className="text-sm font-medium">{selectedFile.name}</span>
+                  {getFileIcon(selectedFile)}
+                  <div className="text-left">
+                    <span className="text-sm font-medium block">{selectedFile.name}</span>
+                    <span className="text-xs text-gray-500">
+                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                    </span>
+                  </div>
                 </div>
                 <Button
                   type="button"
@@ -276,11 +310,11 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({
               <div>
                 <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                 <p className="text-sm text-gray-600 mb-2">
-                  Arraste um arquivo PDF aqui ou clique para selecionar
+                  Arraste um arquivo aqui ou clique para selecionar
                 </p>
                 <Input
                   type="file"
-                  accept=".pdf"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                   onChange={handleFileSelect}
                   className="hidden"
                   id="programa-upload"
@@ -295,7 +329,7 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({
             )}
           </div>
           <p className="text-xs text-gray-500">
-            Opcional: Faça upload do programa do concerto em formato PDF
+            Formatos aceitos: PDF, DOC, DOCX, JPG, PNG (máx. 10MB)
           </p>
         </div>
 

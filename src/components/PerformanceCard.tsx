@@ -21,7 +21,7 @@ const PerformanceCard: React.FC<PerformanceCardProps> = ({ performance, onViewPr
     }
   };
 
-  const hasProgram = performance.programa_url || performance.programaPdf;
+  const hasProgram = performance.programa_arquivo_url;
 
   return (
     <Card className="hover:shadow-lg transition-shadow">

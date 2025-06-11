@@ -95,10 +95,6 @@ const Performances = () => {
         isOpen={!!selectedPerformance}
         onClose={() => setSelectedPerformance(null)}
         performance={selectedPerformance || {}}
-        onDownload={() => {
-          // Implementar lógica de download se necessário
-          console.log('Download programa:', selectedPerformance);
-        }}
       />
     </div>
   );

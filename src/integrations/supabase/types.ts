@@ -262,6 +262,7 @@ export type Database = {
           local: string
           maestros: string
           nome_compositor: string
+          programa_arquivo_url: string | null
           release: string | null
           titulo_obra: string
           updated_at: string
@@ -275,6 +276,7 @@ export type Database = {
           local: string
           maestros: string
           nome_compositor: string
+          programa_arquivo_url?: string | null
           release?: string | null
           titulo_obra: string
           updated_at?: string
@@ -288,6 +290,7 @@ export type Database = {
           local?: string
           maestros?: string
           nome_compositor?: string
+          programa_arquivo_url?: string | null
           release?: string | null
           titulo_obra?: string
           updated_at?: string
