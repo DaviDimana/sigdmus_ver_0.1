@@ -83,8 +83,8 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
           <div className="block md:hidden">
             <div className="text-[11px] leading-tight font-bold text-blue-600 uppercase tracking-wide">
               <div>SISTEMA INTEGRADO DE</div>
-              <div>DOCUMENTAÇÃO E CONSULTA DE</div>
-              <div>ACERVOS MUSICAIS</div>
+              <div>DOCUMENTAÇÃO E CONSULTA</div>
+              <div>DE ACERVOS MUSICAIS</div>
             </div>
           </div>
 
