@@ -144,13 +144,6 @@ const Performances = () => {
       {filteredPerformances.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">Nenhuma performance encontrada.</p>
-          <Button
-            onClick={() => navigate('/performances/nova')}
-            className="mt-4"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Criar primeira performance
-          </Button>
         </div>
       )}
     </div>
