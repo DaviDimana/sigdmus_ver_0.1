@@ -108,6 +108,27 @@ export type Database = {
           },
         ]
       }
+      instituicoes: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       Partitura: {
         Row: {
           anoAquisicao: number | null
@@ -267,6 +288,69 @@ export type Database = {
         }
         Relationships: []
       }
+      setores: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      solicitacoes_cadastro: {
+        Row: {
+          created_at: string
+          email: string
+          funcao: Database["public"]["Enums"]["funcao_usuario"]
+          id: string
+          instituicao: string
+          instrumento: Database["public"]["Enums"]["instrumento_tipo"] | null
+          nome: string
+          setor: string
+          status: string
+          telefone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          funcao: Database["public"]["Enums"]["funcao_usuario"]
+          id?: string
+          instituicao: string
+          instrumento?: Database["public"]["Enums"]["instrumento_tipo"] | null
+          nome: string
+          setor: string
+          status?: string
+          telefone: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          funcao?: Database["public"]["Enums"]["funcao_usuario"]
+          id?: string
+          instituicao?: string
+          instrumento?: Database["public"]["Enums"]["instrumento_tipo"] | null
+          nome?: string
+          setor?: string
+          status?: string
+          telefone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       solicitacoes_download: {
         Row: {
           arquivo_id: string
@@ -342,31 +426,43 @@ export type Database = {
         Row: {
           created_at: string | null
           email: string
+          funcao: Database["public"]["Enums"]["funcao_usuario"] | null
           id: string
+          instituicao: string | null
           instrumento: Database["public"]["Enums"]["instrumento_type"] | null
           name: string
           role: Database["public"]["Enums"]["user_role"]
           setor: Database["public"]["Enums"]["Setor"] | null
+          status: string | null
+          telefone: string | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           email: string
+          funcao?: Database["public"]["Enums"]["funcao_usuario"] | null
           id: string
+          instituicao?: string | null
           instrumento?: Database["public"]["Enums"]["instrumento_type"] | null
           name: string
           role?: Database["public"]["Enums"]["user_role"]
           setor?: Database["public"]["Enums"]["Setor"] | null
+          status?: string | null
+          telefone?: string | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           email?: string
+          funcao?: Database["public"]["Enums"]["funcao_usuario"] | null
           id?: string
+          instituicao?: string | null
           instrumento?: Database["public"]["Enums"]["instrumento_type"] | null
           name?: string
           role?: Database["public"]["Enums"]["user_role"]
           setor?: Database["public"]["Enums"]["Setor"] | null
+          status?: string | null
+          telefone?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -394,6 +490,34 @@ export type Database = {
       }
     }
     Enums: {
+      funcao_usuario:
+        | "MUSICO"
+        | "ESTUDANTE"
+        | "PROFESSOR"
+        | "MAESTRO"
+        | "ARQUIVISTA"
+        | "GERENTE"
+      instrumento_tipo:
+        | "FLAUTA"
+        | "OBOÉ"
+        | "CLARINETE"
+        | "FAGOTE"
+        | "TROMPA"
+        | "TROMPETE"
+        | "TROMBONE"
+        | "TUBA"
+        | "VIOLINO_I"
+        | "VIOLINO_II"
+        | "VIOLA"
+        | "VIOLONCELO"
+        | "CONTRABAIXO"
+        | "HARPA"
+        | "PIANO"
+        | "PERCUSSAO"
+        | "SOPRANO"
+        | "CONTRALTO"
+        | "TENOR"
+        | "BAIXO"
       instrumento_type:
         | "FLAUTA"
         | "OBOÉ"
@@ -425,7 +549,14 @@ export type Database = {
         | "MEMORIAL_LINDENBERG_CARDOSO"
         | "COMPOSITORES_DA_BAHIA"
         | "ACERVO_OSBA"
-      user_role: "ADMIN" | "GERENTE" | "ARQUIVISTA" | "MUSICO"
+      user_role:
+        | "ADMIN"
+        | "GERENTE"
+        | "ARQUIVISTA"
+        | "MUSICO"
+        | "ESTUDANTE"
+        | "PROFESSOR"
+        | "MAESTRO"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -541,6 +672,36 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      funcao_usuario: [
+        "MUSICO",
+        "ESTUDANTE",
+        "PROFESSOR",
+        "MAESTRO",
+        "ARQUIVISTA",
+        "GERENTE",
+      ],
+      instrumento_tipo: [
+        "FLAUTA",
+        "OBOÉ",
+        "CLARINETE",
+        "FAGOTE",
+        "TROMPA",
+        "TROMPETE",
+        "TROMBONE",
+        "TUBA",
+        "VIOLINO_I",
+        "VIOLINO_II",
+        "VIOLA",
+        "VIOLONCELO",
+        "CONTRABAIXO",
+        "HARPA",
+        "PIANO",
+        "PERCUSSAO",
+        "SOPRANO",
+        "CONTRALTO",
+        "TENOR",
+        "BAIXO",
+      ],
       instrumento_type: [
         "FLAUTA",
         "OBOÉ",
@@ -574,7 +735,15 @@ export const Constants = {
         "COMPOSITORES_DA_BAHIA",
         "ACERVO_OSBA",
       ],
-      user_role: ["ADMIN", "GERENTE", "ARQUIVISTA", "MUSICO"],
+      user_role: [
+        "ADMIN",
+        "GERENTE",
+        "ARQUIVISTA",
+        "MUSICO",
+        "ESTUDANTE",
+        "PROFESSOR",
+        "MAESTRO",
+      ],
     },
   },
 } as const

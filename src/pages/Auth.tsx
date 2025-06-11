@@ -8,16 +8,14 @@ import { Music, Mail, Lock, User, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Navigate } from 'react-router-dom';
+import SignupForm from '@/components/SignupForm';
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [view, setView] = useState<'login' | 'signup'>('login');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    name: '',
-    role: 'MUSICO' as const,
-    setor: '',
-    instrumento: ''
+    name: ''
   });
   const [loading, setLoading] = useState(false);
   
@@ -30,29 +28,18 @@ const Auth = () => {
     return <Navigate to="/" replace />;
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      if (isLogin) {
-        console.log('Auth: Attempting login for:', formData.email);
-        await signIn(formData.email, formData.password);
-        console.log('Auth: Login successful');
-        toast({
-          title: "Login realizado com sucesso!",
-          description: "Bem-vindo ao sistema.",
-        });
-        // The auth state change will trigger a redirect automatically
-      } else {
-        console.log('Auth: Attempting signup for:', formData.email);
-        await signUp(formData.email, formData.password, formData.name);
-        console.log('Auth: Signup successful');
-        toast({
-          title: "Conta criada com sucesso!",
-          description: "Verifique seu email para confirmar a conta.",
-        });
-      }
+      console.log('Auth: Attempting login for:', formData.email);
+      await signIn(formData.email, formData.password);
+      console.log('Auth: Login successful');
+      toast({
+        title: "Login realizado com sucesso!",
+        description: "Bem-vindo ao sistema.",
+      });
     } catch (error: any) {
       console.error('Auth: Authentication error:', error);
       toast({
@@ -64,6 +51,26 @@ const Auth = () => {
       setLoading(false);
     }
   };
+
+  if (view === 'signup') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="w-full max-w-4xl">
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <div className="p-3 bg-blue-600 rounded-full">
+                <Music className="h-8 w-8 text-white" />
+              </div>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900">Sistema Integrado de Documentação e Consulta de Acervos Musicais</h1>
+            <p className="text-gray-600 mt-2">Sistema de Gerenciamento Musical</p>
+          </div>
+          
+          <SignupForm onBack={() => setView('login')} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -82,34 +89,13 @@ const Auth = () => {
 
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle>{isLogin ? 'Entrar no Sistema' : 'Criar Conta'}</CardTitle>
+            <CardTitle>Entrar no Sistema</CardTitle>
             <CardDescription>
-              {isLogin 
-                ? 'Acesse sua conta para gerenciar partituras e performances'
-                : 'Crie uma nova conta no sistema'
-              }
+              Acesse sua conta para gerenciar partituras e performances
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {!isLogin && (
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nome Completo</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="name"
-                      type="text"
-                      placeholder="Seu nome completo"
-                      value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-              )}
-
+            <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <div className="relative">
@@ -143,34 +129,29 @@ const Auth = () => {
               </div>
 
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Processando...' : (isLogin ? 'Entrar' : 'Criar Conta')}
+                {loading ? 'Processando...' : 'Entrar'}
               </Button>
             </form>
 
             <div className="mt-6 text-center">
               <Button
                 variant="link"
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => setView('signup')}
                 className="text-sm"
               >
-                {isLogin 
-                  ? 'Não tem conta? Cadastre-se aqui' 
-                  : 'Já tem conta? Faça login aqui'
-                }
+                Não tem conta? Solicite cadastro aqui
               </Button>
             </div>
 
-            {!isLogin && (
-              <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                <div className="flex items-start space-x-2">
-                  <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5" />
-                  <div className="text-sm text-amber-800">
-                    <p className="font-medium">Nota importante:</p>
-                    <p>Novas contas são criadas com perfil de "Músico" por padrão. Entre em contato com um administrador para alterar seu perfil de acesso.</p>
-                  </div>
+            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <div className="flex items-start space-x-2">
+                <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5" />
+                <div className="text-sm text-amber-800">
+                  <p className="font-medium">Primeira vez no sistema?</p>
+                  <p>Solicite seu cadastro clicando no link acima. Sua solicitação será analisada pelo administrador.</p>
                 </div>
               </div>
-            )}
+            </div>
           </CardContent>
         </Card>
       </div>
