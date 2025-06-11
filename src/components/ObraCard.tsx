@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,7 +39,7 @@ const ObraCard: React.FC<ObraCardProps> = ({
   const hasRestrictedFiles = arquivos.some(arquivo => arquivo.restricao_download);
 
   return (
-    <Card className="hover:shadow-lg transition-shadow w-full">
+    <Card className="hover:shadow-xl hover:shadow-blue-300/50 transition-shadow w-full">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CardHeader className="pb-3 p-4 sm:p-6">
           <div className="flex items-center justify-between mb-2">

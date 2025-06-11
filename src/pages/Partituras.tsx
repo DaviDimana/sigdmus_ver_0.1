@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -103,7 +102,7 @@ const Partituras = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredPartituras.map((partitura) => (
-          <Card key={partitura.id} className="hover:shadow-lg transition-shadow">
+          <Card key={partitura.id} className="hover:shadow-xl hover:shadow-blue-300/50 transition-shadow">
             <CardHeader>
               <div className="flex items-start justify-between">
                 <Badge variant="secondary">{partitura.setor}</Badge>
