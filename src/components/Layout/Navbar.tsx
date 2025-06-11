@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { Settings, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -76,7 +74,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
             {profile ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center space-x-3">
+                  <Button variant="ghost" className="flex items-center space-x-3 hover:bg-blue-50 hover:text-blue-600">
                     <Avatar className="h-8 w-8">
                       <AvatarFallback className="bg-blue-100 text-blue-600">
                         {profile.name.charAt(0).toUpperCase()}
@@ -100,27 +98,27 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem>
-                    <User className="mr-2 h-4 w-4" />
-                    Perfil
+                  <DropdownMenuItem className="hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 cursor-pointer">
+                    <User className="mr-2 h-4 w-4 transition-all duration-200 group-hover:scale-110" />
+                    <span className="transition-all duration-200 group-hover:font-semibold">Perfil</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Settings className="mr-2 h-4 w-4" />
-                    Configurações
+                  <DropdownMenuItem className="hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 cursor-pointer">
+                    <Settings className="mr-2 h-4 w-4 transition-all duration-200 group-hover:scale-110" />
+                    <span className="transition-all duration-200 group-hover:font-semibold">Configurações</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
-                    className="text-red-600 focus:text-red-600"
+                    className="text-red-600 focus:text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 cursor-pointer"
                     onClick={handleSignOut}
                   >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sair
+                    <LogOut className="mr-2 h-4 w-4 transition-all duration-200 group-hover:scale-110" />
+                    <span className="transition-all duration-200 group-hover:font-semibold">Sair</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
               <Button>
-                Entrar
+                <span>Entrar</span>
               </Button>
             )}
           </div>
@@ -131,4 +129,3 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
 };
 
 export default Navbar;
-

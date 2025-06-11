@@ -61,10 +61,10 @@ const RequestAuthDialog: React.FC<RequestAuthDialogProps> = ({
         
         <div className="flex justify-end space-x-2 mt-6">
           <Button variant="outline" onClick={onClose}>
-            Cancelar
+            <span>Cancelar</span>
           </Button>
           <Button onClick={handleSubmit}>
-            Enviar Solicitação
+            <span>Enviar Solicitação</span>
           </Button>
         </div>
       </DialogContent>

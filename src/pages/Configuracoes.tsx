@@ -57,18 +57,18 @@ const Configuracoes: React.FC = () => {
 
       <Tabs defaultValue="profile" className="space-y-6">
         <TabsList className="grid w-full max-w-md grid-cols-3">
-          <TabsTrigger value="profile" className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            Perfil
+          <TabsTrigger value="profile" className="flex items-center gap-2 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700">
+            <User className="h-4 w-4 transition-all duration-200 group-hover:scale-110" />
+            <span className="transition-all duration-200 group-hover:font-semibold">Perfil</span>
           </TabsTrigger>
-          <TabsTrigger value="password" className="flex items-center gap-2">
-            <Lock className="h-4 w-4" />
-            Senha
+          <TabsTrigger value="password" className="flex items-center gap-2 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700">
+            <Lock className="h-4 w-4 transition-all duration-200 group-hover:scale-110" />
+            <span className="transition-all duration-200 group-hover:font-semibold">Senha</span>
           </TabsTrigger>
           {showUserManagement && (
-            <TabsTrigger value="users" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Usuários
+            <TabsTrigger value="users" className="flex items-center gap-2 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700">
+              <Users className="h-4 w-4 transition-all duration-200 group-hover:scale-110" />
+              <span className="transition-all duration-200 group-hover:font-semibold">Usuários</span>
             </TabsTrigger>
           )}
         </TabsList>

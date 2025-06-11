@@ -73,12 +73,12 @@ const Login = () => {
               </div>
 
               <Button type="submit" className="w-full">
-                Entrar
+                <span>Entrar</span>
               </Button>
             </form>
 
             <div className="mt-6 text-center text-sm text-gray-600">
-              <p>Esqueceu sua senha? <span className="text-blue-600 hover:underline cursor-pointer">Clique aqui</span></p>
+              <p>Esqueceu sua senha? <span className="text-blue-600 hover:underline cursor-pointer hover:font-semibold transition-all duration-200">Clique aqui</span></p>
             </div>
           </CardContent>
         </Card>

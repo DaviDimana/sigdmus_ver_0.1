@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -82,7 +83,7 @@ const ObraCard: React.FC<ObraCardProps> = ({
               className="flex-1"
             >
               <Info className="h-3 w-3 mr-2" />
-              Detalhes da Obra
+              <span>Detalhes da Obra</span>
             </Button>
             <Button
               size="sm"
@@ -91,7 +92,7 @@ const ObraCard: React.FC<ObraCardProps> = ({
               className="flex-1"
             >
               <Calendar className="h-3 w-3 mr-2" />
-              Ver Performances
+              <span>Ver Performances</span>
             </Button>
           </div>
 
@@ -148,7 +149,7 @@ const ObraCard: React.FC<ObraCardProps> = ({
                       variant="outline"
                       onClick={() => onDelete(arquivo)}
                       disabled={deleteArquivo.isPending}
-                      className="h-8 w-8 p-0 flex-shrink-0"
+                      className="h-8 w-8 p-0 flex-shrink-0 hover:bg-red-50 hover:text-red-600 hover:border-red-300 hover:shadow-red-200/50"
                       title="Excluir"
                     >
                       <Trash2 className="h-3 w-3" />
