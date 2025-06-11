@@ -1,12 +1,11 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, FileText, Music, Users, Clock, Download } from 'lucide-react';
-import { useAuthState } from '@/hooks/useAuthState';
+import { useAuth } from '@/hooks/useAuth';
 
 const Dashboard = () => {
-  const { profile } = useAuthState();
+  const { profile } = useAuth();
 
   const stats = [
     {

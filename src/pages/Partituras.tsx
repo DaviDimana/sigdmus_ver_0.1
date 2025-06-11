@@ -8,7 +8,7 @@ import { Plus, Search, Download, Eye, Upload, FileText, Music, User } from 'luci
 import { useNavigate } from 'react-router-dom';
 import { usePartituras } from '@/hooks/usePartituras';
 import { useArquivos } from '@/hooks/useArquivos';
-import { useAuthState } from '@/hooks/useAuthState';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import PartituraViewer from '@/components/PartituraViewer';
 import UploadDialog from '@/components/UploadDialog';
@@ -17,7 +17,7 @@ const Partituras = () => {
   const navigate = useNavigate();
   const { partituras, isLoading } = usePartituras();
   const { arquivos, downloadArquivo } = useArquivos();
-  const { profile } = useAuthState();
+  const { profile } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPartitura, setSelectedPartitura] = useState<any>(null);
   const [viewerOpen, setViewerOpen] = useState(false);
@@ -27,7 +27,7 @@ const Partituras = () => {
   const filteredPartituras = partituras?.filter(partitura =>
     partitura.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
     partitura.compositor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    partitura.genero.toLowerCase().includes(searchTerm.toLowerCase())
+    (partitura.genero && partitura.genero.toLowerCase().includes(searchTerm.toLowerCase()))
   ) || [];
 
   const handleDownload = async (arquivoId: string) => {
@@ -124,8 +124,8 @@ const Partituras = () => {
                   <CardTitle className="text-lg font-semibold line-clamp-2">
                     {partitura.titulo}
                   </CardTitle>
-                  <Badge className={getStatusColor(partitura.status)}>
-                    {partitura.status}
+                  <Badge className="bg-green-100 text-green-800">
+                    ATIVO
                   </Badge>
                 </div>
                 <CardDescription className="space-y-1">
@@ -134,26 +134,32 @@ const Partituras = () => {
                     {partitura.compositor}
                   </div>
                   <div className="flex items-center justify-between">
-                    <Badge variant="outline" className={getGenreColor(partitura.genero)}>
-                      {partitura.genero}
-                    </Badge>
-                    <span className="text-xs text-gray-500">
-                      {partitura.ano_composicao}
-                    </span>
+                    {partitura.genero && (
+                      <Badge variant="outline" className={getGenreColor(partitura.genero)}>
+                        {partitura.genero}
+                      </Badge>
+                    )}
+                    {partitura.ano_edicao && (
+                      <span className="text-xs text-gray-500">
+                        {partitura.ano_edicao}
+                      </span>
+                    )}
                   </div>
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-sm text-gray-600">
-                    <span>Instrumentos:</span>
-                    <span className="font-medium">{partitura.instrumentos.join(', ')}</span>
+                    <span>Instrumentação:</span>
+                    <span className="font-medium">{partitura.instrumentacao}</span>
                   </div>
                   
-                  <div className="flex items-center justify-between text-sm text-gray-600">
-                    <span>Duração:</span>
-                    <span className="font-medium">{partitura.duracao_aproximada}min</span>
-                  </div>
+                  {partitura.edicao && (
+                    <div className="flex items-center justify-between text-sm text-gray-600">
+                      <span>Edição:</span>
+                      <span className="font-medium">{partitura.edicao}</span>
+                    </div>
+                  )}
                   
                   <div className="flex items-center justify-between text-sm text-gray-600">
                     <span>Arquivos:</span>
@@ -224,15 +230,18 @@ const Partituras = () => {
       )}
 
       {/* Dialogs */}
-      <PartituraViewer
-        partitura={selectedPartitura}
-        open={viewerOpen}
-        onOpenChange={setViewerOpen}
-      />
+      {selectedPartitura && partituraArquivos.length > 0 && (
+        <PartituraViewer
+          isOpen={viewerOpen}
+          onClose={() => setViewerOpen(false)}
+          arquivo={partituraArquivos[0]}
+          onDownload={() => handleDownload(partituraArquivos[0].id)}
+        />
+      )}
 
       <UploadDialog
-        isOpen={uploadDialogOpen}
-        onClose={() => setUploadDialogOpen(false)}
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
         partituraId={selectedPartituraForUpload?.id}
         partituraTitle={selectedPartituraForUpload?.titulo}
       />
