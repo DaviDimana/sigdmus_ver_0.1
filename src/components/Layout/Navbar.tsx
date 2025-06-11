@@ -72,17 +72,18 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Ícone de collapse aumentado */}
+        <div className="flex justify-between items-center h-14">
+          {/* Ícone de collapse */}
           <div className="flex items-center space-x-4">
             <SidebarTrigger className="h-8 w-8" />
             
-            {/* Título versão desktop com estilo melhorado */}
+            {/* Título versão desktop com quebra de linha */}
             <div className="hidden md:block">
               <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
-                <span className="text-xs sm:text-sm md:text-base lg:text-lg font-bold uppercase tracking-wide font-serif">
-                  Sistema Integrado de Documentação e Consulta de Acervos Musicais
-                </span>
+                <div className="text-xs sm:text-sm md:text-base lg:text-lg font-bold uppercase tracking-wide font-serif leading-tight">
+                  <div>Sistema Integrado de Documentação</div>
+                  <div>e Consulta de Acervos Musicais</div>
+                </div>
               </div>
             </div>
 
