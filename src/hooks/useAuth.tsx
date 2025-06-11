@@ -35,18 +35,43 @@ export const useAuth = () => {
           user: session?.user ?? null,
         }));
 
-        // Defer profile fetching to prevent deadlocks
-        if (session?.user) {
-          console.log('useAuth: User found, fetching profile...');
-          setTimeout(() => {
-            fetchUserProfile(session.user.id);
-          }, 0);
-        } else {
+        // Clear profile if no session
+        if (!session?.user) {
           console.log('useAuth: No user, clearing profile');
           setAuthState(prev => ({
             ...prev,
             profile: null,
             loading: false
+          }));
+          return;
+        }
+
+        // Try to fetch profile, but don't fail if RLS blocks it
+        try {
+          console.log('useAuth: User found, fetching profile...');
+          const { data: profile, error } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .maybeSingle();
+
+          if (error) {
+            console.log('useAuth: Profile fetch error (continuing anyway):', error.message);
+          }
+
+          console.log('useAuth: Profile fetched:', profile);
+          
+          setAuthState(prev => ({
+            ...prev,
+            profile: profile || null,
+            loading: false
+          }));
+        } catch (error) {
+          console.log('useAuth: Profile fetch failed (continuing anyway):', error);
+          setAuthState(prev => ({ 
+            ...prev, 
+            profile: null, 
+            loading: false 
           }));
         }
       }
@@ -62,9 +87,7 @@ export const useAuth = () => {
         user: session?.user ?? null,
       }));
 
-      if (session?.user) {
-        fetchUserProfile(session.user.id);
-      } else {
+      if (!session?.user) {
         setAuthState(prev => ({ ...prev, loading: false }));
       }
     });
@@ -74,39 +97,6 @@ export const useAuth = () => {
       subscription.unsubscribe();
     };
   }, []);
-
-  const fetchUserProfile = async (userId: string) => {
-    console.log('useAuth: Fetching profile for user:', userId);
-    
-    try {
-      const { data: profile, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('useAuth: Error fetching profile:', error);
-        setAuthState(prev => ({
-          ...prev,
-          profile: null,
-          loading: false
-        }));
-        return;
-      }
-
-      console.log('useAuth: Profile fetched:', profile);
-      
-      setAuthState(prev => ({
-        ...prev,
-        profile: profile || null,
-        loading: false
-      }));
-    } catch (error) {
-      console.error('useAuth: Error fetching profile:', error);
-      setAuthState(prev => ({ ...prev, loading: false }));
-    }
-  };
 
   const signIn = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -153,7 +143,7 @@ export const useAuth = () => {
     try {
       console.log('updateProfile: Atualizando perfil para usuário:', authState.user.id);
       
-      // Check if profile exists first
+      // Try to get existing profile first
       const { data: existingProfile } = await supabase
         .from('user_profiles')
         .select('*')
@@ -169,7 +159,7 @@ export const useAuth = () => {
         console.log('updateProfile: Criando novo perfil');
         const newProfile = {
           id: authState.user.id,
-          name: updates.name || 'Usuário',
+          name: updates.name || authState.user.user_metadata?.name || 'Usuário',
           email: authState.user.email || '',
           role: 'MUSICO' as const,
           setor: updates.setor || null,

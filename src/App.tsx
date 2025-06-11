@@ -39,6 +39,7 @@ const AppContent = () => {
   if (!user) {
     return (
       <Routes>
+        <Route path="/auth" element={<Auth />} />
         <Route path="*" element={<Auth />} />
       </Routes>
     );
@@ -48,7 +49,10 @@ const AppContent = () => {
   const currentUser = profile ? {
     name: profile.name,
     role: profile.role.toLowerCase() as 'admin' | 'supervisor' | 'user'
-  } : null;
+  } : {
+    name: user.user_metadata?.name || user.email || 'Usuário',
+    role: 'user' as const
+  };
 
   return (
     <MainLayout currentUser={currentUser}>
