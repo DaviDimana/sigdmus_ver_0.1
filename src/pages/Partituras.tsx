@@ -17,7 +17,7 @@ const Partituras = () => {
   const navigate = useNavigate();
   const { partituras, isLoading } = usePartituras();
   const { arquivos, downloadArquivo } = useArquivos();
-  const { profile } = useAuth();
+  const { authState } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPartitura, setSelectedPartitura] = useState<any>(null);
   const [viewerOpen, setViewerOpen] = useState(false);
@@ -32,7 +32,7 @@ const Partituras = () => {
 
   const handleDownload = async (arquivoId: string) => {
     try {
-      await downloadArquivo(arquivoId);
+      await downloadArquivo.mutateAsync(arquivoId);
       toast.success('Download iniciado com sucesso!');
     } catch (error) {
       console.error('Erro ao fazer download:', error);
@@ -50,15 +50,6 @@ const Partituras = () => {
     setUploadDialogOpen(true);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'ATIVO': return 'bg-green-100 text-green-800';
-      case 'INATIVO': return 'bg-gray-100 text-gray-800';
-      case 'ARQUIVADO': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const getGenreColor = (genre: string) => {
     const colors = {
       'CLASSICO': 'bg-blue-100 text-blue-800',
@@ -71,7 +62,11 @@ const Partituras = () => {
     return colors[genre as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
-  const canUpload = profile?.role === 'ADMIN' || profile?.role === 'GERENTE' || profile?.role === 'ARQUIVISTA';
+  const canUpload = authState.user && (
+    authState.user.role === 'ADMIN' || 
+    authState.user.role === 'GERENTE' || 
+    authState.user.role === 'ARQUIVISTA'
+  );
 
   if (isLoading) {
     return (
@@ -115,7 +110,7 @@ const Partituras = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredPartituras.map((partitura) => {
-          const partituraArquivos = arquivos?.filter(arquivo => arquivo.partitura_id === partitura.id) || [];
+          const relatedArquivos = arquivos?.filter(arquivo => arquivo.partitura_id === partitura.id) || [];
           
           return (
             <Card key={partitura.id} className="hover:shadow-lg transition-shadow">
@@ -163,7 +158,7 @@ const Partituras = () => {
                   
                   <div className="flex items-center justify-between text-sm text-gray-600">
                     <span>Arquivos:</span>
-                    <span className="font-medium">{partituraArquivos.length}</span>
+                    <span className="font-medium">{relatedArquivos.length}</span>
                   </div>
 
                   <div className="flex flex-wrap gap-2 pt-2">
@@ -177,11 +172,11 @@ const Partituras = () => {
                       Ver
                     </Button>
                     
-                    {partituraArquivos.length > 0 && (
+                    {relatedArquivos.length > 0 && (
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleDownload(partituraArquivos[0].id)}
+                        onClick={() => handleDownload(relatedArquivos[0].id)}
                         className="flex-1"
                       >
                         <Download className="h-4 w-4 mr-1" />
@@ -230,12 +225,12 @@ const Partituras = () => {
       )}
 
       {/* Dialogs */}
-      {selectedPartitura && partituraArquivos.length > 0 && (
+      {selectedPartitura && relatedArquivos.length > 0 && (
         <PartituraViewer
           isOpen={viewerOpen}
           onClose={() => setViewerOpen(false)}
-          arquivo={partituraArquivos[0]}
-          onDownload={() => handleDownload(partituraArquivos[0].id)}
+          arquivo={relatedArquivos[0]}
+          onDownload={() => handleDownload(relatedArquivos[0].id)}
         />
       )}
 
