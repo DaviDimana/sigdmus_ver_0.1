@@ -43,14 +43,13 @@ const AppContent = () => {
     );
   }
 
-  // Always show auth page if not authenticated - this ensures app always starts with login
+  // If no user, always show auth page regardless of route
   if (!user) {
-    console.log('App: No user found, showing auth page');
+    console.log('App: No user found, forcing auth page');
     return (
       <BrowserRouter>
         <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route path="*" element={<Navigate to="/auth" replace />} />
+          <Route path="*" element={<Auth />} />
         </Routes>
       </BrowserRouter>
     );
