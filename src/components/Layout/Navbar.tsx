@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Settings, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
+import { useNavigate } from 'react-router-dom';
 
 interface NavbarProps {
   currentUser?: {
@@ -20,7 +22,8 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
-  const { signOut, profile } = useAuth();
+  const { user, profile, signOut, updateProfile } = useAuth();
+  const navigate = useNavigate();
 
   const getRoleLabel = (role: string) => {
     switch (role) {
@@ -45,8 +48,23 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
   const handleSignOut = async () => {
     try {
       await signOut();
+      navigate('/auth');
     } catch (error) {
       console.error('Error signing out:', error);
+    }
+  };
+
+  const handleCreateProfile = async () => {
+    if (!user) return;
+    
+    try {
+      await updateProfile({
+        name: user.user_metadata?.name || user.email || 'Usuário',
+        email: user.email || '',
+        role: 'MUSICO' as const
+      });
+    } catch (error) {
+      console.error('Error creating profile:', error);
     }
   };
 
@@ -71,7 +89,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
           </div>
 
           <div className="flex items-center space-x-4 flex-shrink-0 ml-auto">
-            {profile ? (
+            {user && profile ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center space-x-3 hover:bg-blue-50 hover:text-blue-600">
@@ -116,8 +134,12 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+            ) : user && !profile ? (
+              <Button onClick={handleCreateProfile} className="bg-blue-600 hover:bg-blue-700">
+                <span>Criar Perfil</span>
+              </Button>
             ) : (
-              <Button>
+              <Button onClick={() => navigate('/auth')}>
                 <span>Entrar</span>
               </Button>
             )}

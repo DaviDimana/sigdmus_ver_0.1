@@ -59,7 +59,7 @@ const AppContent = () => {
   // User is authenticated, show main app
   console.log('App: User authenticated, showing main app');
   
-  // Create user object for MainLayout
+  // Create user object for MainLayout - even without profile
   const currentUser = profile ? {
     name: profile.name,
     role: profile.role.toLowerCase() as 'admin' | 'supervisor' | 'user'
