@@ -21,7 +21,13 @@ const PerformanceCard: React.FC<PerformanceCardProps> = ({ performance, onViewPr
     }
   };
 
-  const hasProgram = performance.programa_arquivo_url;
+  // Log para debug - vamos ver se o programa_arquivo_url está chegando
+  console.log('Performance data:', performance);
+  console.log('programa_arquivo_url:', performance.programa_arquivo_url);
+
+  const hasProgram = performance.programa_arquivo_url && performance.programa_arquivo_url.trim() !== '';
+
+  console.log('hasProgram:', hasProgram);
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
@@ -87,20 +93,23 @@ const PerformanceCard: React.FC<PerformanceCardProps> = ({ performance, onViewPr
             </div>
           )}
 
-          {/* Botão Visualizar Programa */}
-          {hasProgram && (
-            <div className="pt-3 border-t">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onViewProgram?.(performance)}
-                className="w-full flex items-center justify-center space-x-2"
-              >
-                <FileText className="h-4 w-4" />
-                <span>Visualizar Programa</span>
-              </Button>
-            </div>
-          )}
+          {/* Botão Visualizar Programa - sempre visible para debug */}
+          <div className="pt-3 border-t">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onViewProgram?.(performance)}
+              className="w-full flex items-center justify-center space-x-2"
+              disabled={!hasProgram}
+            >
+              <FileText className="h-4 w-4" />
+              <span>{hasProgram ? 'Visualizar Programa' : 'Programa não disponível'}</span>
+            </Button>
+            {/* Debug info temporário */}
+            <p className="text-xs text-gray-500 mt-1">
+              Debug: {hasProgram ? 'Programa encontrado' : 'Programa não encontrado'}
+            </p>
+          </div>
         </div>
       </CardContent>
     </Card>
