@@ -225,18 +225,18 @@ const Partituras = () => {
       )}
 
       {/* Dialogs */}
-      {selectedPartitura && relatedArquivos && relatedArquivos.length > 0 && (
+      {selectedPartitura && (
         <PartituraViewer
-          open={viewerOpen}
-          onOpenChange={setViewerOpen}
-          arquivo={relatedArquivos[0]}
-          onDownload={() => handleDownload(relatedArquivos[0])}
+          isOpen={viewerOpen}
+          onClose={() => setViewerOpen(false)}
+          arquivo={relatedArquivos.length > 0 ? relatedArquivos[0] : null}
+          onDownload={() => relatedArquivos.length > 0 && handleDownload(relatedArquivos[0])}
         />
       )}
 
       <UploadDialog
-        open={uploadDialogOpen}
-        onOpenChange={setUploadDialogOpen}
+        isOpen={uploadDialogOpen}
+        onClose={() => setUploadDialogOpen(false)}
         partituraId={selectedPartituraForUpload?.id}
         partituraTitle={selectedPartituraForUpload?.titulo}
       />
