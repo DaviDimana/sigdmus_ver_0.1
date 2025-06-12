@@ -162,18 +162,24 @@ const SignupForm: React.FC<SignupFormProps> = ({ onBack }) => {
     setLoading(true);
 
     try {
+      const insertData: any = {
+        nome: formData.nome,
+        email: formData.email,
+        instituicao: formData.instituicao,
+        setor: formData.setor,
+        funcao: formData.funcao,
+        telefone: formData.telefone,
+        status: 'pendente'
+      };
+
+      // Só adicionar instrumento se foi preenchido
+      if (formData.instrumento) {
+        insertData.instrumento = formData.instrumento;
+      }
+
       const { data, error } = await supabase
         .from('solicitacoes_cadastro')
-        .insert({
-          nome: formData.nome,
-          email: formData.email,
-          instituicao: formData.instituicao,
-          setor: formData.setor,
-          funcao: formData.funcao as any,
-          instrumento: formData.instrumento || null,
-          telefone: formData.telefone,
-          status: 'pendente'
-        });
+        .insert(insertData);
 
       if (error) throw error;
 
