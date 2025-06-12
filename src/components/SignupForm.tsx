@@ -67,26 +67,31 @@ const SignupForm: React.FC<SignupFormProps> = ({ onBack }) => {
     setLoading(true);
 
     try {
-      const insertData: any = {
+      console.log('Enviando dados:', formData);
+      
+      const insertData = {
         nome: formData.nome,
         email: formData.email,
         instituicao: formData.instituicao,
         setor: formData.setor,
-        funcao: formData.funcao,
+        funcao: formData.funcao as any,
         telefone: formData.telefone,
-        status: 'pendente'
+        status: 'pendente',
+        ...(formData.instrumento ? { instrumento: formData.instrumento as any } : {})
       };
 
-      // Só adicionar instrumento se foi preenchido
-      if (formData.instrumento) {
-        insertData.instrumento = formData.instrumento;
-      }
+      console.log('Dados para inserir:', insertData);
 
       const { data, error } = await supabase
         .from('solicitacoes_cadastro')
         .insert(insertData);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro detalhado:', error);
+        throw error;
+      }
+
+      console.log('Sucesso:', data);
 
       toast({
         title: "Solicitação enviada!",
@@ -109,7 +114,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onBack }) => {
       console.error('Erro ao enviar solicitação:', error);
       toast({
         title: "Erro",
-        description: "Erro ao enviar solicitação. Tente novamente.",
+        description: error.message || "Erro ao enviar solicitação. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -117,7 +122,21 @@ const SignupForm: React.FC<SignupFormProps> = ({ onBack }) => {
     }
   };
 
-  const needsInstrument = ['MUSICO', 'ESTUDANTE', 'PROFESSOR'].includes(formData.funcao);
+  // Verificar se todos os campos obrigatórios estão preenchidos
+  const isFormValid = () => {
+    const baseFields = formData.nome.trim() && 
+                      formData.email.trim() && 
+                      formData.instituicao.trim() && 
+                      formData.setor.trim() && 
+                      formData.funcao.trim() && 
+                      formData.telefone.trim();
+    
+    // Se função requer instrumento, verificar se está preenchido
+    const needsInstrument = ['MUSICO', 'ESTUDANTE', 'PROFESSOR'].includes(formData.funcao);
+    const instrumentValid = !needsInstrument || formData.instrumento.trim();
+    
+    return baseFields && instrumentValid;
+  };
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
@@ -155,16 +174,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onBack }) => {
             </Button>
             <Button 
               type="submit" 
-              disabled={
-                loading || 
-                !formData.nome || 
-                !formData.email || 
-                !formData.instituicao || 
-                !formData.setor || 
-                !formData.funcao || 
-                !formData.telefone || 
-                (needsInstrument && !formData.instrumento)
-              }
+              disabled={loading || !isFormValid()}
             >
               {loading ? 'Enviando...' : 'Enviar Solicitação'}
             </Button>

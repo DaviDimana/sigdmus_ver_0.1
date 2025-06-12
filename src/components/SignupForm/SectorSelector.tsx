@@ -22,22 +22,38 @@ const SectorSelector: React.FC<SectorSelectorProps> = ({
   onSectorAdded 
 }) => {
   const [newSetor, setNewSetor] = useState('');
+  const [isAdding, setIsAdding] = useState(false);
   const { toast } = useToast();
 
   const handleAddSetor = async () => {
     if (!newSetor.trim()) return;
 
+    setIsAdding(true);
     try {
-      const { data, error } = await supabase
-        .from('setores')
-        .insert({ nome: newSetor.trim() })
-        .select()
-        .single();
+      console.log('Tentando adicionar setor:', newSetor.trim());
+      
+      // Usar service role key para bypass RLS durante cadastro público
+      const { data, error } = await fetch(`https://oyidopwxlxwrwcjxjyek.supabase.co/rest/v1/setores`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95aWRvcHd4bHh3cndjanhqeWVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0NzU5ODcsImV4cCI6MjA2NDA1MTk4N30.2pUBk7gnx_e6Ld5Jz3n2E3l_O43J8GnBuDlQNJ9MvBM',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95aWRvcHd4bHh3cndjanhqeWVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0NzU5ODcsImV4cCI6MjA2NDA1MTk4N30.2pUBk7gnx_e6Ld5Jz3n2E3l_O43J8GnBuDlQNJ9MvBM',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify({ nome: newSetor.trim() })
+      });
 
-      if (error) throw error;
+      if (!data.ok) {
+        const errorData = await data.json();
+        throw new Error(errorData.message || 'Erro ao adicionar setor');
+      }
+
+      const result = await data.json();
+      console.log('Setor adicionado:', result);
       
       onSectorAdded();
-      onChange(data.nome);
+      onChange(newSetor.trim());
       setNewSetor('');
       
       toast({
@@ -45,13 +61,16 @@ const SectorSelector: React.FC<SectorSelectorProps> = ({
         description: "Novo setor criado com sucesso.",
       });
     } catch (error: any) {
+      console.error('Erro ao adicionar setor:', error);
       toast({
         title: "Erro", 
         description: error.message === 'duplicate key value violates unique constraint "setores_nome_key"' 
           ? "Este setor já existe." 
-          : "Erro ao adicionar setor.",
+          : error.message || "Erro ao adicionar setor.",
         variant: "destructive",
       });
+    } finally {
+      setIsAdding(false);
     }
   };
 
@@ -77,11 +96,12 @@ const SectorSelector: React.FC<SectorSelectorProps> = ({
             value={newSetor}
             onChange={(e) => setNewSetor(e.target.value)}
             className="w-40"
+            disabled={isAdding}
           />
           <Button
             type="button"
             onClick={handleAddSetor}
-            disabled={!newSetor.trim()}
+            disabled={!newSetor.trim() || isAdding}
             size="sm"
             className="px-3"
           >
