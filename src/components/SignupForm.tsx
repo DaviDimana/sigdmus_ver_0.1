@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Plus } from 'lucide-react';
 
 interface SignupFormProps {
   onBack: () => void;
@@ -26,6 +26,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ onBack }) => {
   const [loading, setLoading] = useState(false);
   const [instituicoes, setInstituicoes] = useState<Array<{ id: string; nome: string }>>([]);
   const [setores, setSetores] = useState<Array<{ id: string; nome: string }>>([]);
+  const [newInstituicao, setNewInstituicao] = useState('');
+  const [newSetor, setNewSetor] = useState('');
   const { toast } = useToast();
 
   const funcoes = [
@@ -93,11 +95,13 @@ const SignupForm: React.FC<SignupFormProps> = ({ onBack }) => {
     }
   };
 
-  const handleAddInstituicao = async (novaInstituicao: string) => {
+  const handleAddInstituicao = async () => {
+    if (!newInstituicao.trim()) return;
+
     try {
       const { data, error } = await supabase
         .from('instituicoes')
-        .insert({ nome: novaInstituicao })
+        .insert({ nome: newInstituicao.trim() })
         .select()
         .single();
 
@@ -105,6 +109,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onBack }) => {
       
       await fetchInstituicoes();
       setFormData(prev => ({ ...prev, instituicao: data.nome }));
+      setNewInstituicao('');
       
       toast({
         title: "Instituição adicionada",
@@ -113,17 +118,21 @@ const SignupForm: React.FC<SignupFormProps> = ({ onBack }) => {
     } catch (error: any) {
       toast({
         title: "Erro",
-        description: "Erro ao adicionar instituição.",
+        description: error.message === 'duplicate key value violates unique constraint "instituicoes_nome_key"' 
+          ? "Esta instituição já existe." 
+          : "Erro ao adicionar instituição.",
         variant: "destructive",
       });
     }
   };
 
-  const handleAddSetor = async (novoSetor: string) => {
+  const handleAddSetor = async () => {
+    if (!newSetor.trim()) return;
+
     try {
       const { data, error } = await supabase
         .from('setores')
-        .insert({ nome: novoSetor })
+        .insert({ nome: newSetor.trim() })
         .select()
         .single();
 
@@ -131,6 +140,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onBack }) => {
       
       await fetchSetores();
       setFormData(prev => ({ ...prev, setor: data.nome }));
+      setNewSetor('');
       
       toast({
         title: "Setor adicionado",
@@ -139,7 +149,9 @@ const SignupForm: React.FC<SignupFormProps> = ({ onBack }) => {
     } catch (error: any) {
       toast({
         title: "Erro", 
-        description: "Erro ao adicionar setor.",
+        description: error.message === 'duplicate key value violates unique constraint "setores_nome_key"' 
+          ? "Este setor já existe." 
+          : "Erro ao adicionar setor.",
         variant: "destructive",
       });
     }
@@ -150,9 +162,18 @@ const SignupForm: React.FC<SignupFormProps> = ({ onBack }) => {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('send-signup-approval', {
-        body: formData
-      });
+      const { data, error } = await supabase
+        .from('solicitacoes_cadastro')
+        .insert({
+          nome: formData.nome,
+          email: formData.email,
+          instituicao: formData.instituicao,
+          setor: formData.setor,
+          funcao: formData.funcao as any,
+          instrumento: formData.instrumento || null,
+          telefone: formData.telefone,
+          status: 'pendente'
+        });
 
       if (error) throw error;
 
@@ -229,7 +250,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onBack }) => {
                 onValueChange={(value) => setFormData(prev => ({ ...prev, instituicao: value }))}
               >
                 <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Selecione ou digite nova instituição" />
+                  <SelectValue placeholder="Selecione uma instituição" />
                 </SelectTrigger>
                 <SelectContent>
                   {instituicoes.map((inst) => (
@@ -239,20 +260,23 @@ const SignupForm: React.FC<SignupFormProps> = ({ onBack }) => {
                   ))}
                 </SelectContent>
               </Select>
-              <Input
-                placeholder="Nova instituição"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const value = e.currentTarget.value.trim();
-                    if (value) {
-                      handleAddInstituicao(value);
-                      e.currentTarget.value = '';
-                    }
-                  }
-                }}
-                className="w-40"
-              />
+              <div className="flex gap-1">
+                <Input
+                  placeholder="Nova instituição"
+                  value={newInstituicao}
+                  onChange={(e) => setNewInstituicao(e.target.value)}
+                  className="w-40"
+                />
+                <Button
+                  type="button"
+                  onClick={handleAddInstituicao}
+                  disabled={!newInstituicao.trim()}
+                  size="sm"
+                  className="px-3"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -264,7 +288,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onBack }) => {
                 onValueChange={(value) => setFormData(prev => ({ ...prev, setor: value }))}
               >
                 <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Selecione ou digite novo setor" />
+                  <SelectValue placeholder="Selecione um setor" />
                 </SelectTrigger>
                 <SelectContent>
                   {setores.map((setor) => (
@@ -274,20 +298,23 @@ const SignupForm: React.FC<SignupFormProps> = ({ onBack }) => {
                   ))}
                 </SelectContent>
               </Select>
-              <Input
-                placeholder="Novo setor"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const value = e.currentTarget.value.trim();
-                    if (value) {
-                      handleAddSetor(value);
-                      e.currentTarget.value = '';
-                    }
-                  }
-                }}
-                className="w-40"
-              />
+              <div className="flex gap-1">
+                <Input
+                  placeholder="Novo setor"
+                  value={newSetor}
+                  onChange={(e) => setNewSetor(e.target.value)}
+                  className="w-40"
+                />
+                <Button
+                  type="button"
+                  onClick={handleAddSetor}
+                  disabled={!newSetor.trim()}
+                  size="sm"
+                  className="px-3"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
 
