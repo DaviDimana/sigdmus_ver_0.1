@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Music, Mail, Lock, User, AlertCircle, ArrowRight } from 'lucide-react';
+import { Mail, Lock, User, AlertCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Navigate } from 'react-router-dom';
@@ -59,7 +59,11 @@ const Auth = () => {
           <div className="text-center mb-8 animate-fade-in">
             <div className="flex justify-center mb-6">
               <div className="p-4 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-xl">
-                <Music className="h-10 w-10 text-white" />
+                <img 
+                  src="/lovable-uploads/2cf08e31-af5e-4298-9056-85085fd37a0a.png" 
+                  alt="SIGMus Logo" 
+                  className="h-10 w-10 text-white"
+                />
               </div>
             </div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 bg-clip-text text-transparent leading-tight">
@@ -82,7 +86,11 @@ const Auth = () => {
         <div className="text-center mb-8 animate-fade-in">
           <div className="flex justify-center mb-6">
             <div className="p-4 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-xl transform hover:scale-105 transition-transform duration-300">
-              <Music className="h-10 w-10 text-white" />
+              <img 
+                src="/lovable-uploads/2cf08e31-af5e-4298-9056-85085fd37a0a.png" 
+                alt="SIGMus Logo" 
+                className="h-10 w-10"
+              />
             </div>
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 bg-clip-text text-transparent leading-tight mb-2">

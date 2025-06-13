@@ -9,8 +9,7 @@ import {
   Users, 
   Settings,
   Home,
-  Plus,
-  Music
+  Plus
 } from 'lucide-react';
 import {
   Sidebar,
@@ -114,7 +113,11 @@ const AppSidebar: React.FC = () => {
     <Sidebar className="border-r border-gray-200">
       <SidebarHeader className="px-4 py-6 border-b border-gray-200 h-20 bg-white flex items-center justify-center">
         <div className="flex items-center justify-center space-x-3 w-full">
-          <Music className="h-8 w-8 text-blue-600" />
+          <img 
+            src="/lovable-uploads/2cf08e31-af5e-4298-9056-85085fd37a0a.png" 
+            alt="SIGMus Logo" 
+            className="h-8 w-auto"
+          />
           <h2 className="text-lg font-semibold text-gray-900">
             SIGMus
           </h2>
