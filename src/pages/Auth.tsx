@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -65,7 +64,7 @@ const Auth = () => {
                   className="h-16 w-auto"
                 />
                 <div className="flex flex-col text-left">
-                  <div className="text-3xl font-bold text-blue-700 tracking-wide" style={{ fontFamily: 'serif' }}>
+                  <div className="text-3xl font-bold text-blue-700 tracking-wide">
                     SiGMus
                   </div>
                   <div className="text-base text-gray-600 leading-tight max-w-[250px]">
@@ -96,7 +95,7 @@ const Auth = () => {
                 className="h-16 w-auto"
               />
               <div className="flex flex-col text-left">
-                <div className="text-3xl font-bold text-blue-700 tracking-wide" style={{ fontFamily: 'serif' }}>
+                <div className="text-3xl font-bold text-blue-700 tracking-wide">
                   SiGMus
                 </div>
                 <div className="text-base text-gray-600 leading-tight max-w-[250px]">
