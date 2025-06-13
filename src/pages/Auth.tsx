@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -111,9 +110,9 @@ const Auth = () => {
 
         <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm animate-scale-in">
           <CardHeader className="text-center pb-6">
-            <CardTitle className="text-2xl font-bold text-gray-900">Bem-vindo de volta</CardTitle>
+            <CardTitle className="text-2xl font-bold text-gray-900">Seja bem-vindo</CardTitle>
             <CardDescription className="text-gray-600 text-base">
-              Acesse sua conta para gerenciar partituras e performances
+              Acesse ou crie novo cadastro
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
