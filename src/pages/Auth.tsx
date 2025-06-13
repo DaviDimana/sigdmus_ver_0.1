@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -60,7 +59,7 @@ const Auth = () => {
             <div className="flex justify-center mb-6">
               <div className="p-4 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-xl">
                 <img 
-                  src="/lovable-uploads/2cf08e31-af5e-4298-9056-85085fd37a0a.png" 
+                  src="/lovable-uploads/fd44bce0-6110-4f4f-b747-063970af5624.png" 
                   alt="SIGMus Logo" 
                   className="h-10 w-10 text-white"
                 />
@@ -87,7 +86,7 @@ const Auth = () => {
           <div className="flex justify-center mb-6">
             <div className="p-4 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-xl transform hover:scale-105 transition-transform duration-300">
               <img 
-                src="/lovable-uploads/2cf08e31-af5e-4298-9056-85085fd37a0a.png" 
+                src="/lovable-uploads/fd44bce0-6110-4f4f-b747-063970af5624.png" 
                 alt="SIGMus Logo" 
                 className="h-10 w-10"
               />

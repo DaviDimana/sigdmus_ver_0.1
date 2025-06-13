@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
@@ -114,7 +113,7 @@ const AppSidebar: React.FC = () => {
       <SidebarHeader className="px-4 py-6 border-b border-gray-200 h-20 bg-white flex items-center justify-center">
         <div className="flex items-center justify-center space-x-3 w-full">
           <img 
-            src="/lovable-uploads/2cf08e31-af5e-4298-9056-85085fd37a0a.png" 
+            src="/lovable-uploads/fd44bce0-6110-4f4f-b747-063970af5624.png" 
             alt="SIGMus Logo" 
             className="h-8 w-auto"
           />

@@ -7,7 +7,7 @@ const NavbarTitle: React.FC = () => {
       {/* Logo e título versão desktop */}
       <div className="hidden md:flex items-center space-x-3">
         <img 
-          src="/lovable-uploads/2cf08e31-af5e-4298-9056-85085fd37a0a.png" 
+          src="/lovable-uploads/fd44bce0-6110-4f4f-b747-063970af5624.png" 
           alt="SIGMus Logo" 
           className="h-10 w-auto"
         />
@@ -22,7 +22,7 @@ const NavbarTitle: React.FC = () => {
       {/* Logo e título versão mobile */}
       <div className="flex md:hidden items-center space-x-2">
         <img 
-          src="/lovable-uploads/2cf08e31-af5e-4298-9056-85085fd37a0a.png" 
+          src="/lovable-uploads/fd44bce0-6110-4f4f-b747-063970af5624.png" 
           alt="SIGMus Logo" 
           className="h-8 w-auto"
         />
