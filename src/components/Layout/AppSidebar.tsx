@@ -113,7 +113,7 @@ const AppSidebar: React.FC = () => {
       <SidebarHeader className="px-4 py-6 border-b border-gray-200 h-20 bg-white flex items-center justify-center">
         <div className="flex items-center justify-center space-x-3 w-full">
           <img 
-            src="/lovable-uploads/fd44bce0-6110-4f4f-b747-063970af5624.png" 
+            src="/lovable-uploads/90479277-6cda-44ac-9bfd-33ef2b18a715.png" 
             alt="SIGMus Logo" 
             className="h-8 w-auto"
           />

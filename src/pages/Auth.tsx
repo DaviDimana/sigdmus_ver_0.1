@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -57,11 +58,11 @@ const Auth = () => {
         <div className="w-full max-w-4xl">
           <div className="text-center mb-8 animate-fade-in">
             <div className="flex justify-center mb-6">
-              <div className="p-4 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-xl">
+              <div className="p-4 rounded-2xl shadow-xl">
                 <img 
-                  src="/lovable-uploads/fd44bce0-6110-4f4f-b747-063970af5624.png" 
+                  src="/lovable-uploads/90479277-6cda-44ac-9bfd-33ef2b18a715.png" 
                   alt="SIGMus Logo" 
-                  className="h-10 w-10 text-white"
+                  className="h-16 w-auto"
                 />
               </div>
             </div>
@@ -84,11 +85,11 @@ const Auth = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8 animate-fade-in">
           <div className="flex justify-center mb-6">
-            <div className="p-4 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-xl transform hover:scale-105 transition-transform duration-300">
+            <div className="p-4 rounded-2xl shadow-xl transform hover:scale-105 transition-transform duration-300">
               <img 
-                src="/lovable-uploads/fd44bce0-6110-4f4f-b747-063970af5624.png" 
+                src="/lovable-uploads/90479277-6cda-44ac-9bfd-33ef2b18a715.png" 
                 alt="SIGMus Logo" 
-                className="h-10 w-10"
+                className="h-16 w-auto"
               />
             </div>
           </div>
