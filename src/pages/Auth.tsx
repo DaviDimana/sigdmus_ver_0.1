@@ -58,7 +58,7 @@ const Auth = () => {
         <div className="w-full max-w-4xl">
           <div className="text-center mb-8 animate-fade-in">
             <div className="flex justify-center mb-6">
-              <div className="flex items-center space-x-4 p-4 rounded-2xl shadow-xl bg-white/90">
+              <div className="flex items-center space-x-4 p-4 rounded-2xl shadow-xl bg-white/90 w-full max-w-4xl">
                 <img 
                   src="/lovable-uploads/81009293-f25e-4f72-a80a-e150f7665dc2.png" 
                   alt="SIGMus Logo" 
@@ -89,7 +89,7 @@ const Auth = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8 animate-fade-in">
           <div className="flex justify-center mb-6">
-            <div className="flex items-center space-x-4 p-4 rounded-2xl shadow-xl bg-white/90 transform hover:scale-105 transition-transform duration-300">
+            <div className="flex items-center space-x-4 p-4 rounded-2xl shadow-xl bg-white/90 transform hover:scale-105 transition-transform duration-300 w-full">
               <img 
                 src="/lovable-uploads/81009293-f25e-4f72-a80a-e150f7665dc2.png" 
                 alt="SIGMus Logo" 
