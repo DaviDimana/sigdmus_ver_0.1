@@ -116,7 +116,7 @@ const AppSidebar: React.FC = () => {
         <div className="flex items-center justify-center space-x-3 w-full">
           <Music className="h-8 w-8 text-blue-600" />
           <h2 className="text-lg font-semibold text-gray-900">
-            ACO<em>R</em>DES
+            SIGMus
           </h2>
         </div>
       </SidebarHeader>

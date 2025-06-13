@@ -63,11 +63,11 @@ const Auth = () => {
               </div>
             </div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 bg-clip-text text-transparent leading-tight">
-              Sistema Integrado de Documentação
+              Sistema Integrado de Gestão
               <br />
-              e Consulta de Acervos Musicais
+              e Documentação Musical
             </h1>
-            <p className="text-gray-600 mt-4 text-lg">Sistema de Gerenciamento Musical</p>
+            <p className="text-gray-600 mt-4 text-lg">SIGMus</p>
           </div>
           
           <SignupForm onBack={() => setView('login')} />
@@ -86,12 +86,12 @@ const Auth = () => {
             </div>
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 bg-clip-text text-transparent leading-tight mb-2">
-            Sistema Integrado de Documentação
+            Sistema Integrado de Gestão
             <br />
-            e Consulta de Acervos Musicais
+            e Documentação Musical
           </h1>
           <p className="text-gray-600 text-base">
-            Sistema de Gerenciamento Musical
+            SIGMus
           </p>
         </div>
 
