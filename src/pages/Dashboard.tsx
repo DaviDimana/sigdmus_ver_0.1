@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart3, FileMusic, Calendar, Users } from 'lucide-react';
@@ -6,27 +5,6 @@ import { BarChart3, FileMusic, Calendar, Users } from 'lucide-react';
 const Dashboard = () => {
   return (
     <div className="space-y-6">
-      {/* Header com logo igual ao da página de Auth */}
-      <div className="flex justify-center mb-8 animate-fade-in">
-        <div className="flex items-center space-x-4 p-4 rounded-2xl shadow-xl bg-white/90 w-full max-w-4xl">
-          <img 
-            src="/lovable-uploads/81009293-f25e-4f72-a80a-e150f7665dc2.png" 
-            alt="SIGMus Logo" 
-            className="h-16 w-auto"
-          />
-          <div className="flex flex-col text-left">
-            <div className="text-3xl font-bold text-blue-700 tracking-wide">
-              SiGMus
-            </div>
-            <div className="text-base text-gray-600 leading-tight max-w-[250px] font-bold">
-              Sistema Integrado de Gestão e
-              <br />
-              Documentação Musical
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-600 mt-2">
