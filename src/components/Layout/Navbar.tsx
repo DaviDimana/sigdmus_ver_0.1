@@ -79,20 +79,20 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
               </div>
 
               {/* Versão mobile */}
-              <div className="flex md:hidden items-center space-x-3">
+              <div className="flex md:hidden items-center space-x-2">
                 <img 
                   src="/lovable-uploads/81009293-f25e-4f72-a80a-e150f7665dc2.png" 
                   alt="SIGMus Logo" 
                   className="h-8 w-auto"
                 />
                 <div className="flex flex-col">
-                  <div className="text-lg font-bold text-blue-700 tracking-wide">
+                  <div className="text-base font-bold text-blue-700 tracking-wide">
                     SiGMus
                   </div>
-                  <div className="text-xs text-gray-600 leading-tight max-w-[140px] font-sans font-semibold">
-                    Sistema Integrado de Gestão e
+                  <div className="text-xs text-gray-600 leading-tight max-w-[120px] font-sans font-semibold">
+                    Sistema de Gestão
                     <br />
-                    Documentação Musical
+                    Musical
                   </div>
                 </div>
               </div>
