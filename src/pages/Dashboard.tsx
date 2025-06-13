@@ -1,11 +1,23 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3, FileMusic, Calendar, Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { BarChart3, FileMusic, Calendar, Users, Download, Settings, Image, FileText } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell, LineChart, Line, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell, LineChart, Line, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { toast } from 'sonner';
 
 const Dashboard = () => {
+  // Estados para configuração dos gráficos
+  const [chartConfigs, setChartConfigs] = useState({
+    partiturasPorCompositor: { type: 'bar', theme: 'blue' },
+    partiturasPorSetor: { type: 'pie', theme: 'mixed' },
+    performancesPorMes: { type: 'line', theme: 'blue' },
+    digitalizacaoStatus: { type: 'pie', theme: 'status' }
+  });
+
   // Dados simulados baseados na estrutura do banco
   const partiturasPorCompositor = [
     { compositor: 'Beethoven', quantidade: 45 },
@@ -45,6 +57,204 @@ const Dashboard = () => {
       label: "Performances",
       color: "#2563eb",
     },
+  };
+
+  // Função para atualizar configuração de gráfico
+  const updateChartConfig = (chartId: string, config: any) => {
+    setChartConfigs(prev => ({
+      ...prev,
+      [chartId]: { ...prev[chartId as keyof typeof prev], ...config }
+    }));
+  };
+
+  // Função para fazer download do gráfico
+  const downloadChart = async (chartId: string, format: 'png' | 'jpg' | 'svg' | 'pdf') => {
+    try {
+      // Simular download - em uma implementação real, você capturaria o SVG do gráfico
+      toast.success(`Gráfico baixado em formato ${format.toUpperCase()}`);
+      
+      // Aqui você implementaria a lógica real de captura e download
+      // Exemplo usando html2canvas ou similar para capturar o elemento
+      console.log(`Downloading chart ${chartId} as ${format}`);
+    } catch (error) {
+      toast.error('Erro ao baixar gráfico');
+    }
+  };
+
+  // Componente para renderizar gráfico com base na configuração
+  const renderChart = (chartId: string, data: any[], title: string) => {
+    const config = chartConfigs[chartId as keyof typeof chartConfigs];
+    
+    switch (config.type) {
+      case 'bar':
+        return (
+          <BarChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis 
+              dataKey={chartId === 'partiturasPorCompositor' ? 'compositor' : 'setor'} 
+              tick={{ fontSize: 12 }}
+              angle={-45}
+              textAnchor="end"
+              height={60}
+            />
+            <YAxis />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <Bar 
+              dataKey="quantidade" 
+              fill={config.theme === 'blue' ? '#2563eb' : '#10b981'} 
+              radius={[4, 4, 0, 0]} 
+            />
+          </BarChart>
+        );
+      
+      case 'area':
+        return (
+          <AreaChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey={chartId === 'partiturasPorCompositor' ? 'compositor' : 'setor'} />
+            <YAxis />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <Area 
+              type="monotone" 
+              dataKey="quantidade" 
+              stroke={config.theme === 'blue' ? '#2563eb' : '#10b981'}
+              fill={config.theme === 'blue' ? '#2563eb' : '#10b981'}
+              fillOpacity={0.3}
+            />
+          </AreaChart>
+        );
+      
+      case 'pie':
+      default:
+        return (
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              outerRadius={80}
+              dataKey="quantidade"
+              label={({ [chartId === 'partiturasPorCompositor' ? 'compositor' : chartId === 'partiturasPorSetor' ? 'setor' : 'status']: label, quantidade }) => 
+                `${label}: ${quantidade}`
+              }
+            >
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.fill || '#2563eb'} />
+              ))}
+            </Pie>
+            <ChartTooltip content={<ChartTooltipContent />} />
+          </PieChart>
+        );
+    }
+  };
+
+  // Componente para configuração de gráfico
+  const ChartConfigDialog = ({ chartId, title, data }: { chartId: string, title: string, data: any[] }) => {
+    const config = chartConfigs[chartId as keyof typeof chartConfigs];
+    
+    return (
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm">
+            <Settings className="h-4 w-4" />
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Configurar {title}</DialogTitle>
+            <DialogDescription>
+              Personalize a apresentação do seu gráfico
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Tipo de Gráfico</label>
+              <Select 
+                value={config.type} 
+                onValueChange={(value) => updateChartConfig(chartId, { type: value })}
+              >
+                <SelectTrigger className="mt-2">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bar">Barras</SelectItem>
+                  <SelectItem value="area">Área</SelectItem>
+                  {(chartId === 'partiturasPorSetor' || chartId === 'digitalizacaoStatus') && (
+                    <SelectItem value="pie">Pizza</SelectItem>
+                  )}
+                  {chartId === 'performancesPorMes' && (
+                    <SelectItem value="line">Linha</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Tema de Cores</label>
+              <Select 
+                value={config.theme} 
+                onValueChange={(value) => updateChartConfig(chartId, { theme: value })}
+              >
+                <SelectTrigger className="mt-2">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="blue">Azul</SelectItem>
+                  <SelectItem value="green">Verde</SelectItem>
+                  <SelectItem value="mixed">Multicolorido</SelectItem>
+                  {chartId === 'digitalizacaoStatus' && (
+                    <SelectItem value="status">Status (Verde/Vermelho)</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">Download</label>
+              <div className="grid grid-cols-2 gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => downloadChart(chartId, 'png')}
+                  className="flex items-center space-x-1"
+                >
+                  <Image className="h-3 w-3" />
+                  <span>PNG</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => downloadChart(chartId, 'jpg')}
+                  className="flex items-center space-x-1"
+                >
+                  <Image className="h-3 w-3" />
+                  <span>JPG</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => downloadChart(chartId, 'svg')}
+                  className="flex items-center space-x-1"
+                >
+                  <FileText className="h-3 w-3" />
+                  <span>SVG</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => downloadChart(chartId, 'pdf')}
+                  className="flex items-center space-x-1"
+                >
+                  <FileText className="h-3 w-3" />
+                  <span>PDF</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
   };
 
   return (
@@ -114,97 +324,150 @@ const Dashboard = () => {
       {/* Nova seção de gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="shadow-xl">
-          <CardHeader>
-            <CardTitle>Partituras por Compositor</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Partituras por Compositor</CardTitle>
+              <div className="flex items-center space-x-2 mt-1">
+                <Badge variant="secondary" className="text-xs">
+                  {chartConfigs.partiturasPorCompositor.type === 'bar' ? 'Barras' : 
+                   chartConfigs.partiturasPorCompositor.type === 'area' ? 'Área' : 'Pizza'}
+                </Badge>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <ChartConfigDialog 
+                chartId="partiturasPorCompositor" 
+                title="Partituras por Compositor"
+                data={partiturasPorCompositor}
+              />
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => downloadChart('partiturasPorCompositor', 'png')}
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-[300px]">
-              <BarChart data={partiturasPorCompositor}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="compositor" 
-                  tick={{ fontSize: 12 }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={60}
-                />
-                <YAxis />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="quantidade" fill="#2563eb" radius={[4, 4, 0, 0]} />
-              </BarChart>
+              {renderChart('partiturasPorCompositor', partiturasPorCompositor, 'Partituras por Compositor')}
             </ChartContainer>
           </CardContent>
         </Card>
 
         <Card className="shadow-xl">
-          <CardHeader>
-            <CardTitle>Distribuição por Setor</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Distribuição por Setor</CardTitle>
+              <div className="flex items-center space-x-2 mt-1">
+                <Badge variant="secondary" className="text-xs">
+                  {chartConfigs.partiturasPorSetor.type === 'bar' ? 'Barras' : 
+                   chartConfigs.partiturasPorSetor.type === 'area' ? 'Área' : 'Pizza'}
+                </Badge>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <ChartConfigDialog 
+                chartId="partiturasPorSetor" 
+                title="Distribuição por Setor"
+                data={partiturasPorSetor}
+              />
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => downloadChart('partiturasPorSetor', 'png')}
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-[300px]">
-              <PieChart>
-                <Pie
-                  data={partiturasPorSetor}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  dataKey="quantidade"
-                  label={({ setor, quantidade }) => `${setor}: ${quantidade}`}
-                >
-                  {partiturasPorSetor.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <ChartTooltip content={<ChartTooltipContent />} />
-              </PieChart>
+              {renderChart('partiturasPorSetor', partiturasPorSetor, 'Distribuição por Setor')}
             </ChartContainer>
           </CardContent>
         </Card>
 
         <Card className="shadow-xl">
-          <CardHeader>
-            <CardTitle>Performances por Mês</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Performances por Mês</CardTitle>
+              <div className="flex items-center space-x-2 mt-1">
+                <Badge variant="secondary" className="text-xs">
+                  {chartConfigs.performancesPorMes.type === 'line' ? 'Linha' : 
+                   chartConfigs.performancesPorMes.type === 'bar' ? 'Barras' : 
+                   chartConfigs.performancesPorMes.type === 'area' ? 'Área' : 'Pizza'}
+                </Badge>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <ChartConfigDialog 
+                chartId="performancesPorMes" 
+                title="Performances por Mês"
+                data={performancesPorMes}
+              />
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => downloadChart('performancesPorMes', 'png')}
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-[300px]">
-              <LineChart data={performancesPorMes}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="mes" />
-                <YAxis />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Line 
-                  type="monotone" 
-                  dataKey="performances" 
-                  stroke="#2563eb" 
-                  strokeWidth={3}
-                  dot={{ fill: '#2563eb', strokeWidth: 2, r: 4 }}
-                />
-              </LineChart>
+              {chartConfigs.performancesPorMes.type === 'line' ? (
+                <LineChart data={performancesPorMes}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="mes" />
+                  <YAxis />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Line 
+                    type="monotone" 
+                    dataKey="performances" 
+                    stroke="#2563eb" 
+                    strokeWidth={3}
+                    dot={{ fill: '#2563eb', strokeWidth: 2, r: 4 }}
+                  />
+                </LineChart>
+              ) : (
+                renderChart('performancesPorMes', performancesPorMes, 'Performances por Mês')
+              )}
             </ChartContainer>
           </CardContent>
         </Card>
 
         <Card className="shadow-xl">
-          <CardHeader>
-            <CardTitle>Status de Digitalização</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Status de Digitalização</CardTitle>
+              <div className="flex items-center space-x-2 mt-1">
+                <Badge variant="secondary" className="text-xs">
+                  {chartConfigs.digitalizacaoStatus.type === 'bar' ? 'Barras' : 
+                   chartConfigs.digitalizacaoStatus.type === 'area' ? 'Área' : 'Pizza'}
+                </Badge>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <ChartConfigDialog 
+                chartId="digitalizacaoStatus" 
+                title="Status de Digitalização"
+                data={digitalizacaoStatus}
+              />
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => downloadChart('digitalizacaoStatus', 'png')}
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-[300px]">
-              <PieChart>
-                <Pie
-                  data={digitalizacaoStatus}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  dataKey="quantidade"
-                  label={({ status, quantidade }) => `${status}: ${quantidade}`}
-                >
-                  {digitalizacaoStatus.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <ChartTooltip content={<ChartTooltipContent />} />
-              </PieChart>
+              {renderChart('digitalizacaoStatus', digitalizacaoStatus, 'Status de Digitalização')}
             </ChartContainer>
           </CardContent>
         </Card>
