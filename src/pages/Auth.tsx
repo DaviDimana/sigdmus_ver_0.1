@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Music, Mail, Lock, User, AlertCircle } from 'lucide-react';
+import { Music, Mail, Lock, User, AlertCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Navigate } from 'react-router-dom';
@@ -54,16 +54,20 @@ const Auth = () => {
 
   if (view === 'signup') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
         <div className="w-full max-w-4xl">
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-              <div className="p-3 bg-blue-600 rounded-full">
-                <Music className="h-8 w-8 text-white" />
+          <div className="text-center mb-8 animate-fade-in">
+            <div className="flex justify-center mb-6">
+              <div className="p-4 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-xl">
+                <Music className="h-10 w-10 text-white" />
               </div>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Sistema Integrado de Documentação e Consulta de Acervos Musicais</h1>
-            <p className="text-gray-600 mt-2">Sistema de Gerenciamento Musical</p>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 bg-clip-text text-transparent leading-tight">
+              Sistema Integrado de Documentação
+              <br />
+              e Consulta de Acervos Musicais
+            </h1>
+            <p className="text-gray-600 mt-4 text-lg">Sistema de Gerenciamento Musical</p>
           </div>
           
           <SignupForm onBack={() => setView('login')} />
@@ -73,87 +77,121 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="p-3 bg-blue-600 rounded-full">
-              <Music className="h-8 w-8 text-white" />
+        <div className="text-center mb-8 animate-fade-in">
+          <div className="flex justify-center mb-6">
+            <div className="p-4 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-xl transform hover:scale-105 transition-transform duration-300">
+              <Music className="h-10 w-10 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Sistema Integrado de Documentação e Consulta de Acervos Musicais</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 bg-clip-text text-transparent leading-tight mb-2">
+            Sistema Integrado de Documentação
+            <br />
+            e Consulta de Acervos Musicais
+          </h1>
+          <p className="text-gray-600 text-base">
             Sistema de Gerenciamento Musical
           </p>
         </div>
 
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle>Entrar no Sistema</CardTitle>
-            <CardDescription>
+        <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm animate-scale-in">
+          <CardHeader className="text-center pb-6">
+            <CardTitle className="text-2xl font-bold text-gray-900">Bem-vindo de volta</CardTitle>
+            <CardDescription className="text-gray-600 text-base">
               Acesse sua conta para gerenciar partituras e performances
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLoginSubmit} className="space-y-4">
+          <CardContent className="space-y-6">
+            <form onSubmit={handleLoginSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Label htmlFor="email" className="text-gray-700 font-medium">Email</Label>
+                <div className="relative group">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="seu.email@exemplo.com"
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className="pl-10"
+                    className="pl-11 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-200"
                     required
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Senha</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Label htmlFor="password" className="text-gray-700 font-medium">Senha</Label>
+                <div className="relative group">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
                   <Input
                     id="password"
                     type="password"
                     placeholder="Sua senha"
                     value={formData.password}
                     onChange={(e) => setFormData({...formData, password: e.target.value})}
-                    className="pl-10"
+                    className="pl-11 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-200"
                     required
                   />
                 </div>
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Processando...' : 'Entrar'}
+              <Button 
+                type="submit" 
+                className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 group" 
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Processando...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center space-x-2">
+                    <span>Entrar no Sistema</span>
+                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                )}
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
-              <Button
-                variant="link"
-                onClick={() => setView('signup')}
-                className="text-sm"
-              >
-                Não tem conta? Solicite cadastro aqui
-              </Button>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 text-gray-500 bg-white">ou</span>
+              </div>
             </div>
 
-            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <div className="flex items-start space-x-2">
-                <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5" />
+            <Button
+              variant="outline"
+              onClick={() => setView('signup')}
+              className="w-full h-12 border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 group"
+            >
+              <div className="flex items-center justify-center space-x-2">
+                <User className="h-4 w-4 text-gray-500 group-hover:text-blue-600" />
+                <span className="font-medium">Criar Nova Conta</span>
+              </div>
+            </Button>
+
+            <div className="mt-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl">
+              <div className="flex items-start space-x-3">
+                <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-amber-800">
-                  <p className="font-medium">Primeira vez no sistema?</p>
-                  <p>Solicite seu cadastro clicando no link acima. Sua solicitação será analisada pelo administrador.</p>
+                  <p className="font-semibold mb-1">Primeira vez no sistema?</p>
+                  <p className="text-amber-700">Solicite seu cadastro clicando no botão acima. Sua solicitação será analisada pelo administrador.</p>
                 </div>
               </div>
             </div>
           </CardContent>
         </Card>
+
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-500">
+            Para acesso administrativo, entre em contato com o suporte
+          </p>
+        </div>
       </div>
     </div>
   );
