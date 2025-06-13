@@ -32,25 +32,33 @@ const SectorSelector: React.FC<SectorSelectorProps> = ({
     try {
       console.log('Tentando adicionar setor:', newSetor.trim());
       
-      // Usar service role key para bypass RLS durante cadastro público
-      const { data, error } = await fetch(`https://oyidopwxlxwrwcjxjyek.supabase.co/rest/v1/setores`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95aWRvcHd4bHh3cndjanhqeWVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0NzU5ODcsImV4cCI6MjA2NDA1MTk4N30.2pUBk7gnx_e6Ld5Jz3n2E3l_O43J8GnBuDlQNJ9MvBM',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95aWRvcHd4bHh3cndjanhqeWVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0NzU5ODcsImV4cCI6MjA2NDA1MTk4N30.2pUBk7gnx_e6Ld5Jz3n2E3l_O43J8GnBuDlQNJ9MvBM',
-          'Prefer': 'return=representation'
-        },
-        body: JSON.stringify({ nome: newSetor.trim() })
-      });
+      const { data, error } = await supabase
+        .from('setores')
+        .insert({ nome: newSetor.trim() })
+        .select()
+        .single();
 
-      if (!data.ok) {
-        const errorData = await data.json();
-        throw new Error(errorData.message || 'Erro ao adicionar setor');
+      if (error) {
+        console.error('Erro ao adicionar setor:', error);
+        
+        // Check for duplicate error
+        if (error.code === '23505') {
+          toast({
+            title: "Erro",
+            description: "Este setor já existe.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Erro",
+            description: error.message || "Erro ao adicionar setor.",
+            variant: "destructive",
+          });
+        }
+        return;
       }
 
-      const result = await data.json();
-      console.log('Setor adicionado:', result);
+      console.log('Setor adicionado:', data);
       
       onSectorAdded();
       onChange(newSetor.trim());
@@ -61,12 +69,10 @@ const SectorSelector: React.FC<SectorSelectorProps> = ({
         description: "Novo setor criado com sucesso.",
       });
     } catch (error: any) {
-      console.error('Erro ao adicionar setor:', error);
+      console.error('Erro inesperado ao adicionar setor:', error);
       toast({
-        title: "Erro", 
-        description: error.message === 'duplicate key value violates unique constraint "setores_nome_key"' 
-          ? "Este setor já existe." 
-          : error.message || "Erro ao adicionar setor.",
+        title: "Erro",
+        description: "Erro inesperado ao adicionar setor.",
         variant: "destructive",
       });
     } finally {

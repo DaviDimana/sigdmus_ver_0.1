@@ -32,25 +32,33 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
     try {
       console.log('Tentando adicionar instituição:', newInstituicao.trim());
       
-      // Usar fetch direto para bypass RLS durante cadastro público
-      const response = await fetch(`https://oyidopwxlxwrwcjxjyek.supabase.co/rest/v1/instituicoes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95aWRvcHd4bHh3cndjanhqeWVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0NzU5ODcsImV4cCI6MjA2NDA1MTk4N30.2pUBk7gnx_e6Ld5Jz3n2E3l_O43J8GnBuDlQNJ9MvBM',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95aWRvcHd4bHh3cndjanhqeWVrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0NzU5ODcsImV4cCI6MjA2NDA1MTk4N30.2pUBk7gnx_e6Ld5Jz3n2E3l_O43J8GnBuDlQNJ9MvBM',
-          'Prefer': 'return=representation'
-        },
-        body: JSON.stringify({ nome: newInstituicao.trim() })
-      });
+      const { data, error } = await supabase
+        .from('instituicoes')
+        .insert({ nome: newInstituicao.trim() })
+        .select()
+        .single();
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erro ao adicionar instituição');
+      if (error) {
+        console.error('Erro ao adicionar instituição:', error);
+        
+        // Check for duplicate error
+        if (error.code === '23505') {
+          toast({
+            title: "Erro",
+            description: "Esta instituição já existe.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Erro",
+            description: error.message || "Erro ao adicionar instituição.",
+            variant: "destructive",
+          });
+        }
+        return;
       }
 
-      const result = await response.json();
-      console.log('Instituição adicionada:', result);
+      console.log('Instituição adicionada:', data);
       
       onInstitutionAdded();
       onChange(newInstituicao.trim());
@@ -61,12 +69,10 @@ const InstitutionSelector: React.FC<InstitutionSelectorProps> = ({
         description: "Nova instituição criada com sucesso.",
       });
     } catch (error: any) {
-      console.error('Erro ao adicionar instituição:', error);
+      console.error('Erro inesperado ao adicionar instituição:', error);
       toast({
         title: "Erro",
-        description: error.message === 'duplicate key value violates unique constraint "instituicoes_nome_key"' 
-          ? "Esta instituição já existe." 
-          : error.message || "Erro ao adicionar instituição.",
+        description: "Erro inesperado ao adicionar instituição.",
         variant: "destructive",
       });
     } finally {
