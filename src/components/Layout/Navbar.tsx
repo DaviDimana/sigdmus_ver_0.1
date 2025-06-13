@@ -43,7 +43,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-14">
+        <div className="flex justify-between items-center h-24">
           {/* Ícone de collapse e título */}
           <div className="flex items-center space-x-4">
             <SidebarTrigger className="h-8 w-8" />
