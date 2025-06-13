@@ -89,10 +89,10 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
                   <div className="text-base font-bold text-blue-700 tracking-wide">
                     SiGMus
                   </div>
-                  <div className="text-xs text-gray-600 leading-tight max-w-[120px] font-sans font-semibold">
-                    Sistema de Gestão
+                  <div className="text-[10px] text-gray-600 leading-tight max-w-[140px] font-sans font-medium">
+                    Sistema Integrado de Gestão e
                     <br />
-                    Musical
+                    Documentação Musical
                   </div>
                 </div>
               </div>
