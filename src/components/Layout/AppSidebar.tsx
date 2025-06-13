@@ -111,15 +111,12 @@ const AppSidebar: React.FC = () => {
   return (
     <Sidebar className="border-r border-gray-200">
       <SidebarHeader className="px-4 py-6 border-b border-gray-200 h-20 bg-white flex items-center justify-center">
-        <div className="flex items-center justify-center space-x-3 w-full">
+        <div className="flex items-center justify-center w-full">
           <img 
             src="/lovable-uploads/90479277-6cda-44ac-9bfd-33ef2b18a715.png" 
             alt="SIGMus Logo" 
             className="h-8 w-auto"
           />
-          <h2 className="text-lg font-semibold text-gray-900">
-            SIGMus
-          </h2>
         </div>
       </SidebarHeader>
       <SidebarContent className="px-2 py-4">
