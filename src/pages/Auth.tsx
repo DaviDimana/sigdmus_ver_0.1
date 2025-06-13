@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -112,7 +113,7 @@ const Auth = () => {
           <CardHeader className="text-center pb-6">
             <CardTitle className="text-2xl font-bold text-gray-900">Seja bem-vindo</CardTitle>
             <CardDescription className="text-gray-600 text-base">
-              Acesse ou crie novo cadastro
+              Acesse ou crie uma nova conta
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
