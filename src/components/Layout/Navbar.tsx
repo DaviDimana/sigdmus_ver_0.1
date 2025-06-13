@@ -2,7 +2,7 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import NavbarTitle from './NavbarTitle';
 import NavbarUserSection from './NavbarUserSection';
 
@@ -15,6 +15,7 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
   const { user, profile, signOut, updateProfile } = useAuth();
+  const { state, isMobile } = useSidebar();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -40,14 +41,42 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
     }
   };
 
+  // Determinar se o card deve ser visível
+  // Visível quando: sidebar está colapsada (não expandida) ou em mobile
+  const shouldShowCard = state === 'collapsed' || isMobile;
+
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-24">
-          {/* Ícone de collapse e título */}
+          {/* Ícone de collapse e estrutura condicional */}
           <div className="flex items-center space-x-4">
             <SidebarTrigger className="h-8 w-8" />
-            <NavbarTitle />
+            
+            {/* Card com logo, sigla e subtítulo - com animação */}
+            <div className={`transition-all duration-300 ease-in-out ${
+              shouldShowCard 
+                ? 'opacity-100 translate-x-0 scale-100' 
+                : 'opacity-0 -translate-x-4 scale-95 pointer-events-none'
+            }`}>
+              <div className="flex items-center space-x-4 p-3 rounded-2xl shadow-xl bg-white/90">
+                <img 
+                  src="/lovable-uploads/81009293-f25e-4f72-a80a-e150f7665dc2.png" 
+                  alt="SIGMus Logo" 
+                  className="h-12 w-auto"
+                />
+                <div className="flex flex-col text-left">
+                  <div className="text-2xl font-bold text-blue-700 tracking-wide">
+                    SiGMus
+                  </div>
+                  <div className="text-sm text-gray-600 leading-tight max-w-[200px] font-bold">
+                    Sistema Integrado de Gestão e
+                    <br />
+                    Documentação Musical
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center space-x-4 flex-shrink-0 ml-auto">
