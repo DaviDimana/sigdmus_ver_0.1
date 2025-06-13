@@ -65,8 +65,8 @@ const Auth = () => {
                   className="h-16 w-auto"
                 />
                 <div className="flex flex-col text-left">
-                  <div className="text-3xl font-bold text-blue-700 tracking-wide">
-                    SIGMus
+                  <div className="text-3xl font-bold text-blue-700 tracking-wide" style={{ fontFamily: 'serif' }}>
+                    SiGMus
                   </div>
                   <div className="text-base text-gray-600 leading-tight max-w-[250px]">
                     Sistema de Gestão e
@@ -96,8 +96,8 @@ const Auth = () => {
                 className="h-16 w-auto"
               />
               <div className="flex flex-col text-left">
-                <div className="text-3xl font-bold text-blue-700 tracking-wide">
-                  SIGMus
+                <div className="text-3xl font-bold text-blue-700 tracking-wide" style={{ fontFamily: 'serif' }}>
+                  SiGMus
                 </div>
                 <div className="text-base text-gray-600 leading-tight max-w-[250px]">
                   Sistema de Gestão e

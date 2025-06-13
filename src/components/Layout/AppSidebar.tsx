@@ -118,8 +118,8 @@ const AppSidebar: React.FC = () => {
             className="h-10 w-auto flex-shrink-0"
           />
           <div className="flex flex-col min-w-0">
-            <div className="text-lg font-bold text-blue-700 tracking-wide">
-              SIGMus
+            <div className="text-lg font-bold text-blue-700 tracking-wide" style={{ fontFamily: 'serif' }}>
+              SiGMus
             </div>
             <div className="text-xs text-gray-600 leading-tight">
               Sistema de Gestão e

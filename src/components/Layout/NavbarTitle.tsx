@@ -12,8 +12,8 @@ const NavbarTitle: React.FC = () => {
           className="h-12 w-auto"
         />
         <div className="flex flex-col">
-          <div className="text-2xl font-bold text-blue-700 tracking-wide">
-            SIGMus
+          <div className="text-2xl font-bold text-blue-700 tracking-wide" style={{ fontFamily: 'serif' }}>
+            SiGMus
           </div>
           <div className="text-sm text-gray-600 leading-tight max-w-[200px]">
             Sistema de Gestão e
@@ -31,8 +31,8 @@ const NavbarTitle: React.FC = () => {
           className="h-8 w-auto"
         />
         <div className="flex flex-col">
-          <div className="text-lg font-bold text-blue-700 tracking-wide">
-            SIGMus
+          <div className="text-lg font-bold text-blue-700 tracking-wide" style={{ fontFamily: 'serif' }}>
+            SiGMus
           </div>
           <div className="text-xs text-gray-600 leading-tight max-w-[140px]">
             Sistema de Gestão e
