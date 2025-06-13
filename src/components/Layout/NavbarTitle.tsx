@@ -15,8 +15,8 @@ const NavbarTitle: React.FC = () => {
           <div className="text-2xl font-bold text-blue-700 tracking-wide">
             SiGMus
           </div>
-          <div className="text-sm text-gray-600 leading-tight max-w-[200px]">
-            Sistema de Gestão e
+          <div className="text-sm text-gray-600 leading-tight max-w-[200px] font-sans font-semibold">
+            Sistema Integrado de Gestão e
             <br />
             Documentação Musical
           </div>
@@ -34,8 +34,8 @@ const NavbarTitle: React.FC = () => {
           <div className="text-lg font-bold text-blue-700 tracking-wide">
             SiGMus
           </div>
-          <div className="text-xs text-gray-600 leading-tight max-w-[140px]">
-            Sistema de Gestão e
+          <div className="text-xs text-gray-600 leading-tight max-w-[140px] font-sans font-semibold">
+            Sistema Integrado de Gestão e
             <br />
             Documentação Musical
           </div>

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
@@ -121,8 +122,8 @@ const AppSidebar: React.FC = () => {
             <div className="text-lg font-bold text-blue-700 tracking-wide">
               SiGMus
             </div>
-            <div className="text-xs text-gray-600 leading-tight">
-              Sistema de Gestão e
+            <div className="text-xs text-gray-600 leading-tight font-sans font-semibold">
+              Sistema Integrado de Gestão e
               <br />
               Documentação Musical
             </div>
