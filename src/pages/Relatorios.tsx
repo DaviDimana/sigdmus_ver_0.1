@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,6 +16,7 @@ const Relatorios = () => {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const partiturasFields = [
+    { id: 'instituicao', label: 'Instituição' },
     { id: 'setor', label: 'Setor' },
     { id: 'titulo', label: 'Título' },
     { id: 'compositor', label: 'Compositor' },
@@ -29,7 +29,6 @@ const Relatorios = () => {
     { id: 'numero_armario', label: 'N° Armário' },
     { id: 'numero_prateleira', label: 'N° Prateleira' },
     { id: 'numero_pasta', label: 'N° Pasta' },
-    { id: 'instituicao', label: 'Instituição' },
     { id: 'observacoes', label: 'Observações' },
   ];
 
