@@ -1,6 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "npm:resend@2.0.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -27,6 +28,8 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
+
+    const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 
     const requestData: SignupRequest = await req.json();
     console.log('Received signup request:', requestData);
@@ -67,9 +70,22 @@ const handler = async (req: Request): Promise<Response> => {
       <p>ID da solicitação: ${solicitacao.id}</p>
     `;
 
-    // Simular envio de email (você deve implementar com Resend quando tiver a API key)
-    console.log('Email notification would be sent to: davidimana123@gmail.com');
-    console.log('Email content:', emailBody);
+    // Enviar email real usando Resend
+    console.log('Sending email notification to: davidimana123@gmail.com');
+    
+    const emailResult = await resend.emails.send({
+      from: 'Sistema Musical <onboarding@resend.dev>',
+      to: ['davidimana123@gmail.com'],
+      subject: `Nova Solicitação de Cadastro - ${requestData.nome}`,
+      html: emailBody,
+    });
+
+    if (emailResult.error) {
+      console.error('Email sending error:', emailResult.error);
+      throw new Error(`Erro ao enviar email: ${emailResult.error}`);
+    }
+
+    console.log('Email sent successfully:', emailResult.data);
 
     return new Response(
       JSON.stringify({ 
