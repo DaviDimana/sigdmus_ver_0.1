@@ -28,6 +28,15 @@ const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
 }) => {
   const navigate = useNavigate();
 
+  // Debug logs para entender o estado atual
+  console.log('NavbarUserSection Debug:', {
+    hasUser: !!user,
+    hasProfile: !!profile,
+    userEmail: user?.email,
+    profileRole: profile?.role,
+    profileName: profile?.name
+  });
+
   const getRoleLabel = (role: string) => {
     switch (role) {
       case 'ADMIN': return 'Administrador';
@@ -47,6 +56,9 @@ const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
       default: return 'outline';
     }
   };
+
+  // Verificar se o usuário é admin (mesmo sem perfil criado)
+  const isAdmin = profile?.role === 'ADMIN' || user?.email === 'admin@sigmusicorp.com';
 
   if (user) {
     return (
@@ -86,7 +98,9 @@ const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
                       )}
                     </>
                   ) : (
-                    <span className="text-xs text-gray-500">Perfil não criado</span>
+                    <span className="text-xs text-gray-500">
+                      {isAdmin ? 'Administrador (perfil não criado)' : 'Perfil não criado'}
+                    </span>
                   )}
                 </div>
               </div>
@@ -111,8 +125,8 @@ const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
             <span className="transition-all duration-200 group-hover:font-semibold">Configurações</span>
           </DropdownMenuItem>
 
-          {/* Usuários - apenas para ADMIN */}
-          {profile?.role === 'ADMIN' && (
+          {/* Usuários - para ADMINs (mesmo sem perfil criado) */}
+          {isAdmin && (
             <DropdownMenuItem 
               className="hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 cursor-pointer"
               onClick={() => navigate('/usuarios')}
