@@ -100,7 +100,7 @@ const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
               onClick={() => navigate('/perfil')}
             >
               <User className="mr-2 h-4 w-4 transition-all duration-200 group-hover:scale-110" />
-              <span className="transition-all duration-200 group-hover:font-semibold">Perfil</span>
+              <span className="transition-all duration-200 group-hover:font-semibold">Meu Perfil</span>
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem 

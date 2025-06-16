@@ -15,6 +15,7 @@ import Repositorio from "./pages/Repositorio";
 import Relatorios from "./pages/Relatorios";
 import Configuracoes from "./pages/Configuracoes";
 import Usuarios from "./pages/Usuarios";
+import Perfil from "./pages/Perfil";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -87,6 +88,7 @@ const AppContent = () => {
               <Route path="/relatorios" element={<Relatorios />} />
               <Route path="/configuracoes" element={<Configuracoes />} />
               <Route path="/usuarios" element={<Usuarios />} />
+              <Route path="/perfil" element={<Perfil />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </MainLayout>
