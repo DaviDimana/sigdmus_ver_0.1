@@ -93,24 +93,14 @@ const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
             </div>
           </div>
 
-          {/* Itens do menu */}
-          {profile ? (
-            <DropdownMenuItem 
-              className="hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 cursor-pointer"
-              onClick={() => navigate('/perfil')}
-            >
-              <User className="mr-2 h-4 w-4 transition-all duration-200 group-hover:scale-110" />
-              <span className="transition-all duration-200 group-hover:font-semibold">Meu Perfil</span>
-            </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem 
-              className="hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 cursor-pointer"
-              onClick={onCreateProfile}
-            >
-              <User className="mr-2 h-4 w-4 transition-all duration-200 group-hover:scale-110" />
-              <span className="transition-all duration-200 group-hover:font-semibold">Criar Perfil</span>
-            </DropdownMenuItem>
-          )}
+          {/* Meu Perfil - sempre visível para usuários logados */}
+          <DropdownMenuItem 
+            className="hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 cursor-pointer"
+            onClick={() => navigate('/perfil')}
+          >
+            <User className="mr-2 h-4 w-4 transition-all duration-200 group-hover:scale-110" />
+            <span className="transition-all duration-200 group-hover:font-semibold">Meu Perfil</span>
+          </DropdownMenuItem>
 
           {/* Configurações - sempre visível para usuários logados */}
           <DropdownMenuItem 
