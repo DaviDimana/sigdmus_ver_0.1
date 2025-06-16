@@ -132,7 +132,7 @@ const Dashboard = () => {
               data={data}
               cx="50%"
               cy="50%"
-              outerRadius={80}
+              outerRadius={100}
               dataKey="quantidade"
               label={({ [chartId === 'partiturasPorCompositor' ? 'compositor' : chartId === 'partiturasPorSetor' ? 'setor' : 'status']: label, quantidade }) => 
                 `${label}: ${quantidade}`
@@ -321,13 +321,13 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Nova seção de gráficos */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Nova seção de gráficos com tamanhos ajustados */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         <Card className="shadow-xl">
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div>
-              <CardTitle>Partituras por Compositor</CardTitle>
-              <div className="flex items-center space-x-2 mt-1">
+              <CardTitle className="text-lg">Partituras por Compositor</CardTitle>
+              <div className="flex items-center space-x-2 mt-2">
                 <Badge variant="secondary" className="text-xs">
                   {chartConfigs.partiturasPorCompositor.type === 'bar' ? 'Barras' : 
                    chartConfigs.partiturasPorCompositor.type === 'area' ? 'Área' : 'Pizza'}
@@ -350,17 +350,17 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px]">
+            <ChartContainer config={chartConfig} className="h-[400px] w-full">
               {renderChart('partiturasPorCompositor', partiturasPorCompositor, 'Partituras por Compositor')}
             </ChartContainer>
           </CardContent>
         </Card>
 
         <Card className="shadow-xl">
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div>
-              <CardTitle>Distribuição por Setor</CardTitle>
-              <div className="flex items-center space-x-2 mt-1">
+              <CardTitle className="text-lg">Distribuição por Setor</CardTitle>
+              <div className="flex items-center space-x-2 mt-2">
                 <Badge variant="secondary" className="text-xs">
                   {chartConfigs.partiturasPorSetor.type === 'bar' ? 'Barras' : 
                    chartConfigs.partiturasPorSetor.type === 'area' ? 'Área' : 'Pizza'}
@@ -383,17 +383,17 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px]">
+            <ChartContainer config={chartConfig} className="h-[400px] w-full">
               {renderChart('partiturasPorSetor', partiturasPorSetor, 'Distribuição por Setor')}
             </ChartContainer>
           </CardContent>
         </Card>
 
         <Card className="shadow-xl">
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div>
-              <CardTitle>Performances por Mês</CardTitle>
-              <div className="flex items-center space-x-2 mt-1">
+              <CardTitle className="text-lg">Performances por Mês</CardTitle>
+              <div className="flex items-center space-x-2 mt-2">
                 <Badge variant="secondary" className="text-xs">
                   {chartConfigs.performancesPorMes.type === 'line' ? 'Linha' : 
                    chartConfigs.performancesPorMes.type === 'bar' ? 'Barras' : 
@@ -417,7 +417,7 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px]">
+            <ChartContainer config={chartConfig} className="h-[400px] w-full">
               {chartConfigs.performancesPorMes.type === 'line' ? (
                 <LineChart data={performancesPorMes}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -429,7 +429,7 @@ const Dashboard = () => {
                     dataKey="performances" 
                     stroke="#2563eb" 
                     strokeWidth={3}
-                    dot={{ fill: '#2563eb', strokeWidth: 2, r: 4 }}
+                    dot={{ fill: '#2563eb', strokeWidth: 2, r: 6 }}
                   />
                 </LineChart>
               ) : (
@@ -440,10 +440,10 @@ const Dashboard = () => {
         </Card>
 
         <Card className="shadow-xl">
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div>
-              <CardTitle>Status de Digitalização</CardTitle>
-              <div className="flex items-center space-x-2 mt-1">
+              <CardTitle className="text-lg">Status de Digitalização</CardTitle>
+              <div className="flex items-center space-x-2 mt-2">
                 <Badge variant="secondary" className="text-xs">
                   {chartConfigs.digitalizacaoStatus.type === 'bar' ? 'Barras' : 
                    chartConfigs.digitalizacaoStatus.type === 'area' ? 'Área' : 'Pizza'}
@@ -466,7 +466,7 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px]">
+            <ChartContainer config={chartConfig} className="h-[400px] w-full">
               {renderChart('digitalizacaoStatus', digitalizacaoStatus, 'Status de Digitalização')}
             </ChartContainer>
           </CardContent>
