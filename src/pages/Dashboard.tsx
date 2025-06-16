@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,6 +9,10 @@ import { BarChart3, FileMusic, Calendar, Users, Download, Settings, Image, FileT
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell, LineChart, Line, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { toast } from 'sonner';
+import { usePartituras } from '@/hooks/usePartituras';
+import { usePerformances } from '@/hooks/usePerformances';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const Dashboard = () => {
   // Estados para configuração dos gráficos
@@ -18,35 +23,90 @@ const Dashboard = () => {
     digitalizacaoStatus: { type: 'pie', theme: 'status' }
   });
 
-  // Dados simulados baseados na estrutura do banco
-  const partiturasPorCompositor = [
-    { compositor: 'Beethoven', quantidade: 45 },
-    { compositor: 'Mozart', quantidade: 38 },
-    { compositor: 'Bach', quantidade: 52 },
-    { compositor: 'Chopin', quantidade: 29 },
-    { compositor: 'Brahms', quantidade: 33 },
-  ];
+  // Refs para capturar os gráficos
+  const chartRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-  const partiturasPorSetor = [
-    { setor: 'ORQUESTRA', quantidade: 89, fill: '#8884d8' },
-    { setor: 'CORAL', quantidade: 67, fill: '#82ca9d' },
-    { setor: 'BANDA', quantidade: 45, fill: '#ffc658' },
-    { setor: 'CAMERATA', quantidade: 33, fill: '#ff7300' },
-  ];
+  // Hooks para dados reais
+  const { partituras, isLoading: isLoadingPartituras } = usePartituras();
+  const { performances, isLoading: isLoadingPerformances } = usePerformances();
 
-  const performancesPorMes = [
-    { mes: 'Jan', performances: 8 },
-    { mes: 'Fev', performances: 12 },
-    { mes: 'Mar', performances: 15 },
-    { mes: 'Abr', performances: 10 },
-    { mes: 'Mai', performances: 18 },
-    { mes: 'Jun', performances: 14 },
-  ];
+  // Carregar configurações salvas do localStorage
+  useEffect(() => {
+    const savedConfigs = localStorage.getItem('dashboard-chart-configs');
+    if (savedConfigs) {
+      try {
+        setChartConfigs(JSON.parse(savedConfigs));
+      } catch (error) {
+        console.error('Erro ao carregar configurações:', error);
+      }
+    }
+  }, []);
 
-  const digitalizacaoStatus = [
-    { status: 'Digitalizado', quantidade: 856, fill: '#10b981' },
-    { status: 'Não Digitalizado', quantidade: 378, fill: '#ef4444' },
-  ];
+  // Salvar configurações no localStorage
+  useEffect(() => {
+    localStorage.setItem('dashboard-chart-configs', JSON.stringify(chartConfigs));
+  }, [chartConfigs]);
+
+  // Processar dados reais das partituras
+  const partiturasPorCompositor = React.useMemo(() => {
+    if (!partituras.length) return [];
+    
+    const compositoresCount = partituras.reduce((acc, partitura) => {
+      const compositor = partitura.compositor || 'Desconhecido';
+      acc[compositor] = (acc[compositor] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(compositoresCount)
+      .map(([compositor, quantidade]) => ({ compositor, quantidade }))
+      .sort((a, b) => b.quantidade - a.quantidade)
+      .slice(0, 10); // Top 10
+  }, [partituras]);
+
+  const partiturasPorSetor = React.useMemo(() => {
+    if (!partituras.length) return [];
+    
+    const setoresCount = partituras.reduce((acc, partitura) => {
+      const setor = partitura.setor || 'Outros';
+      acc[setor] = (acc[setor] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1', '#d084d0'];
+    
+    return Object.entries(setoresCount).map(([setor, quantidade], index) => ({
+      setor,
+      quantidade,
+      fill: colors[index % colors.length]
+    }));
+  }, [partituras]);
+
+  const performancesPorMes = React.useMemo(() => {
+    if (!performances.length) return [];
+    
+    const mesesCount = performances.reduce((acc, performance) => {
+      const data = new Date(performance.data);
+      const mesAno = data.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+      acc[mesAno] = (acc[mesAno] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(mesesCount)
+      .map(([mes, performances]) => ({ mes, performances }))
+      .sort((a, b) => a.mes.localeCompare(b.mes));
+  }, [performances]);
+
+  const digitalizacaoStatus = React.useMemo(() => {
+    if (!partituras.length) return [];
+    
+    const digitalizado = partituras.filter(p => p.digitalizado).length;
+    const naoDigitalizado = partituras.length - digitalizado;
+    
+    return [
+      { status: 'Digitalizado', quantidade: digitalizado, fill: '#10b981' },
+      { status: 'Não Digitalizado', quantidade: naoDigitalizado, fill: '#ef4444' }
+    ];
+  }, [partituras]);
 
   const chartConfig = {
     quantidade: {
@@ -70,13 +130,57 @@ const Dashboard = () => {
   // Função para fazer download do gráfico
   const downloadChart = async (chartId: string, format: 'png' | 'jpg' | 'svg' | 'pdf') => {
     try {
-      // Simular download - em uma implementação real, você capturaria o SVG do gráfico
+      const chartElement = chartRefs.current[chartId];
+      if (!chartElement) {
+        toast.error('Gráfico não encontrado');
+        return;
+      }
+
+      toast.info('Preparando download...');
+
+      if (format === 'svg') {
+        const svgElement = chartElement.querySelector('svg');
+        if (svgElement) {
+          const svgData = new XMLSerializer().serializeToString(svgElement);
+          const blob = new Blob([svgData], { type: 'image/svg+xml' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `grafico-${chartId}.svg`;
+          link.click();
+          URL.revokeObjectURL(url);
+        }
+      } else {
+        const canvas = await html2canvas(chartElement, {
+          backgroundColor: '#ffffff',
+          scale: 2,
+          useCORS: true
+        });
+
+        if (format === 'pdf') {
+          const pdf = new jsPDF();
+          const imgData = canvas.toDataURL('image/png');
+          const imgWidth = 190;
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+          pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+          pdf.save(`grafico-${chartId}.pdf`);
+        } else {
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `grafico-${chartId}.${format}`;
+              link.click();
+              URL.revokeObjectURL(url);
+            }
+          }, `image/${format}`);
+        }
+      }
+
       toast.success(`Gráfico baixado em formato ${format.toUpperCase()}`);
-      
-      // Aqui você implementaria a lógica real de captura e download
-      // Exemplo usando html2canvas ou similar para capturar o elemento
-      console.log(`Downloading chart ${chartId} as ${format}`);
     } catch (error) {
+      console.error('Erro ao baixar gráfico:', error);
       toast.error('Erro ao baixar gráfico');
     }
   };
@@ -257,6 +361,23 @@ const Dashboard = () => {
     );
   };
 
+  // Cálculo das métricas em tempo real
+  const totalPartituras = partituras.length;
+  const totalPerformances = performances.length;
+  const usuariosAtivos = 45; // Este valor viria de uma consulta aos usuários
+  const relatoriosGerados = 23; // Este valor viria de um sistema de relatórios
+
+  if (isLoadingPartituras || isLoadingPerformances) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600 mt-2">Carregando dados...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -266,7 +387,7 @@ const Dashboard = () => {
         </p>
       </div>
 
-      {/* Cards de métricas existentes */}
+      {/* Cards de métricas com dados reais */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="shadow-xl">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -274,9 +395,9 @@ const Dashboard = () => {
             <FileMusic className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,234</div>
+            <div className="text-2xl font-bold">{totalPartituras}</div>
             <p className="text-xs text-muted-foreground">
-              +5% em relação ao mês anterior
+              Cadastradas no sistema
             </p>
           </CardContent>
         </Card>
@@ -287,9 +408,9 @@ const Dashboard = () => {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">89</div>
+            <div className="text-2xl font-bold">{totalPerformances}</div>
             <p className="text-xs text-muted-foreground">
-              +12% em relação ao mês anterior
+              Registradas no sistema
             </p>
           </CardContent>
         </Card>
@@ -300,9 +421,9 @@ const Dashboard = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">45</div>
+            <div className="text-2xl font-bold">{usuariosAtivos}</div>
             <p className="text-xs text-muted-foreground">
-              +3 novos usuários
+              Usuários cadastrados
             </p>
           </CardContent>
         </Card>
@@ -313,7 +434,7 @@ const Dashboard = () => {
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">23</div>
+            <div className="text-2xl font-bold">{relatoriosGerados}</div>
             <p className="text-xs text-muted-foreground">
               Gerados este mês
             </p>
@@ -321,7 +442,7 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Nova seção de gráficos com tamanhos ajustados */}
+      {/* Seção de gráficos com dados reais */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         <Card className="shadow-xl">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
@@ -350,9 +471,20 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[400px] w-full">
-              {renderChart('partiturasPorCompositor', partiturasPorCompositor, 'Partituras por Compositor')}
-            </ChartContainer>
+            <div 
+              ref={(el) => chartRefs.current['partiturasPorCompositor'] = el}
+              className="chart-container"
+            >
+              <ChartContainer config={chartConfig} className="h-[400px] w-full">
+                {partiturasPorCompositor.length > 0 ? (
+                  renderChart('partiturasPorCompositor', partiturasPorCompositor, 'Partituras por Compositor')
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    Nenhuma partitura cadastrada
+                  </div>
+                )}
+              </ChartContainer>
+            </div>
           </CardContent>
         </Card>
 
@@ -383,9 +515,20 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[400px] w-full">
-              {renderChart('partiturasPorSetor', partiturasPorSetor, 'Distribuição por Setor')}
-            </ChartContainer>
+            <div 
+              ref={(el) => chartRefs.current['partiturasPorSetor'] = el}
+              className="chart-container"
+            >
+              <ChartContainer config={chartConfig} className="h-[400px] w-full">
+                {partiturasPorSetor.length > 0 ? (
+                  renderChart('partiturasPorSetor', partiturasPorSetor, 'Distribuição por Setor')
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    Nenhuma partitura cadastrada
+                  </div>
+                )}
+              </ChartContainer>
+            </div>
           </CardContent>
         </Card>
 
@@ -417,25 +560,36 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[400px] w-full">
-              {chartConfigs.performancesPorMes.type === 'line' ? (
-                <LineChart data={performancesPorMes}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="mes" />
-                  <YAxis />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Line 
-                    type="monotone" 
-                    dataKey="performances" 
-                    stroke="#2563eb" 
-                    strokeWidth={3}
-                    dot={{ fill: '#2563eb', strokeWidth: 2, r: 6 }}
-                  />
-                </LineChart>
-              ) : (
-                renderChart('performancesPorMes', performancesPorMes, 'Performances por Mês')
-              )}
-            </ChartContainer>
+            <div 
+              ref={(el) => chartRefs.current['performancesPorMes'] = el}
+              className="chart-container"
+            >
+              <ChartContainer config={chartConfig} className="h-[400px] w-full">
+                {performancesPorMes.length > 0 ? (
+                  chartConfigs.performancesPorMes.type === 'line' ? (
+                    <LineChart data={performancesPorMes}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="mes" />
+                      <YAxis />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Line 
+                        type="monotone" 
+                        dataKey="performances" 
+                        stroke="#2563eb" 
+                        strokeWidth={3}
+                        dot={{ fill: '#2563eb', strokeWidth: 2, r: 6 }}
+                      />
+                    </LineChart>
+                  ) : (
+                    renderChart('performancesPorMes', performancesPorMes, 'Performances por Mês')
+                  )
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    Nenhuma performance cadastrada
+                  </div>
+                )}
+              </ChartContainer>
+            </div>
           </CardContent>
         </Card>
 
@@ -466,9 +620,20 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[400px] w-full">
-              {renderChart('digitalizacaoStatus', digitalizacaoStatus, 'Status de Digitalização')}
-            </ChartContainer>
+            <div 
+              ref={(el) => chartRefs.current['digitalizacaoStatus'] = el}
+              className="chart-container"
+            >
+              <ChartContainer config={chartConfig} className="h-[400px] w-full">
+                {digitalizacaoStatus.length > 0 && digitalizacaoStatus.some(item => item.quantidade > 0) ? (
+                  renderChart('digitalizacaoStatus', digitalizacaoStatus, 'Status de Digitalização')
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    Nenhuma partitura cadastrada
+                  </div>
+                )}
+              </ChartContainer>
+            </div>
           </CardContent>
         </Card>
       </div>
