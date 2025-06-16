@@ -3,7 +3,7 @@ import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
-import NavbarTitle from './NavbarTitle';
+import { Button } from '@/components/ui/button';
 import NavbarUserSection from './NavbarUserSection';
 
 interface NavbarProps {
@@ -100,17 +100,20 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
           </div>
 
           <div className="flex items-center space-x-4 flex-shrink-0 ml-auto">
-            <NavbarUserSection
-              user={user}
-              profile={profile}
-              onSignOut={handleSignOut}
-              onCreateProfile={handleCreateProfile}
-            />
-            
-            {!user && (
-              <button onClick={() => navigate('/auth')}>
+            {user ? (
+              <NavbarUserSection
+                user={user}
+                profile={profile}
+                onSignOut={handleSignOut}
+                onCreateProfile={handleCreateProfile}
+              />
+            ) : (
+              <Button 
+                onClick={() => navigate('/auth')}
+                className="h-9 px-4 text-sm bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200/50"
+              >
                 <span>Entrar</span>
-              </button>
+              </Button>
             )}
           </div>
         </div>

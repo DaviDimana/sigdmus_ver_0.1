@@ -6,8 +6,6 @@ import {
   Calendar, 
   FolderOpen, 
   BarChart3, 
-  Users, 
-  Settings,
   Home,
   Plus
 } from 'lucide-react';
@@ -78,18 +76,6 @@ const AppSidebar: React.FC = () => {
       href: '/relatorios',
       icon: BarChart3,
       roles: ['ADMIN', 'GERENTE', 'ARQUIVISTA', 'MUSICO']
-    },
-    {
-      name: 'Usuários',
-      href: '/usuarios',
-      icon: Users,
-      roles: ['ADMIN']
-    },
-    {
-      name: 'Configurações',
-      href: '/configuracoes',
-      icon: Settings,
-      roles: ['ADMIN', 'GERENTE']
     }
   ];
 
