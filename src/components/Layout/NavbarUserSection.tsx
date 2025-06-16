@@ -48,14 +48,14 @@ const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
     }
   };
 
-  if (user && profile) {
+  if (user) {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="flex items-center space-x-3 hover:bg-blue-50 hover:text-blue-600 h-12 w-12 rounded-full p-0">
             <Avatar className="h-10 w-10">
               <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-semibold">
-                {profile.name.charAt(0).toUpperCase()}
+                {profile?.name ? profile.name.charAt(0).toUpperCase() : user.email?.charAt(0).toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
           </Button>
@@ -66,21 +66,27 @@ const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
             <div className="flex items-center space-x-3">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-blue-100 text-blue-600">
-                  {profile.name.charAt(0).toUpperCase()}
+                  {profile?.name ? profile.name.charAt(0).toUpperCase() : user.email?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-gray-900 truncate">
-                  {profile.name}
+                  {profile?.name || user.email || 'Usuário'}
                 </div>
                 <div className="flex items-center space-x-2 mt-1">
-                  <Badge variant={getRoleBadgeVariant(profile.role)} className="text-xs">
-                    {getRoleLabel(profile.role)}
-                  </Badge>
-                  {profile.setor && (
-                    <span className="text-xs text-gray-500 truncate">
-                      {profile.setor.replace('ACERVO_', '')}
-                    </span>
+                  {profile?.role ? (
+                    <>
+                      <Badge variant={getRoleBadgeVariant(profile.role)} className="text-xs">
+                        {getRoleLabel(profile.role)}
+                      </Badge>
+                      {profile.setor && (
+                        <span className="text-xs text-gray-500 truncate">
+                          {profile.setor.replace('ACERVO_', '')}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-xs text-gray-500">Perfil não criado</span>
                   )}
                 </div>
               </div>
@@ -88,25 +94,35 @@ const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
           </div>
 
           {/* Itens do menu */}
-          <DropdownMenuItem 
-            className="hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 cursor-pointer"
-            onClick={() => navigate('/perfil')}
-          >
-            <User className="mr-2 h-4 w-4 transition-all duration-200 group-hover:scale-110" />
-            <span className="transition-all duration-200 group-hover:font-semibold">Perfil</span>
-          </DropdownMenuItem>
-
-          {(profile.role === 'ADMIN' || profile.role === 'GERENTE') && (
+          {profile ? (
             <DropdownMenuItem 
               className="hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 cursor-pointer"
-              onClick={() => navigate('/configuracoes')}
+              onClick={() => navigate('/perfil')}
             >
-              <Settings className="mr-2 h-4 w-4 transition-all duration-200 group-hover:scale-110" />
-              <span className="transition-all duration-200 group-hover:font-semibold">Configurações</span>
+              <User className="mr-2 h-4 w-4 transition-all duration-200 group-hover:scale-110" />
+              <span className="transition-all duration-200 group-hover:font-semibold">Perfil</span>
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem 
+              className="hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 cursor-pointer"
+              onClick={onCreateProfile}
+            >
+              <User className="mr-2 h-4 w-4 transition-all duration-200 group-hover:scale-110" />
+              <span className="transition-all duration-200 group-hover:font-semibold">Criar Perfil</span>
             </DropdownMenuItem>
           )}
 
-          {profile.role === 'ADMIN' && (
+          {/* Configurações - sempre visível para usuários logados */}
+          <DropdownMenuItem 
+            className="hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 cursor-pointer"
+            onClick={() => navigate('/configuracoes')}
+          >
+            <Settings className="mr-2 h-4 w-4 transition-all duration-200 group-hover:scale-110" />
+            <span className="transition-all duration-200 group-hover:font-semibold">Configurações</span>
+          </DropdownMenuItem>
+
+          {/* Usuários - apenas para ADMIN */}
+          {profile?.role === 'ADMIN' && (
             <DropdownMenuItem 
               className="hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 cursor-pointer"
               onClick={() => navigate('/usuarios')}
@@ -116,41 +132,6 @@ const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
             </DropdownMenuItem>
           )}
 
-          <DropdownMenuSeparator />
-          
-          <DropdownMenuItem 
-            className="text-red-600 focus:text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 cursor-pointer"
-            onClick={onSignOut}
-          >
-            <LogOut className="mr-2 h-4 w-4 transition-all duration-200 group-hover:scale-110" />
-            <span className="transition-all duration-200 group-hover:font-semibold">Sair</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  }
-
-  if (user && !profile) {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="flex items-center space-x-3 hover:bg-blue-50 hover:text-blue-600 h-12 w-12 rounded-full p-0">
-            <Avatar className="h-10 w-10">
-              <AvatarFallback className="bg-gray-100 text-gray-600 text-sm font-semibold">
-                <User className="h-5 w-5" />
-              </AvatarFallback>
-            </Avatar>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuItem 
-            className="hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 cursor-pointer"
-            onClick={onCreateProfile}
-          >
-            <User className="mr-2 h-4 w-4 transition-all duration-200 group-hover:scale-110" />
-            <span className="transition-all duration-200 group-hover:font-semibold">Criar Perfil</span>
-          </DropdownMenuItem>
-          
           <DropdownMenuSeparator />
           
           <DropdownMenuItem 
