@@ -58,7 +58,9 @@ const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
   };
 
   // Verificar se o usuário é admin (mesmo sem perfil criado)
-  const isAdmin = profile?.role === 'ADMIN' || user?.email === 'admin@sigmusicorp.com';
+  const isAdmin = profile?.role === 'ADMIN' || 
+                  user?.email === 'admin@sigmusicorp.com' || 
+                  user?.email === 'davidimana123@gmail.com';
 
   if (user) {
     return (
@@ -99,7 +101,7 @@ const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
                     </>
                   ) : (
                     <span className="text-xs text-gray-500">
-                      {isAdmin ? 'Administrador (perfil não criado)' : 'Perfil não criado'}
+                      {isAdmin ? 'Administrador (carregando perfil...)' : 'Perfil não criado'}
                     </span>
                   )}
                 </div>
