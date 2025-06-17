@@ -433,6 +433,7 @@ export type Database = {
       }
       user_profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string | null
           email: string
           funcao: Database["public"]["Enums"]["funcao_usuario"] | null
@@ -447,6 +448,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string | null
           email: string
           funcao?: Database["public"]["Enums"]["funcao_usuario"] | null
@@ -461,6 +463,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string | null
           email?: string
           funcao?: Database["public"]["Enums"]["funcao_usuario"] | null

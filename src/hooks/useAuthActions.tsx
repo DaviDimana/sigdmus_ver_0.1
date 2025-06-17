@@ -90,7 +90,7 @@ export const useAuthActions = (
     }
   };
 
-  const updateProfile = async (updates: Partial<UserProfile>) => {
+  const updateProfile = async (updates: any) => {
     console.log('useAuthActions: Updating profile:', updates);
     
     if (!authState.user) {

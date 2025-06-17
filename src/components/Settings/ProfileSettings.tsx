@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import AvatarUpload from './AvatarUpload';
-import type { Tables } from '@/integrations/supabase/types';
 
 const ProfileSettings: React.FC = () => {
   const { profile, updateProfile, user } = useAuth();
@@ -31,7 +30,7 @@ const ProfileSettings: React.FC = () => {
         setor: profile.setor || '',
         instrumento: profile.instrumento || '',
         instituicao: profile.instituicao || '',
-        avatar_url: profile.avatar_url || ''
+        avatar_url: (profile as any).avatar_url || ''
       });
     }
   }, [profile]);
@@ -76,7 +75,7 @@ const ProfileSettings: React.FC = () => {
     setLoading(true);
 
     try {
-      const updates: Partial<Tables<'user_profiles'>> = {
+      const updates: any = {
         name: formData.name.trim(),
         telefone: formData.telefone.trim() || null,
         instituicao: formData.instituicao.trim() || null,
