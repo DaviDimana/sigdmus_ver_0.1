@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { UserProfile, AuthState } from '@/types/auth';
 
@@ -119,6 +120,9 @@ export const useAuthActions = (
           role: 'MUSICO' as const,
           setor: updates.setor || null,
           instrumento: updates.instrumento || null,
+          telefone: updates.telefone || null,
+          instituicao: updates.instituicao || null,
+          avatar_url: updates.avatar_url || null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         };

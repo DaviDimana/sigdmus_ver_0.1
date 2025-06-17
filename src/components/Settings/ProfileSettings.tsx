@@ -4,10 +4,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, User } from 'lucide-react';
+import AvatarUpload from './AvatarUpload';
 import type { Tables } from '@/integrations/supabase/types';
 
 const ProfileSettings: React.FC = () => {
@@ -16,8 +15,11 @@ const ProfileSettings: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
+    telefone: '',
     setor: '',
-    instrumento: ''
+    instrumento: '',
+    instituicao: '',
+    avatar_url: ''
   });
 
   // Initialize form data when profile is loaded
@@ -25,8 +27,11 @@ const ProfileSettings: React.FC = () => {
     if (profile) {
       setFormData({
         name: profile.name || '',
+        telefone: profile.telefone || '',
         setor: profile.setor || '',
-        instrumento: profile.instrumento || ''
+        instrumento: profile.instrumento || '',
+        instituicao: profile.instituicao || '',
+        avatar_url: profile.avatar_url || ''
       });
     }
   }, [profile]);
@@ -43,11 +48,12 @@ const ProfileSettings: React.FC = () => {
     'SOPRANO', 'CONTRALTO', 'TENOR', 'BAIXO'
   ];
 
+  const handleAvatarUpdate = (avatarUrl: string) => {
+    setFormData(prev => ({ ...prev, avatar_url: avatarUrl }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    console.log('=== INICIANDO SUBMIT DO FORMULÁRIO ===');
-    console.log('FormData:', formData);
     
     if (!formData.name.trim()) {
       toast({
@@ -59,7 +65,6 @@ const ProfileSettings: React.FC = () => {
     }
 
     if (!user) {
-      console.error('Usuário não encontrado');
       toast({
         title: "Erro",
         description: "Usuário não encontrado. Faça login novamente.",
@@ -71,62 +76,43 @@ const ProfileSettings: React.FC = () => {
     setLoading(true);
 
     try {
-      console.log('Preparando updates...');
-      
       const updates: Partial<Tables<'user_profiles'>> = {
-        name: formData.name.trim()
+        name: formData.name.trim(),
+        telefone: formData.telefone.trim() || null,
+        instituicao: formData.instituicao.trim() || null,
+        avatar_url: formData.avatar_url || null
       };
 
       // Apenas gerentes e admins podem alterar setor
       if (profile && (profile.role === 'GERENTE' || profile.role === 'ADMIN') && formData.setor) {
         updates.setor = formData.setor as any;
-        console.log('Adicionando setor:', formData.setor);
       }
 
       // Apenas músicos podem alterar instrumento
       if (profile && profile.role === 'MUSICO' && formData.instrumento) {
         updates.instrumento = formData.instrumento as any;
-        console.log('Adicionando instrumento:', formData.instrumento);
       }
 
-      console.log('Updates finais:', updates);
-      console.log('Chamando updateProfile...');
-      
-      const result = await updateProfile(updates);
-      console.log('Resultado da atualização:', result);
+      await updateProfile(updates);
 
       toast({
         title: "Sucesso!",
         description: "Perfil atualizado com sucesso!",
       });
-
-      console.log('=== SUBMIT CONCLUÍDO COM SUCESSO ===');
     } catch (error) {
-      console.error('=== ERRO NO SUBMIT ===');
-      console.error('Erro completo:', error);
+      console.error('Erro ao atualizar perfil:', error);
       
       toast({
         title: "Erro",
         description: "Erro ao atualizar perfil. Tente novamente.",
         variant: "destructive",
       });
-      
-      console.log('=== FIM DO TRATAMENTO DE ERRO ===');
     } finally {
       setLoading(false);
     }
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  if (!profile) {
+  if (!profile || !user) {
     return (
       <div className="flex items-center justify-center h-32">
         <p className="text-gray-500">Carregando perfil...</p>
@@ -136,24 +122,12 @@ const ProfileSettings: React.FC = () => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="flex items-center space-x-6">
-        <Avatar className="h-20 w-20">
-          <AvatarImage src="" alt={profile?.name} />
-          <AvatarFallback className="text-lg">
-            {profile?.name ? getInitials(profile.name) : <User className="h-8 w-8" />}
-          </AvatarFallback>
-        </Avatar>
-        
-        <div>
-          <Button type="button" variant="outline" size="sm" className="flex items-center gap-2">
-            <Upload className="h-4 w-4" />
-            Alterar Foto
-          </Button>
-          <p className="text-sm text-gray-500 mt-1">
-            JPG, PNG até 2MB
-          </p>
-        </div>
-      </div>
+      <AvatarUpload
+        currentAvatarUrl={formData.avatar_url}
+        userName={profile.name}
+        userId={user.id}
+        onAvatarUpdate={handleAvatarUpdate}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -171,7 +145,7 @@ const ProfileSettings: React.FC = () => {
           <Label htmlFor="email">Email</Label>
           <Input
             id="email"
-            value={profile?.email}
+            value={profile.email}
             disabled
             className="bg-gray-50"
             placeholder="Email do usuário"
@@ -179,17 +153,38 @@ const ProfileSettings: React.FC = () => {
         </div>
 
         <div className="space-y-2">
+          <Label htmlFor="telefone">Telefone</Label>
+          <Input
+            id="telefone"
+            type="tel"
+            value={formData.telefone}
+            onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
+            placeholder="(00) 00000-0000"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="instituicao">Instituição</Label>
+          <Input
+            id="instituicao"
+            value={formData.instituicao}
+            onChange={(e) => setFormData({ ...formData, instituicao: e.target.value })}
+            placeholder="Nome da instituição"
+          />
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="role">Função</Label>
           <Input
             id="role"
-            value={profile?.role}
+            value={profile.role}
             disabled
             className="bg-gray-50"
             placeholder="Função do usuário"
           />
         </div>
 
-        {(profile?.role === 'GERENTE' || profile?.role === 'ADMIN') && (
+        {(profile.role === 'GERENTE' || profile.role === 'ADMIN') && (
           <div className="space-y-2">
             <Label htmlFor="setor">Setor</Label>
             <Select
@@ -210,7 +205,7 @@ const ProfileSettings: React.FC = () => {
           </div>
         )}
 
-        {profile?.role === 'MUSICO' && (
+        {profile.role === 'MUSICO' && (
           <div className="space-y-2">
             <Label htmlFor="instrumento">Instrumento</Label>
             <Select
@@ -235,8 +230,8 @@ const ProfileSettings: React.FC = () => {
       <div className="flex justify-end">
         <Button 
           type="submit" 
-          disabled={loading || !user} 
-          className="min-w-[140px] transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-blue-300/50 group"
+          disabled={loading} 
+          className="min-w-[140px]"
         >
           {loading ? (
             <>
@@ -244,7 +239,7 @@ const ProfileSettings: React.FC = () => {
               Salvando...
             </>
           ) : (
-            <span className="transition-all duration-200 group-hover:font-semibold">Salvar Alterações</span>
+            'Salvar Alterações'
           )}
         </Button>
       </div>

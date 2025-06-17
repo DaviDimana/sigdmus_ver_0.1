@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Settings, LogOut, User, Users } from 'lucide-react';
 
@@ -68,6 +68,7 @@ const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="flex items-center space-x-3 hover:bg-blue-50 hover:text-blue-600 h-12 w-12 rounded-full p-0">
             <Avatar className="h-10 w-10">
+              <AvatarImage src={profile?.avatar_url} alt={profile?.name || user.email} />
               <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-semibold">
                 {profile?.name ? profile.name.charAt(0).toUpperCase() : user.email?.charAt(0).toUpperCase() || 'U'}
               </AvatarFallback>
@@ -79,6 +80,7 @@ const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
           <div className="px-3 py-2 border-b">
             <div className="flex items-center space-x-3">
               <Avatar className="h-8 w-8">
+                <AvatarImage src={profile?.avatar_url} alt={profile?.name || user.email} />
                 <AvatarFallback className="bg-blue-100 text-blue-600">
                   {profile?.name ? profile.name.charAt(0).toUpperCase() : user.email?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>
