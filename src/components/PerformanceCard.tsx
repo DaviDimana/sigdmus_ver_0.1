@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,9 +9,11 @@ import { ptBR } from 'date-fns/locale';
 interface PerformanceCardProps {
   performance: any;
   onViewProgram?: (performance: any) => void;
+  onEdit?: (performance: any) => void;
+  onDelete?: (performance: any) => void;
 }
 
-const PerformanceCard: React.FC<PerformanceCardProps> = ({ performance, onViewProgram }) => {
+const PerformanceCard: React.FC<PerformanceCardProps> = ({ performance, onViewProgram, onEdit, onDelete }) => {
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
@@ -93,22 +94,34 @@ const PerformanceCard: React.FC<PerformanceCardProps> = ({ performance, onViewPr
             </div>
           )}
 
-          {/* Botão Visualizar Programa - sempre visible para debug */}
-          <div className="pt-3 border-t">
+          {/* Botões de ação */}
+          <div className="flex gap-2 pt-3 border-t">
             <Button
               variant="outline"
               size="sm"
               onClick={() => onViewProgram?.(performance)}
-              className="w-full flex items-center justify-center space-x-2"
+              className="flex-1"
               disabled={!hasProgram}
             >
               <FileText className="h-4 w-4" />
               <span>{hasProgram ? 'Visualizar Programa' : 'Programa não disponível'}</span>
             </Button>
-            {/* Debug info temporário */}
-            <p className="text-xs text-gray-500 mt-1">
-              Debug: {hasProgram ? 'Programa encontrado' : 'Programa não encontrado'}
-            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onEdit?.(performance)}
+              className="flex-1"
+            >
+              Editar
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => onDelete?.(performance)}
+              className="flex-1"
+            >
+              Deletar
+            </Button>
           </div>
         </div>
       </CardContent>

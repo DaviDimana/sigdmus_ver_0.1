@@ -1,10 +1,12 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Music, Calendar, Download } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
+import { Button } from '@/components/ui/button';
+import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 
 interface ObraDetailsDialogProps {
   isOpen: boolean;
@@ -12,6 +14,7 @@ interface ObraDetailsDialogProps {
   obra: string;
   arquivos: any[];
   formatFileSize: (bytes: number) => string;
+  onDeleteAllArquivos?: () => void;
 }
 
 const ObraDetailsDialog: React.FC<ObraDetailsDialogProps> = ({
@@ -19,7 +22,8 @@ const ObraDetailsDialog: React.FC<ObraDetailsDialogProps> = ({
   onClose,
   obra,
   arquivos,
-  formatFileSize
+  formatFileSize,
+  onDeleteAllArquivos,
 }) => {
   // Buscar partituras relacionadas à obra
   const { data: partituras = [] } = useQuery({
@@ -51,6 +55,8 @@ const ObraDetailsDialog: React.FC<ObraDetailsDialogProps> = ({
     if (tipo.includes('audio') || tipo.includes('midi')) return <Music className="h-4 w-4 text-purple-500" />;
     return <FileText className="h-4 w-4 text-gray-500" />;
   };
+
+  const [isArquivosOpen, setIsArquivosOpen] = React.useState(true);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -173,41 +179,70 @@ const ObraDetailsDialog: React.FC<ObraDetailsDialogProps> = ({
             </div>
           )}
 
-          {/* Lista de Arquivos */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3">Arquivos da Obra</h3>
-            <div className="space-y-2 max-h-60 overflow-y-auto">
-              {arquivos.map((arquivo) => (
-                <div key={arquivo.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3 flex-1 min-w-0">
-                    {getFileIcon(arquivo.tipo)}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {arquivo.nome}
-                      </p>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <Badge variant="outline" className="text-xs">
-                          {arquivo.categoria}
-                        </Badge>
-                        <span className="text-xs text-gray-500">
-                          {formatFileSize(arquivo.tamanho)}
-                        </span>
-                        {arquivo.restricao_download && (
-                          <Badge variant="outline" className="text-xs text-orange-600">
-                            Restrito
+          {/* Lista de Arquivos com Collapse */}
+          <Collapsible open={isArquivosOpen} onOpenChange={setIsArquivosOpen}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold">Arquivos PDF digitalizados</h3>
+                <span className="text-xs text-gray-500">({arquivos.length})</span>
+              </div>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+                  {isArquivosOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+            <CollapsibleContent>
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {/* Botão Apagar todos */}
+                <div className="flex items-center justify-between p-2 bg-red-50 rounded mb-2">
+                  <span className="text-sm text-red-700 font-medium">Apagar todos os arquivos</span>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="flex items-center gap-1"
+                    onClick={onDeleteAllArquivos}
+                    title="Apagar todos os arquivos"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Apagar todos
+                  </Button>
+                </div>
+                {arquivos.length === 0 && (
+                  <div className="text-sm text-gray-500 italic">Nenhum arquivo digitalizado.</div>
+                )}
+                {arquivos.map((arquivo) => (
+                  <div key={arquivo.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3 flex-1 min-w-0">
+                      {getFileIcon(arquivo.tipo)}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {arquivo.nome}
+                        </p>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <Badge variant="outline" className="text-xs">
+                            {arquivo.categoria}
                           </Badge>
-                        )}
+                          <span className="text-xs text-gray-500">
+                            {formatFileSize(arquivo.tamanho)}
+                          </span>
+                          {arquivo.restricao_download && (
+                            <Badge variant="outline" className="text-xs text-orange-600">
+                              Restrito
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
+                    <div className="flex items-center space-x-2 text-xs text-gray-500">
+                      <Download className="h-3 w-3" />
+                      <span>{arquivo.downloads || 0}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2 text-xs text-gray-500">
-                    <Download className="h-3 w-3" />
-                    <span>{arquivo.downloads || 0}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
 
           {/* Metadados Adicionais */}
           <div>

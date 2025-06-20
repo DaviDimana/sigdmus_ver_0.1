@@ -1,142 +1,238 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import AvatarUpload from './AvatarUpload';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { Camera } from 'lucide-react';
 
 const ProfileSettings: React.FC = () => {
-  const { profile, updateProfile, user } = useAuth();
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const { user, profile, loading, setProfile } = useAuth();
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    telefone: '',
-    setor: '',
-    instrumento: '',
-    instituicao: '',
-    avatar_url: ''
+    email: '',
   });
 
-  // Initialize form data when profile is loaded
+  // Atualizar formData quando o perfil for carregado
   useEffect(() => {
     if (profile) {
       setFormData({
         name: profile.name || '',
-        telefone: profile.telefone || '',
-        setor: profile.setor || '',
-        instrumento: profile.instrumento || '',
-        instituicao: profile.instituicao || '',
-        avatar_url: (profile as any).avatar_url || ''
+        email: profile.email || '',
       });
     }
   }, [profile]);
 
-  const setores = [
-    'ACERVO_OSUFBA', 'ACERVO_SCHWEBEL', 'ACERVO_PIERO', 'ACERVO_PINO',
-    'ACERVO_WIDMER', 'MEMORIAL_LINDENBERG_CARDOSO', 'COMPOSITORES_DA_BAHIA', 'ACERVO_OSBA'
-  ];
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setUploading(true);
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-  const instrumentos = [
-    'FLAUTA', 'OBOÉ', 'CLARINETE', 'FAGOTE', 'TROMPA', 'TROMPETE',
-    'TROMBONE', 'TUBA', 'VIOLINO_I', 'VIOLINO_II', 'VIOLA',
-    'VIOLONCELO', 'CONTRABAIXO', 'HARPA', 'PIANO', 'PERCUSSAO',
-    'SOPRANO', 'CONTRALTO', 'TENOR', 'BAIXO'
-  ];
+      // Verificar tipo e tamanho do arquivo
+      if (!file.type.startsWith('image/')) {
+        toast.error('Por favor, selecione uma imagem válida');
+        return;
+      }
 
-  const handleAvatarUpdate = (avatarUrl: string) => {
-    setFormData(prev => ({ ...prev, avatar_url: avatarUrl }));
+      if (file.size > 5 * 1024 * 1024) { // 5MB
+        toast.error('A imagem deve ter no máximo 5MB');
+        return;
+      }
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user?.id}-${Math.random()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      console.log('Iniciando upload do avatar:', { filePath, userId: user?.id });
+
+      // Upload da imagem
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.error('Erro no upload do arquivo:', uploadError);
+        throw uploadError;
+      }
+
+      console.log('Upload do arquivo concluído, obtendo URL pública');
+
+      // Atualizar o perfil com a URL do avatar
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      console.log('URL pública obtida:', publicUrl);
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user?.id);
+
+      if (updateError) {
+        console.error('Erro ao atualizar o perfil com a URL do avatar:', updateError);
+        throw updateError;
+      }
+
+      console.log('Perfil atualizado com a URL do avatar, buscando perfil atualizado');
+
+      // Buscar o perfil atualizado
+      const { data: updatedProfile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user?.id)
+        .single();
+
+      if (fetchError) {
+        console.error('Erro ao buscar perfil atualizado:', fetchError);
+        throw fetchError;
+      }
+
+      console.log('Perfil atualizado obtido:', updatedProfile);
+
+      // Atualizar o estado do perfil
+      if (updatedProfile) {
+        setProfile(updatedProfile);
+      }
+
+      toast.success('Avatar atualizado com sucesso!');
+    } catch (error: any) {
+      console.error('Erro detalhado ao fazer upload do avatar:', error);
+      toast.error(`Erro ao fazer upload do avatar: ${error.message || 'Erro desconhecido'}`);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validação dos campos
     if (!formData.name.trim()) {
-      toast({
-        title: "Erro",
-        description: "O nome é obrigatório.",
-        variant: "destructive",
-      });
+      toast.error('O nome é obrigatório');
       return;
     }
 
-    if (!user) {
-      toast({
-        title: "Erro",
-        description: "Usuário não encontrado. Faça login novamente.",
-        variant: "destructive",
-      });
+    if (!formData.email.trim()) {
+      toast.error('O email é obrigatório');
       return;
     }
 
-    setLoading(true);
+    if (!formData.email.includes('@')) {
+      toast.error('Email inválido');
+      return;
+    }
 
+    setSaving(true);
     try {
-      const updates: any = {
-        name: formData.name.trim(),
-        telefone: formData.telefone.trim() || null,
-        instituicao: formData.instituicao.trim() || null,
-        avatar_url: formData.avatar_url || null
-      };
+      console.log('Iniciando atualização do perfil:', { 
+        userId: user?.id, 
+        name: formData.name.trim(), 
+        email: formData.email.trim() 
+      });
 
-      // Apenas gerentes e admins podem alterar setor
-      if (profile && (profile.role === 'GERENTE' || profile.role === 'ADMIN') && formData.setor) {
-        updates.setor = formData.setor as any;
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+        })
+        .eq('id', user?.id);
+
+      if (error) {
+        console.error('Erro ao atualizar o perfil:', error);
+        throw error;
       }
 
-      // Apenas músicos podem alterar instrumento
-      if (profile && profile.role === 'MUSICO' && formData.instrumento) {
-        updates.instrumento = formData.instrumento as any;
+      console.log('Perfil atualizado, buscando perfil atualizado');
+
+      // Buscar o perfil atualizado
+      const { data: updatedProfile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user?.id)
+        .single();
+
+      if (fetchError) {
+        console.error('Erro ao buscar perfil atualizado:', fetchError);
+        throw fetchError;
       }
 
-      await updateProfile(updates);
+      console.log('Perfil atualizado obtido:', updatedProfile);
 
-      toast({
-        title: "Sucesso!",
-        description: "Perfil atualizado com sucesso!",
-      });
-    } catch (error) {
-      console.error('Erro ao atualizar perfil:', error);
-      
-      toast({
-        title: "Erro",
-        description: "Erro ao atualizar perfil. Tente novamente.",
-        variant: "destructive",
-      });
+      // Atualizar o estado do perfil
+      if (updatedProfile) {
+        setProfile(updatedProfile);
+      }
+
+      toast.success('Perfil atualizado com sucesso!');
+    } catch (error: any) {
+      console.error('Erro detalhado ao atualizar perfil:', error);
+      toast.error(`Erro ao atualizar perfil: ${error.message || 'Erro desconhecido'}`);
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
-  if (!profile || !user) {
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  if (loading) {
     return (
-      <div className="flex items-center justify-center h-32">
-        <p className="text-gray-500">Carregando perfil...</p>
+      <div className="flex items-center justify-center p-8">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <AvatarUpload
-        currentAvatarUrl={formData.avatar_url}
-        userName={profile.name}
-        userId={user.id}
-        onAvatarUpdate={handleAvatarUpdate}
-      />
+      <div className="flex flex-col items-center space-y-4">
+        <div className="relative group">
+          <Avatar className="h-24 w-24">
+            <AvatarImage src={profile?.avatar_url} />
+            <AvatarFallback>{getInitials(profile?.name || '')}</AvatarFallback>
+          </Avatar>
+          <label
+            htmlFor="avatar-upload"
+            className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-full cursor-pointer hover:bg-blue-700 transition-colors"
+          >
+            <Camera className="h-4 w-4" />
+            <input
+              id="avatar-upload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarUpload}
+              disabled={uploading}
+            />
+          </label>
+        </div>
+        <p className="text-sm text-gray-500">
+          {uploading ? 'Enviando...' : 'Clique no ícone da câmera para alterar sua foto'}
+        </p>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="name">Nome *</Label>
+          <Label htmlFor="name">Nome Completo</Label>
           <Input
             id="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            required
-            placeholder="Digite seu nome"
+            placeholder="Seu nome completo"
+            disabled={saving}
           />
         </div>
 
@@ -144,104 +240,25 @@ const ProfileSettings: React.FC = () => {
           <Label htmlFor="email">Email</Label>
           <Input
             id="email"
-            value={profile.email}
-            disabled
-            className="bg-gray-50"
-            placeholder="Email do usuário"
+            type="email"
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            placeholder="seu@email.com"
+            disabled={saving}
           />
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="telefone">Telefone</Label>
-          <Input
-            id="telefone"
-            type="tel"
-            value={formData.telefone}
-            onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
-            placeholder="(00) 00000-0000"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="instituicao">Instituição</Label>
-          <Input
-            id="instituicao"
-            value={formData.instituicao}
-            onChange={(e) => setFormData({ ...formData, instituicao: e.target.value })}
-            placeholder="Nome da instituição"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="role">Função</Label>
-          <Input
-            id="role"
-            value={profile.role}
-            disabled
-            className="bg-gray-50"
-            placeholder="Função do usuário"
-          />
-        </div>
-
-        {(profile.role === 'GERENTE' || profile.role === 'ADMIN') && (
-          <div className="space-y-2">
-            <Label htmlFor="setor">Setor</Label>
-            <Select
-              value={formData.setor}
-              onValueChange={(value) => setFormData({ ...formData, setor: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um setor" />
-              </SelectTrigger>
-              <SelectContent>
-                {setores.map((setor) => (
-                  <SelectItem key={setor} value={setor}>
-                    {setor.replace(/_/g, ' ')}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        {profile.role === 'MUSICO' && (
-          <div className="space-y-2">
-            <Label htmlFor="instrumento">Instrumento</Label>
-            <Select
-              value={formData.instrumento}
-              onValueChange={(value) => setFormData({ ...formData, instrumento: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um instrumento" />
-              </SelectTrigger>
-              <SelectContent>
-                {instrumentos.map((instrumento) => (
-                  <SelectItem key={instrumento} value={instrumento}>
-                    {instrumento}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
       </div>
 
-      <div className="flex justify-end">
-        <Button 
-          type="submit" 
-          disabled={loading} 
-          className="min-w-[140px]"
-        >
-          {loading ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Salvando...
-            </>
-          ) : (
-            'Salvar Alterações'
-          )}
-        </Button>
-      </div>
+      <Button type="submit" className="w-full" disabled={saving}>
+        {saving ? (
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <span>Salvando...</span>
+          </div>
+        ) : (
+          'Salvar Alterações'
+        )}
+      </Button>
     </form>
   );
 };

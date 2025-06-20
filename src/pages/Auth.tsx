@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Navigate } from 'react-router-dom';
 import SignupForm from '@/components/SignupForm';
+import { toast } from 'sonner';
 
 const Auth = () => {
   const [view, setView] = useState<'login' | 'signup'>('login');
@@ -21,7 +20,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   
   const { user, signIn, signUp } = useAuth();
-  const { toast } = useToast();
+  const { toast: useToastToast } = useToast();
 
   // Redirect if already authenticated
   if (user) {
@@ -37,17 +36,10 @@ const Auth = () => {
       console.log('Auth: Attempting login for:', formData.email);
       await signIn(formData.email, formData.password);
       console.log('Auth: Login successful');
-      toast({
-        title: "Login realizado com sucesso!",
-        description: "Bem-vindo ao sistema.",
-      });
+      toast.success('Login realizado com sucesso!');
     } catch (error: any) {
       console.error('Auth: Authentication error:', error);
-      toast({
-        title: "Erro na autenticação",
-        description: error.message || "Ocorreu um erro inesperado.",
-        variant: "destructive",
-      });
+      toast.error('Erro ao fazer login. Verifique suas credenciais.');
     } finally {
       setLoading(false);
     }

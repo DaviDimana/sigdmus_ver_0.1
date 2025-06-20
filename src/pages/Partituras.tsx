@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePartituras } from '@/hooks/usePartituras';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Search, Filter, Download, Upload } from 'lucide-react';
+import { Search, Filter, Download, Upload, Trash2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -14,9 +14,15 @@ import PartituraEmptyState from '@/components/PartituraEmptyState';
 import PartituraViewer from '@/components/PartituraViewer';
 import UploadDialog from '@/components/UploadDialog';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 const Partituras = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSetor, setSelectedSetor] = useState<string>('');
   const [selectedCompositor, setSelectedCompositor] = useState<string>('');
@@ -24,11 +30,24 @@ const Partituras = () => {
   const [showDigitalizado, setShowDigitalizado] = useState<string>('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedPartitura, setSelectedPartitura] = useState<any>(null);
-  const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [uploadPartituraId, setUploadPartituraId] = useState<string>('');
-  const [uploadPartituraTitle, setUploadPartituraTitle] = useState<string>('');
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
 
   const { partituras, isLoading, error } = usePartituras();
+
+  useEffect(() => {
+    if (error?.message === 'JWT expired') {
+      toast.error('Sua sessão expirou. Por favor, faça login novamente.');
+      signOut();
+      navigate('/auth');
+    }
+  }, [error, signOut, navigate]);
+
+  const filterOptions = [
+    { label: 'Setor', value: 'Setor' },
+    { label: 'Compositor', value: 'Compositor' },
+    { label: 'Gênero', value: 'Gênero' },
+    { label: 'Digitalizado', value: 'Digitalizado' },
+  ];
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
@@ -50,8 +69,10 @@ const Partituras = () => {
     setShowDigitalizado(value);
   };
 
-  const handleToggleFilter = () => {
-    setIsFilterOpen(!isFilterOpen);
+  const handleFilterToggle = (value: string) => {
+    setSelectedFilters((prev) =>
+      prev.includes(value) ? prev.filter((f) => f !== value) : [...prev, value]
+    );
   };
 
   const handleClearFilters = () => {
@@ -60,26 +81,15 @@ const Partituras = () => {
     setSelectedGenero('');
     setShowDigitalizado('');
     setSearchTerm('');
+    setSelectedFilters([]);
   };
 
   const handleNewPartitura = () => {
-    navigate('/nova-partitura');
+    navigate('/partituras/nova');
   };
 
   const handleViewDetails = (partitura: any) => {
     setSelectedPartitura(partitura);
-  };
-
-  const handleUpload = (partitura: any) => {
-    setUploadPartituraId(partitura.id);
-    setUploadPartituraTitle(partitura.titulo);
-    setIsUploadOpen(true);
-  };
-
-  const handleUploadClose = () => {
-    setIsUploadOpen(false);
-    setUploadPartituraId('');
-    setUploadPartituraTitle('');
   };
 
   const filteredPartituras = partituras?.filter((partitura) => {
@@ -90,13 +100,125 @@ const Partituras = () => {
       partitura.instrumentacao.toLowerCase().includes(searchTermLower) ||
       (partitura.genero?.toLowerCase().includes(searchTermLower) ?? false);
 
-    const matchesSetor = selectedSetor ? partitura.setor === selectedSetor : true;
+    const matchesSetor = selectedSetor && selectedSetor !== 'all' ? partitura.setor === selectedSetor : true;
     const matchesCompositor = selectedCompositor ? partitura.compositor === selectedCompositor : true;
     const matchesGenero = selectedGenero ? partitura.genero === selectedGenero : true;
-    const matchesDigitalizado = showDigitalizado !== '' ? String(partitura.digitalizado) === showDigitalizado : true;
+    const matchesDigitalizado = showDigitalizado && showDigitalizado !== 'all' ? String(partitura.digitalizado) === showDigitalizado : true;
 
     return matchesSearch && matchesSetor && matchesCompositor && matchesGenero && matchesDigitalizado;
   });
+
+  function sortByInstrumentOrder(files: { fileName: string; instrument: string | null }[]) {
+    // Função auxiliar para extrair número inicial do nome do arquivo
+    function getInitialNumber(fileName: string): number | null {
+      const match = fileName.match(/^(\d{1,3})[.\-_ ]/);
+      return match ? parseInt(match[1], 10) : null;
+    }
+    // Ordem tradicional dos instrumentos (de cima para baixo)
+    const instrumentOrder = [
+      'Grade', 'Partitura', 'Maestro',
+      // Madeiras
+      'Piccolo', 'Píccolo', 'Flautim', 'Flauta', 'Flute1', 'Flute2', 'Flute', 'Oboé', 'Oboe1', 'Oboe2', 'Oboe', 'Corne Inglês', 'English Horn',
+      'Clarinete', 'Clarinet1', 'Clarinet2', 'Clarinet', 'Clarone', 'Bass Clarinet', 'Fagote', 'Bassoon1', 'Bassoon2', 'Bassoon', 'Contrafagote', 'Contrabassoon',
+      // Metais
+      'Trompa', 'Horn1', 'Horn2', 'Horn3', 'Horn4', 'Horn', 'Trompete', 'Trumpet1', 'Trumpet2', 'Trumpet', 'Trombone', 'AltoTrombone', 'TenorTrombone', 'BassTrombone', 'Tuba',
+      // Percussão
+      'Tímpanos', 'Timpani', 'Percussão', 'Percussion',
+      // Outros
+      'Harpa', 'Harp', 'Piano',
+      // Cordas
+      'Violino 1', 'Violin1', 'Violino 2', 'Violin2', 'Violino', 'Violin', 'Viola', 'Violoncelo', 'Cello', 'Contrabaixo', 'Bass'
+    ];
+    // Ordenação
+    return [...files].sort((a, b) => {
+      const numA = getInitialNumber(a.fileName);
+      const numB = getInitialNumber(b.fileName);
+      if (numA !== null && numB !== null) {
+        if (numA !== numB) return numA - numB;
+      } else if (numA !== null) {
+        return -1; // a vem antes de b
+      } else if (numB !== null) {
+        return 1; // b vem antes de a
+      }
+      // Se nenhum dos dois tem número inicial, ordenar pelo instrumento
+      const getIndex = (inst: string | null) => {
+        if (!inst) return 999;
+        let idx = instrumentOrder.findIndex(i => i.toLowerCase() === inst.toLowerCase());
+        if (idx !== -1) return idx;
+        idx = instrumentOrder.findIndex(i => inst.toLowerCase().startsWith(i.toLowerCase()));
+        return idx !== -1 ? idx : 999;
+      };
+      const idxA = getIndex(a.instrument);
+      const idxB = getIndex(b.instrument);
+      if (idxA === idxB) return 0;
+      return idxA - idxB;
+    });
+  }
+
+  // Função para deletar um arquivo PDF individual
+  async function handleDeletePdf(partituraId: string, fileInfo: { url: string; fileName: string; instrument: string | null }) {
+    if (!window.confirm(`Tem certeza que deseja deletar o arquivo "${fileInfo.fileName}"?`)) return;
+    try {
+      // Remove do Storage
+      const { error: storageError } = await supabase.storage.from('arquivos').remove([`${partituraId}/${fileInfo.fileName}`]);
+      if (storageError) {
+        alert('Erro ao remover do Storage: ' + storageError.message);
+        return;
+      }
+      // Remove do array pdf_urls
+      const { data: partitura, error: fetchError } = await supabase
+        .from('partituras')
+        .select('pdf_urls')
+        .eq('id', partituraId)
+        .single();
+      if (fetchError) {
+        alert('Erro ao buscar partitura: ' + fetchError.message);
+        return;
+      }
+      const newPdfUrls = (partitura.pdf_urls || []).filter((f: any) => f.url !== fileInfo.url);
+      const { error: updateError } = await supabase
+        .from('partituras')
+        .update({ pdf_urls: newPdfUrls })
+        .eq('id', partituraId);
+      if (updateError) {
+        alert('Erro ao atualizar partitura: ' + updateError.message);
+        return;
+      }
+      // Atualiza a interface
+      setSelectedPartitura((prev: any) => ({ ...prev, pdf_urls: newPdfUrls }));
+    } catch (err: any) {
+      alert('Erro inesperado: ' + err.message);
+    }
+  }
+
+  // Função para deletar todos os arquivos PDF de uma partitura
+  async function handleDeleteAllPdfs(partituraId: string, pdfUrls: { url: string; fileName: string; instrument: string | null }[]) {
+    if (!window.confirm('Tem certeza que deseja apagar TODOS os arquivos digitalizados desta partitura?')) return;
+    try {
+      // Remove todos do Storage
+      const filePaths = pdfUrls.map(f => `${partituraId}/${f.fileName}`);
+      if (filePaths.length > 0) {
+        const { error: storageError } = await supabase.storage.from('arquivos').remove(filePaths);
+        if (storageError) {
+          alert('Erro ao remover do Storage: ' + storageError.message);
+          return;
+        }
+      }
+      // Limpa o array pdf_urls
+      const { error: updateError } = await supabase
+        .from('partituras')
+        .update({ pdf_urls: [] })
+        .eq('id', partituraId);
+      if (updateError) {
+        alert('Erro ao atualizar partitura: ' + updateError.message);
+        return;
+      }
+      // Atualiza a interface
+      setSelectedPartitura((prev: any) => ({ ...prev, pdf_urls: [] }));
+    } catch (err: any) {
+      alert('Erro inesperado: ' + err.message);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -120,7 +242,7 @@ const Partituras = () => {
     );
   }
 
-  if (error) {
+  if (error && error.message !== 'JWT expired') {
     return (
       <div className="space-y-6">
         <PartituraPageHeader onNewPartitura={handleNewPartitura} />
@@ -135,36 +257,60 @@ const Partituras = () => {
 
   return (
     <div className="space-y-6">
-      <PartituraPageHeader onNewPartitura={() => navigate('/nova-partitura')} />
+      <PartituraPageHeader onNewPartitura={() => navigate('/partituras/nova')} />
 
       {/* Barra de pesquisa e filtros */}
       <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 md:space-x-4">
-        <div className="flex items-center space-x-2 w-full md:w-auto">
+        {/* Campo de busca aprimorado */}
+        <div className="relative flex items-center w-full md:w-96 min-w-[320px]">
+          <span className="absolute left-3 text-gray-400">
+            <Search className="h-5 w-5" />
+          </span>
           <Input
             type="search"
             placeholder="Buscar por título, compositor, instrumentação..."
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
-            className="h-10"
+            className="h-12 pl-10 pr-20 text-base shadow-sm border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
+            style={{ minWidth: 0 }}
           />
           {searchTerm && (
-            <Button variant="ghost" size="sm" onClick={() => handleSearch('')}>
+            <Button variant="ghost" size="sm" onClick={() => handleSearch('')} className="absolute right-2">
               Limpar
             </Button>
           )}
         </div>
 
-        <Collapsible className="w-full md:w-auto" open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-          <CollapsibleTrigger asChild>
-            <Button variant="outline" className="w-full justify-center md:w-auto">
+        {/* Dropdown multi-select de filtros */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="w-full justify-center md:w-auto min-w-[120px]">
               <Filter className="h-4 w-4 mr-2" />
               Filtros
             </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="mt-4">
-            <Card>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          </PopoverTrigger>
+          <PopoverContent className="w-64 p-4 space-y-2">
+            <div className="font-medium mb-2">Escolha os critérios:</div>
+            {filterOptions.map((opt) => (
+              <div key={opt.value} className="flex items-center space-x-2 mb-1">
+                <Checkbox
+                  checked={selectedFilters.includes(opt.value)}
+                  onCheckedChange={() => handleFilterToggle(opt.value)}
+                  id={`filter-${opt.value}`}
+                />
+                <label htmlFor={`filter-${opt.value}`} className="text-sm cursor-pointer">{opt.label}</label>
+              </div>
+            ))}
+            <Button variant="secondary" onClick={handleClearFilters} className="w-full mt-2">
+              Limpar Filtros
+            </Button>
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      {/* Campos de filtro dinâmicos */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        {selectedFilters.includes('Setor') && (
                   <div>
                     <h4 className="text-sm font-medium mb-2">Setor</h4>
                     <Select value={selectedSetor} onValueChange={handleSetorChange}>
@@ -172,7 +318,7 @@ const Partituras = () => {
                         <SelectValue placeholder="Todos os setores" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Todos os setores</SelectItem>
+                <SelectItem value="all">Todos os setores</SelectItem>
                         <SelectItem value="Acervo OSUFBA">Acervo OSUFBA</SelectItem>
                         <SelectItem value="Acervo Schuwebel">Acervo Schuwebel</SelectItem>
                         <SelectItem value="Acervo Pino">Acervo Pino</SelectItem>
@@ -183,7 +329,8 @@ const Partituras = () => {
                       </SelectContent>
                     </Select>
                   </div>
-
+        )}
+        {selectedFilters.includes('Compositor') && (
                   <div>
                     <h4 className="text-sm font-medium mb-2">Compositor</h4>
                     <Input
@@ -191,9 +338,11 @@ const Partituras = () => {
                       placeholder="Filtrar por compositor"
                       value={selectedCompositor}
                       onChange={(e) => handleCompositorChange(e.target.value)}
+              className="h-10"
                     />
                   </div>
-
+        )}
+        {selectedFilters.includes('Gênero') && (
                   <div>
                     <h4 className="text-sm font-medium mb-2">Gênero</h4>
                     <Input
@@ -201,9 +350,11 @@ const Partituras = () => {
                       placeholder="Filtrar por gênero"
                       value={selectedGenero}
                       onChange={(e) => handleGeneroChange(e.target.value)}
+              className="h-10"
                     />
                   </div>
-
+        )}
+        {selectedFilters.includes('Digitalizado') && (
                   <div>
                     <h4 className="text-sm font-medium mb-2">Digitalizado</h4>
                     <Select value={showDigitalizado} onValueChange={handleDigitalizadoChange}>
@@ -211,21 +362,13 @@ const Partituras = () => {
                         <SelectValue placeholder="Todos" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
                         <SelectItem value="true">Sim</SelectItem>
                         <SelectItem value="false">Não</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-
-                <Button variant="secondary" onClick={handleClearFilters} className="w-full">
-                  Limpar Filtros
-                </Button>
-              </CardContent>
-            </Card>
-          </CollapsibleContent>
-        </Collapsible>
+        )}
       </div>
 
       {/* Resultados */}
@@ -236,17 +379,15 @@ const Partituras = () => {
               key={partitura.id}
               partitura={partitura}
               relatedArquivos={[]}
-              canUpload={true}
               onView={handleViewDetails}
               onDownload={() => {}}
-              onUpload={handleUpload}
             />
           ))}
         </div>
       ) : (
         <PartituraEmptyState 
           searchTerm={searchTerm}
-          onAddPartitura={() => navigate('/nova-partitura')}
+          onAddPartitura={() => navigate('/partituras/nova')}
         />
       )}
 
@@ -257,16 +398,102 @@ const Partituras = () => {
             <DialogTitle>{selectedPartitura?.titulo}</DialogTitle>
           </DialogHeader>
           {selectedPartitura && (
-            <PartituraViewer 
-              isOpen={!!selectedPartitura}
-              onClose={() => setSelectedPartitura(null)}
-              arquivo={{
-                nome: selectedPartitura.titulo,
-                tipo: 'application/pdf',
-                arquivo_url: selectedPartitura.arquivo_url
-              }}
-              onDownload={() => {}}
-            />
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <strong>Compositor:</strong> {selectedPartitura.compositor}
+                </div>
+                <div>
+                  <strong>Setor:</strong> {selectedPartitura.setor}
+                </div>
+                <div>
+                  <strong>Instrumentação:</strong> {selectedPartitura.instrumentacao}
+                </div>
+                <div>
+                  <strong>Edição:</strong> {selectedPartitura.edicao}
+                </div>
+                <div>
+                  <strong>Ano de Edição:</strong> {selectedPartitura.ano_edicao}
+                </div>
+                <div>
+                  <strong>Nº Armário:</strong> {selectedPartitura.numero_armario}
+                </div>
+                <div>
+                  <strong>Nº Prateleira:</strong> {selectedPartitura.numero_prateleira}
+                </div>
+                <div>
+                  <strong>Nº Pasta:</strong> {selectedPartitura.numero_pasta}
+                </div>
+                <div>
+                  <strong>Tonalidade:</strong> {selectedPartitura.tonalidade}
+                </div>
+                <div>
+                  <strong>Gênero:</strong> {selectedPartitura.genero}
+                </div>
+                <div>
+                  <strong>Digitalizado:</strong> {selectedPartitura.digitalizado ? 'Sim' : 'Não'}
+                </div>
+                <div className="md:col-span-2">
+                  <strong>Observações:</strong> {selectedPartitura.observacoes}
+                </div>
+              </div>
+
+              {selectedPartitura.pdf_urls && selectedPartitura.pdf_urls.length > 0 && (
+                <div className="pt-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <strong>Arquivos PDF Digitalizados:</strong>
+                    <button
+                      className="text-red-500 hover:text-red-700 text-sm border border-red-200 rounded px-2 py-1 ml-2"
+                      onClick={() => handleDeleteAllPdfs(selectedPartitura.id, selectedPartitura.pdf_urls)}
+                      title="Apagar todos os arquivos"
+                    >
+                      Apagar todos
+                    </button>
+                  </div>
+                  <ul className="list-disc ml-6 mt-1 space-y-1">
+                    {sortByInstrumentOrder(selectedPartitura.pdf_urls).map((fileInfo: { url: string; fileName: string; instrument: string | null }, idx: number) => (
+                      <li key={idx} className="flex items-center gap-2">
+                        <a href={fileInfo.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                          {fileInfo.fileName}
+                        </a>
+                        {fileInfo.instrument && (
+                          <span className="ml-2 text-gray-500">({fileInfo.instrument})</span>
+                        )}
+                        <button
+                          className="ml-2 text-red-500 hover:text-red-700"
+                          title="Deletar arquivo"
+                          onClick={() => handleDeletePdf(selectedPartitura.id, fileInfo)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <div className="flex gap-2 pt-4">
+                <Button variant="outline" onClick={() => navigate(`/partituras/nova?id=${selectedPartitura.id}`)}>
+                  Editar
+                </Button>
+                <Button variant="destructive" onClick={async () => {
+                  if (window.confirm('Tem certeza que deseja deletar esta partitura?')) {
+                    // Chamar deleção
+                    const { error } = await supabase
+                      .from('partituras')
+                      .delete()
+                      .eq('id', selectedPartitura.id);
+                    if (!error) {
+                      setSelectedPartitura(null);
+                      window.location.reload();
+                    } else {
+                      alert('Erro ao deletar partitura: ' + error.message);
+                    }
+                  }
+                }}>
+                  Deletar
+                </Button>
+              </div>
+            </div>
           )}
         </DialogContent>
       </Dialog>

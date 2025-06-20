@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,9 +25,9 @@ const PartituraEmptyState: React.FC<PartituraEmptyStateProps> = ({
             : "Comece adicionando sua primeira partitura ao acervo."
           }
         </p>
-        <Button onClick={onAddPartitura}>
+        <Button onClick={onAddPartitura} className="mt-4 bg-blue-600 hover:bg-blue-700">
           <Plus className="h-4 w-4 mr-2" />
-          Adicionar Partitura
+          Nova Partitura
         </Button>
       </CardContent>
     </Card>

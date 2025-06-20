@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -43,6 +42,7 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
   onCancel,
   isSubmitting = false 
 }) => {
+  const [pdfFiles, setPdfFiles] = useState<File[]>([]);
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -64,7 +64,7 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
   });
 
   const handleSubmit = (data: FormData) => {
-    onSubmit(data as PartituraInsert);
+    onSubmit({ ...data, pdfFiles });
   };
 
   const setoresOptions = [
@@ -328,10 +328,11 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-sm sm:text-base">Digitalizado? *</FormLabel>
-                <Select onValueChange={(value) => field.onChange(value === 'true')} value={field.value ? 'true' : 'false'}>
+                <FormControl>
+                  <Select onValueChange={val => field.onChange(val === 'true')} value={field.value ? 'true' : 'false'}>
                   <FormControl>
                     <SelectTrigger className="text-sm sm:text-base h-9 sm:h-10">
-                      <SelectValue placeholder="Selecione uma opção" />
+                        <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -339,10 +340,30 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
                     <SelectItem value="false">Não</SelectItem>
                   </SelectContent>
                 </Select>
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
+          {form.watch('digitalizado') && (
+            <div className="space-y-2">
+              <FormLabel className="text-sm sm:text-base">Upload de PDFs da Partitura</FormLabel>
+              <Input
+                type="file"
+                accept="application/pdf"
+                multiple
+                onChange={e => setPdfFiles(Array.from(e.target.files || []))}
+                disabled={isSubmitting}
+              />
+              <div className="text-xs text-gray-500">Selecione um ou mais arquivos PDF relacionados a esta obra.</div>
+              {pdfFiles.length > 0 && (
+                <ul className="text-xs mt-1 list-disc ml-4">
+                  {pdfFiles.map(file => <li key={file.name}>{file.name}</li>)}
+                </ul>
+              )}
+            </div>
+          )}
 
           <FormField
             control={form.control}

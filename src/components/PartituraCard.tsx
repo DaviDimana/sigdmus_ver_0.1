@@ -1,26 +1,21 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Download, Eye, Upload, User } from 'lucide-react';
+import { Download, Eye, User } from 'lucide-react';
 
 interface PartituraCardProps {
   partitura: any;
   relatedArquivos: any[];
-  canUpload: boolean;
   onView: (partitura: any) => void;
   onDownload: (arquivo: any) => void;
-  onUpload: (partitura: any) => void;
 }
 
 const PartituraCard: React.FC<PartituraCardProps> = ({
   partitura,
   relatedArquivos,
-  canUpload,
   onView,
   onDownload,
-  onUpload
 }) => {
   const getGenreColor = (genre: string) => {
     const colors = {
@@ -103,18 +98,6 @@ const PartituraCard: React.FC<PartituraCardProps> = ({
               >
                 <Download className="h-4 w-4 mr-1" />
                 Download
-              </Button>
-            )}
-            
-            {canUpload && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onUpload(partitura)}
-                className="flex-1"
-              >
-                <Upload className="h-4 w-4 mr-1" />
-                Upload
               </Button>
             )}
           </div>
