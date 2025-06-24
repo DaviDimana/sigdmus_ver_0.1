@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { AuthState } from '@/types/auth';
@@ -12,14 +11,11 @@ export const useAuthState = () => {
   });
 
   useEffect(() => {
-    console.log('=== useAuthState: Starting initialization ===');
-    
     let mounted = true;
 
     // Initialize auth state
     const initializeAuth = async () => {
       try {
-        console.log('useAuthState: Checking for existing session...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (!mounted) return;
@@ -36,8 +32,6 @@ export const useAuthState = () => {
         }
 
         if (session?.user) {
-          console.log('useAuthState: Found existing session for:', session.user.email);
-          
           // Set initial auth state with session
           setAuthState(prev => ({
             ...prev,
@@ -56,7 +50,6 @@ export const useAuthState = () => {
 
             if (!mounted) return;
 
-            console.log('useAuthState: Profile fetched:', !!profile);
             setAuthState(prev => ({
               ...prev,
               profile: profile || null,
@@ -72,7 +65,6 @@ export const useAuthState = () => {
             }));
           }
         } else {
-          console.log('useAuthState: No existing session found');
           setAuthState({
             user: null,
             session: null,
@@ -95,12 +87,9 @@ export const useAuthState = () => {
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('useAuthState: Auth state change:', event, !!session);
-        
         if (!mounted) return;
 
         if (event === 'SIGNED_OUT' || !session) {
-          console.log('useAuthState: User signed out or no session');
           setAuthState({
             user: null,
             session: null,
@@ -111,8 +100,6 @@ export const useAuthState = () => {
         }
 
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          console.log('useAuthState: User signed in or token refreshed');
-          
           setAuthState(prev => ({
             ...prev,
             session,
@@ -133,7 +120,6 @@ export const useAuthState = () => {
 
               if (!mounted) return;
 
-              console.log('useAuthState: Profile fetched in auth change:', !!profile);
               setAuthState(prev => ({
                 ...prev,
                 profile: profile || null,
@@ -153,7 +139,6 @@ export const useAuthState = () => {
     initializeAuth();
 
     return () => {
-      console.log('useAuthState: Cleanup');
       mounted = false;
       subscription.unsubscribe();
     };

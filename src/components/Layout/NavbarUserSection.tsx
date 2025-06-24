@@ -25,15 +25,6 @@ const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  // Debug logs para entender o estado atual
-  console.log('NavbarUserSection Debug:', {
-    hasUser: !!user,
-    hasProfile: !!profile,
-    userEmail: user?.email,
-    profileRole: profile?.role,
-    profileName: profile?.name
-  });
-
   const getRoleLabel = (role: string) => {
     switch (role) {
       case 'ADMIN': return 'Administrador';

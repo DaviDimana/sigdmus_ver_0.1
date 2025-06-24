@@ -6,8 +6,6 @@ export const useAuthActions = (
   setAuthState: React.Dispatch<React.SetStateAction<AuthState>>
 ) => {
   const signIn = async (email: string, password: string) => {
-    console.log('useAuthActions: Starting sign in for:', email);
-    
     try {
       // Clear any existing session first
       await supabase.auth.signOut({ scope: 'global' });
@@ -22,7 +20,6 @@ export const useAuthActions = (
         throw error;
       }
       
-      console.log('useAuthActions: Sign in successful');
       return data;
     } catch (error) {
       console.error('useAuthActions: Sign in failed:', error);
@@ -31,8 +28,6 @@ export const useAuthActions = (
   };
 
   const signUp = async (email: string, password: string, name: string) => {
-    console.log('useAuthActions: Starting sign up for:', email);
-    
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -49,7 +44,6 @@ export const useAuthActions = (
         throw error;
       }
       
-      console.log('useAuthActions: Sign up successful');
       return data;
     } catch (error) {
       console.error('useAuthActions: Sign up failed:', error);
@@ -58,16 +52,12 @@ export const useAuthActions = (
   };
 
   const signOut = async () => {
-    console.log('useAuthActions: Starting sign out');
-    
     try {
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       if (error) {
         console.error('useAuthActions: Sign out error:', error);
         throw error;
       }
-      
-      console.log('useAuthActions: Sign out successful');
       
       // Clear local state immediately
       setAuthState({
@@ -90,8 +80,6 @@ export const useAuthActions = (
   };
 
   const updateProfile = async (updates: any) => {
-    console.log('useAuthActions: Updating profile:', updates);
-    
     if (!authState.user) {
       console.error('useAuthActions: No user to update profile for');
       throw new Error('Usuário não está logado');
@@ -105,13 +93,10 @@ export const useAuthActions = (
         .eq('id', authState.user.id)
         .maybeSingle();
 
-      console.log('useAuthActions: Existing profile:', !!existingProfile);
-
       let result;
 
       if (!existingProfile) {
         // Create new profile
-        console.log('useAuthActions: Creating new profile');
         const newProfile = {
           id: authState.user.id,
           name: updates.name || authState.user.user_metadata?.name || 'Usuário',
@@ -136,7 +121,6 @@ export const useAuthActions = (
         result = data;
       } else {
         // Update existing profile
-        console.log('useAuthActions: Updating existing profile');
         const finalUpdates = {
           ...updates,
           updated_at: new Date().toISOString()
@@ -152,8 +136,6 @@ export const useAuthActions = (
         if (error) throw error;
         result = data;
       }
-
-      console.log('useAuthActions: Profile update successful');
 
       setAuthState(prev => ({
         ...prev,

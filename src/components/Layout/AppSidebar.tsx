@@ -72,21 +72,10 @@ const AppSidebar: React.FC = () => {
     }
   ];
 
-  // Log mais detalhado para debug
-  console.log('=== SIDEBAR DEBUG ===');
-  console.log('User:', user);
-  console.log('Profile:', profile);
-  console.log('Profile role:', profile?.role_user_role);
-  console.log('Total navigation items:', navigationItems.length);
-
   // Filtrar itens sem depender do role do profile se não existir
   const filteredItems = profile?.role_user_role 
     ? navigationItems.filter(item => item.roles.includes(profile.role_user_role))
     : navigationItems; // Mostrar todos se não tiver role (para debug)
-
-  console.log('Filtered items:', filteredItems);
-  console.log('Items to render:', filteredItems.length);
-  console.log('=== END SIDEBAR DEBUG ===');
 
   return (
     <Sidebar className="border-r border-gray-200">

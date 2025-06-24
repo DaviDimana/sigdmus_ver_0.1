@@ -8,14 +8,9 @@ import PasswordSettings from '@/components/Settings/PasswordSettings';
 import { Users, User, Lock } from 'lucide-react';
 
 const Configuracoes: React.FC = () => {
-  console.log('=== CONFIGURAÇÕES PAGE LOADING ===');
-  
   const { profile, user, loading } = useAuth();
-  
-  console.log('Auth state in Configurações:', { profile, user, loading });
 
   if (loading) {
-    console.log('Configurações: Still loading auth...');
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
@@ -27,16 +22,12 @@ const Configuracoes: React.FC = () => {
   }
 
   if (!user) {
-    console.log('Configurações: No user found');
     return (
       <div className="flex items-center justify-center h-64">
         <p className="text-gray-500">Usuário não encontrado</p>
       </div>
     );
   }
-
-  console.log('Configurações: Rendering page for user:', user.email);
-  console.log('Configurações: Profile role:', profile?.role_user_role);
 
   // Sempre mostrar as configurações básicas, independente do profile
   const showUserManagement = profile?.role === 'ADMIN';
@@ -48,10 +39,6 @@ const Configuracoes: React.FC = () => {
         <p className="text-gray-600 mt-2">
           Gerencie suas configurações e preferências
         </p>
-        {/* Debug info */}
-        <div className="text-xs text-gray-400 mt-1">
-          Debug: User: {user?.email}, Role: {profile?.role || 'N/A'}, Loading: {loading.toString()}
-        </div>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
