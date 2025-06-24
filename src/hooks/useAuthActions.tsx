@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { UserProfile, AuthState } from '@/types/auth';
 
@@ -174,8 +173,8 @@ export const useAuthActions = (
 
   const canAccessSector = (sector: UserProfile['setor']) => {
     if (!authState.profile) return false;
-    if (authState.profile.role === 'ADMIN') return true;
-    if (authState.profile.role === 'GERENTE') return authState.profile.setor === sector;
+    if (authState.profile.role_user_role === 'ADMIN') return true;
+    if (authState.profile.role_user_role === 'GERENTE') return authState.profile.setor === sector;
     return true; // ARQUIVISTA e MUSICO podem ver todos os setores
   };
 

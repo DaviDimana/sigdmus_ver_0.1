@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -51,52 +50,48 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
         <div className="flex justify-between items-center h-24">
           {/* Ícone de collapse e estrutura condicional */}
           <div className="flex items-center space-x-4">
-            <SidebarTrigger className="h-8 w-8" />
-            
-            {/* Card com logo, sigla e subtítulo - com animação */}
-            <div className={`transition-all duration-300 ease-in-out ${
-              shouldShowCard 
-                ? 'opacity-100 translate-x-0 scale-100' 
-                : 'opacity-0 -translate-x-4 scale-95 pointer-events-none'
-            }`}>
-              {/* Versão desktop */}
-              <div className="hidden md:flex items-center space-x-4">
-                <img 
-                  src="/lovable-uploads/81009293-f25e-4f72-a80a-e150f7665dc2.png" 
-                  alt="SIGMus Logo" 
-                  className="h-12 w-auto"
-                />
-                <div className="flex flex-col">
-                  <div className="text-2xl font-bold text-blue-700 tracking-wide">
-                    SiGMus
+            <SidebarTrigger className="h-14 w-14 min-h-[56px] min-w-[56px] flex items-center justify-center ml-0" />
+            {/* Logo e nome do sistema só aparecem quando sidebar está colapsada ou em mobile */}
+            {(state === 'collapsed' || isMobile) && (
+              <div>
+                {/* Versão desktop */}
+                <div className="hidden md:flex items-center space-x-4">
+                  <img 
+                    src="/lovable-uploads/81009293-f25e-4f72-a80a-e150f7665dc2.png" 
+                    alt="SIGMus Logo" 
+                    className="h-12 w-auto"
+                  />
+                  <div className="flex flex-col">
+                    <div className="text-2xl font-bold text-blue-700 tracking-wide">
+                      SiGMus
+                    </div>
+                    <div className="text-sm text-gray-600 leading-tight max-w-[200px] font-sans font-semibold">
+                      Sistema Integrado de Gestão e
+                      <br />
+                      Documentação Musical
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-600 leading-tight max-w-[200px] font-sans font-semibold">
-                    Sistema Integrado de Gestão e
-                    <br />
-                    Documentação Musical
+                </div>
+                {/* Versão mobile */}
+                <div className="flex md:hidden items-center space-x-2">
+                  <img 
+                    src="/lovable-uploads/81009293-f25e-4f72-a80a-e150f7665dc2.png" 
+                    alt="SIGMus Logo" 
+                    className="h-8 w-auto"
+                  />
+                  <div className="flex flex-col">
+                    <div className="text-base font-bold text-blue-700 tracking-wide">
+                      SiGMus
+                    </div>
+                    <div className="text-[10px] text-gray-600 leading-tight max-w-[140px] font-sans font-medium">
+                      Sistema Integrado de Gestão e
+                      <br />
+                      Documentação Musical
+                    </div>
                   </div>
                 </div>
               </div>
-
-              {/* Versão mobile */}
-              <div className="flex md:hidden items-center space-x-2">
-                <img 
-                  src="/lovable-uploads/81009293-f25e-4f72-a80a-e150f7665dc2.png" 
-                  alt="SIGMus Logo" 
-                  className="h-8 w-auto"
-                />
-                <div className="flex flex-col">
-                  <div className="text-base font-bold text-blue-700 tracking-wide">
-                    SiGMus
-                  </div>
-                  <div className="text-[10px] text-gray-600 leading-tight max-w-[140px] font-sans font-medium">
-                    Sistema Integrado de Gestão e
-                    <br />
-                    Documentação Musical
-                  </div>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
 
           <div className="flex items-center space-x-4 flex-shrink-0 ml-auto">
@@ -105,7 +100,6 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
                 user={user}
                 profile={profile}
                 onSignOut={handleSignOut}
-                onCreateProfile={handleCreateProfile}
               />
             ) : (
               <Button 

@@ -1,5 +1,5 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 
@@ -28,7 +28,24 @@ export const useArquivos = () => {
       console.log('Arquivos fetched:', data);
       return data as Arquivo[];
     },
+    keepPreviousData: true,
   });
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('public:arquivos')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'arquivos' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['arquivos'] });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const uploadArquivo = useMutation({
     mutationFn: async ({ file, metadata }: { 

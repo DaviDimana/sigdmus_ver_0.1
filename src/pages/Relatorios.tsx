@@ -8,12 +8,18 @@ import { FileText, Download, FileSpreadsheet, Printer, Tags } from 'lucide-react
 import { generateReport } from '@/utils/reportGenerator';
 import { generateLabels } from '@/utils/labelGenerator';
 import { toast } from 'sonner';
+import { usePartituras } from '@/hooks/usePartituras';
+import { usePerformances } from '@/hooks/usePerformances';
 
 const Relatorios = () => {
   const [selectedType, setSelectedType] = useState<'partituras' | 'performances'>('partituras');
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
   const [outputFormat, setOutputFormat] = useState<'pdf' | 'word' | 'excel'>('pdf');
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Hooks para dados em tempo real
+  const { partituras } = usePartituras();
+  const { performances } = usePerformances();
 
   const partiturasFields = [
     { id: 'instituicao', label: 'Instituição' },
@@ -106,12 +112,14 @@ const Relatorios = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Relatórios</h1>
-          <p className="text-gray-600 mt-2">
-            Gere relatórios e etiquetas personalizados
-          </p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Relatórios</h1>
+            <p className="text-gray-600 mt-2">
+              Gere relatórios e etiquetas personalizados
+            </p>
+          </div>
         </div>
       </div>
 

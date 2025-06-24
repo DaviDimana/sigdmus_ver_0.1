@@ -1,66 +1,144 @@
-// Dicionário de instrumentos e suas variações/abreviações
-const instrumentDictionary: { [key: string]: string[] } = {
-  'Flauta': ['flauta', 'flt', 'fl.', 'flute'],
-  'Flautim': ['flautim', 'piccolo', 'picc', 'flautim', 'fl. piccolo', 'fl piccolo'],
-  'Oboé': ['oboe', 'ob.', 'oboe', 'oboe d\'amore'],
-  'Clarinete': ['clarinete', 'clarone', 'cl.', 'clarinet', 'clarineta', 'clarineta', 'clarinet in a', 'clarinet in b', 'clarinetto'],
-  'Fagote': ['fagote', 'fg.', 'bassoon', 'basson'],
-  'Trompa': ['trompa', 'hrn', 'horn', 'corno'],
-  'Trompete': ['trompete', 'trp', 'trumpet', 'tpt'],
-  'Trombone': ['trombone', 'trb', 'tbn'],
-  'Tuba': ['tuba'],
-  'Tímpanos': ['timpanos', 'timp', 'timpani', 'timpano'],
-  'Percussão': [
-    'percussao', 'perc', 'percussion',
-    'triangle', 'triangulo', 'triângulo',
-    'cymbals', 'pratos',
-    'bass drum', 'bumbo',
-    'snare drum', 'caixa',
-    'tambourine', 'pandeiro',
-    'glockenspiel', 'xilofone', 'xylophone',
-    'castanets', 'castanholas',
-    'wood block', 'bloco de madeira',
-    'maracas', 'maraca',
-    'bells', 'sinos',
-    'tam-tam', 'gong',
-    'chimes', 'tubular bells',
-    'crotales', 'cowbell', 'agogô',
-    'cymbal', 'suspended cymbal', 'prato suspenso',
-    'drum', 'drums', 'drum set', 'bateria',
-  ],
-  'Piano': ['piano', 'pn'],
-  'Harpa': ['harpa', 'harp'],
-  'Violino 1': ['violino 1', 'violino i', 'vln1', 'vlni', 'violin i', 'violin 1'],
-  'Violino 2': ['violino 2', 'violino ii', 'vln2', 'vlnii', 'violin ii', 'violin 2'],
-  'Violino': ['violino', 'violin', 'vln'],
-  'Viola': ['viola', 'vla'],
-  'Violoncelo': ['violoncelo', 'vlc', 'cello', 'violoncello'],
-  'Contrabaixo': ['contrabaixo', 'baixo', 'bass', 'cb', 'db', 'contrabass', 'contrabasso'],
-  'Grade': ['grade', 'score', 'partitura completa', 'partitura', 'maestro'],
-};
+import { instrumentList } from './instrumentList';
 
 /**
- * Identifica o nome do instrumento a partir do nome de um arquivo.
- * @param filename O nome do arquivo a ser analisado.
- * @returns O nome padrão do instrumento ou null se não for encontrado.
+ * Identifica o instrumento com base no nome do arquivo.
+ * Compara o nome do arquivo com uma lista de instrumentos conhecidos.
+ * 
+ * @param fileName O nome do arquivo a ser analisado.
+ * @returns O código do instrumento (ex: 'VIOLINO') se encontrado, ou null.
  */
-export function identifyInstrument(filename: string): string | null {
-  const normalizedFilename = filename
+function normalize(str: string): string {
+  return str
     .toLowerCase()
-    .replace(/_/g, ' ')
-    .replace(/-/g, ' ')
-    .replace(/\.[^/.]+$/, ''); // Remove a extensão do arquivo
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .replace(/s\b/g, '') // remove plural simples no final de palavra
+    .replace(/\s+/g, '');
+}
 
-  // Priorizar correspondências mais longas e específicas primeiro (ex: "Violino 1" antes de "Violino")
-  const sortedKeys = Object.keys(instrumentDictionary).sort((a, b) => b.length - a.length);
+export function identifyInstrument(fileName: string): string | null {
+  if (!fileName) return null;
 
-  for (const standardName of sortedKeys) {
-    for (const variation of instrumentDictionary[standardName]) {
-      // Usar \b para garantir que estamos combinando palavras inteiras quando possível
-      const regex = new RegExp(`\\b${variation.replace(/([.*+?^=!:${}()|[\]\\\/])/g, '\\$1')}\\b`);
-      if (regex.test(normalizedFilename)) {
-        return standardName;
-      }
+  const normFileName = normalize(fileName);
+
+  // Mapeamento de sinônimos ou variações para o valor padrão
+  const aliasMap: Record<string, string> = {
+    'flute': 'FLAUTA',
+    'fl': 'FLAUTA',
+    'fls': 'FLAUTA',
+    'flautas': 'FLAUTA',
+    'picc': 'FLAUTA',
+    'piccolo': 'FLAUTA',
+    'oboe': 'OBOE',
+    'oboes': 'OBOE',
+    'ob': 'OBOE',
+    'cl': 'CLARINETE',
+    'clt': 'CLARINETE',
+    'clarinet': 'CLARINETE',
+    'clarinets': 'CLARINETE',
+    'clarone': 'CLARINETE',
+    'requinta': 'CLARINETE',
+    'cls': 'CLARINETE',
+    'bass clarinet': 'CLARINETE',
+    'bn': 'FAGOTE',
+    'bsn': 'FAGOTE',
+    'bassoon': 'FAGOTE',
+    'fagotes': 'FAGOTE',
+    'fg': 'FAGOTE',
+    'horn': 'TROMPA',
+    'horns': 'TROMPA',
+    'cor': 'TROMPA',
+    'cors': 'TROMPA',
+    'corno': 'TROMPA',
+    'corni': 'TROMPA',
+    'trompa': 'TROMPA',
+    'trompas': 'TROMPA',
+    'trumpet': 'TROMPETE',
+    'trumpets': 'TROMPETE',
+    'tpt': 'TROMPETE',
+    'tpts': 'TROMPETE',
+    'tromba': 'TROMPETE',
+    'trombone': 'TROMBONE',
+    'trombones': 'TROMBONE',
+    'tbn': 'TROMBONE',
+    'tbns': 'TROMBONE',
+    'posaune': 'TROMBONE',
+    'tuba': 'TUBA',
+    'tubas': 'TUBA',
+    'tba': 'TUBA',
+    'vln': 'VIOLINO',
+    'vl': 'VIOLINO',
+    'vlns': 'VIOLINO',
+    'vl1': 'VIOLINO',
+    'vl2': 'VIOLINO',
+    'violin': 'VIOLINO',
+    'violins': 'VIOLINO',
+    'violin1': 'VIOLINO',
+    'violin2': 'VIOLINO',
+    'v1': 'VIOLINO',
+    'v2': 'VIOLINO',
+    'vla': 'VIOLA',
+    'viola': 'VIOLA',
+    'violas': 'VIOLA',
+    'bratsche': 'VIOLA',
+    'va': 'VIOLA',
+    'vc': 'VIOLONCELO',
+    'vcs': 'VIOLONCELO',
+    'cello': 'VIOLONCELO',
+    'cellos': 'VIOLONCELO',
+    'violoncelo': 'VIOLONCELO',
+    'violoncelos': 'VIOLONCELO',
+    'cb': 'CONTRABAIXO',
+    'cbx': 'CONTRABAIXO',
+    'contrabass': 'CONTRABAIXO',
+    'contrabaixo': 'CONTRABAIXO',
+    'contrabaixos': 'CONTRABAIXO',
+    'bass': 'CONTRABAIXO',
+    'bassi': 'CONTRABAIXO',
+    'harp': 'HARPA',
+    'harpa': 'HARPA',
+    'harpas': 'HARPA',
+    'pno': 'PIANO',
+    'piano': 'PIANO',
+    'timpani': 'TIMPANOS',
+    'timp': 'TIMPANOS',
+    'timpanos': 'TIMPANOS',
+    'timpanos': 'TIMPANOS',
+    'percussion': 'PERCUSSAO',
+    'perc': 'PERCUSSAO',
+    'percussao': 'PERCUSSAO',
+    'percussões': 'PERCUSSAO',
+    'bass drum': 'PERCUSSAO',
+    'sax': 'OUTRO',
+    'saxofone': 'OUTRO',
+    'saxophone': 'OUTRO',
+    'saxofones': 'OUTRO',
+    'saxophones': 'OUTRO',
+    'soprano': 'SOPRANO',
+    'contralto': 'CONTRALTO',
+    'tenor': 'TENOR',
+    'baixo': 'BAIXO',
+    'score': 'PARTITURA',
+    'maestro': 'PARTITURA',
+    'grade': 'PARTITURA',
+    'partitura': 'PARTITURA',
+    'partitura completa': 'PARTITURA_COMPLETA',
+    'outro': 'OUTRO',
+  };
+
+  // Primeiro, verifica os aliases (normalizados)
+  for (const alias in aliasMap) {
+    if (normFileName.includes(normalize(alias))) {
+      return aliasMap[alias];
+    }
+  }
+
+  // Se não encontrar em aliases, verifica a lista principal pelo 'label' (normalizado)
+  for (const instrument of instrumentList) {
+    const normLabel = normalize(instrument.label);
+    // Aceita plural simples também
+    if (normFileName.includes(normLabel) || normFileName.includes(normLabel + 's')) {
+      return instrument.value;
     }
   }
 

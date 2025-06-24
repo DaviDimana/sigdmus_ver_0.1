@@ -70,7 +70,7 @@ const ProfileSettings: React.FC = () => {
       console.log('URL pública obtida:', publicUrl);
 
       const { error: updateError } = await supabase
-        .from('profiles')
+        .from('user_profiles')
         .update({ avatar_url: publicUrl })
         .eq('id', user?.id);
 
@@ -83,7 +83,7 @@ const ProfileSettings: React.FC = () => {
 
       // Buscar o perfil atualizado
       const { data: updatedProfile, error: fetchError } = await supabase
-        .from('profiles')
+        .from('user_profiles')
         .select('*')
         .eq('id', user?.id)
         .single();
@@ -137,7 +137,7 @@ const ProfileSettings: React.FC = () => {
       });
 
       const { error } = await supabase
-        .from('profiles')
+        .from('user_profiles')
         .update({
           name: formData.name.trim(),
           email: formData.email.trim(),
@@ -153,7 +153,7 @@ const ProfileSettings: React.FC = () => {
 
       // Buscar o perfil atualizado
       const { data: updatedProfile, error: fetchError } = await supabase
-        .from('profiles')
+        .from('user_profiles')
         .select('*')
         .eq('id', user?.id)
         .single();

@@ -10,29 +10,19 @@ import Partituras from "./pages/Partituras";
 import NovaPartitura from "./pages/NovaPartitura";
 import Performances from "./pages/Performances";
 import NovaPerformance from "./pages/NovaPerformance";
-import Repositorio from "./pages/Repositorio";
 import Relatorios from "./pages/Relatorios";
 import Configuracoes from "./pages/Configuracoes";
-import Usuarios from "./pages/Usuarios";
 import Perfil from "./pages/Perfil";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import Usuarios from "./pages/Usuarios";
 
 const queryClient = new QueryClient();
 
-const AppContent = () => {
+const ProtectedRoutes = () => {
   const { user, profile, loading } = useAuth();
 
-  console.log('App: Current auth state:', { 
-    hasUser: !!user, 
-    hasProfile: !!profile, 
-    loading,
-    userEmail: user?.email 
-  });
-
-  // Show loading while checking auth state
   if (loading) {
-    console.log('App: Still loading auth state...');
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -43,57 +33,35 @@ const AppContent = () => {
     );
   }
 
-  // If no user, show auth page and redirect any other route to /auth
   if (!user) {
-    console.log('App: No user found, showing auth page');
-    return (
-      <BrowserRouter>
-        <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route path="*" element={<Navigate to="/auth" replace />} />
-        </Routes>
-      </BrowserRouter>
-    );
+    return <Navigate to="/auth" replace />;
   }
 
-  // User is authenticated, show main app
-  console.log('App: User authenticated, showing main app');
-  
-  // Create user object for MainLayout - even without profile
   const currentUser = profile ? {
-    name: profile.name,
-    role: profile.role.toLowerCase() as 'admin' | 'supervisor' | 'user'
+    name: profile.full_name || user.email,
+    role: profile.role_user_role?.toLowerCase() as 'admin' | 'supervisor' | 'user' || 'user'
   } : {
-    name: user.user_metadata?.name || user.email || 'Usuário',
+    name: user.user_metadata?.full_name || user.email || 'Usuário',
     role: 'user' as const
   };
 
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Redirect /auth to dashboard if user is authenticated */}
-        <Route path="/auth" element={<Navigate to="/" replace />} />
-        
-        {/* Main app routes - all redirect to Dashboard (/) */}
-        <Route path="/*" element={
           <MainLayout currentUser={currentUser}>
             <Routes>
               <Route path="/" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/partituras" element={<Partituras />} />
               <Route path="/partituras/nova" element={<NovaPartitura />} />
+        <Route path="/partituras/:id/editar" element={<NovaPartitura />} />
               <Route path="/performances" element={<Performances />} />
               <Route path="/performances/nova" element={<NovaPerformance />} />
-              <Route path="/repositorio" element={<Repositorio />} />
               <Route path="/relatorios" element={<Relatorios />} />
               <Route path="/configuracoes" element={<Configuracoes />} />
-              <Route path="/usuarios" element={<Usuarios />} />
               <Route path="/perfil" element={<Perfil />} />
+              <Route path="/usuarios" element={<Usuarios />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </MainLayout>
-        } />
-      </Routes>
-    </BrowserRouter>
   );
 };
 
@@ -101,9 +69,14 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <BrowserRouter>
         <Toaster />
         <Sonner />
-        <AppContent />
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/*" element={<ProtectedRoutes />} />
+          </Routes>
+        </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
   );

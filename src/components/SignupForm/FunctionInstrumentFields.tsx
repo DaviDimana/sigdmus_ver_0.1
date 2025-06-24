@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,7 +11,7 @@ interface FunctionInstrumentFieldsProps {
   setFormData: (updater: (prev: any) => any) => void;
 }
 
-const funcoes = [
+export const funcoes = [
   { value: 'MUSICO', label: 'Músico' },
   { value: 'ESTUDANTE', label: 'Estudante' },
   { value: 'PROFESSOR', label: 'Professor' },
@@ -21,7 +20,7 @@ const funcoes = [
   { value: 'GERENTE', label: 'Gerente' }
 ];
 
-const instrumentos = [
+export const instrumentos = [
   { value: 'FLAUTA', label: 'Flauta' },
   { value: 'OBOÉ', label: 'Oboé' },
   { value: 'CLARINETE', label: 'Clarinete' },

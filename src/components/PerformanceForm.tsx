@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import FormFieldInput from './FormFieldInput';
 import ProgramFileUpload from './ProgramFileUpload';
@@ -7,12 +7,16 @@ interface PerformanceFormProps {
   onSubmit: (data: any) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
+  initialData?: any;
+  isEdit?: boolean;
 }
 
 const PerformanceForm: React.FC<PerformanceFormProps> = ({
   onSubmit,
   onCancel,
-  isSubmitting = false
+  isSubmitting = false,
+  initialData,
+  isEdit = false
 }) => {
   const [formData, setFormData] = useState({
     titulo_obra: '',
@@ -25,6 +29,22 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({
     release: ''
   });
   const [programFile, setProgramFile] = useState<File | null>(null);
+
+  // Carregar dados iniciais quando disponíveis (para edição)
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        titulo_obra: initialData.titulo_obra || '',
+        nome_compositor: initialData.nome_compositor || '',
+        local: initialData.local || '',
+        data: initialData.data || '',
+        horario: initialData.horario || '',
+        maestros: initialData.maestros || '',
+        interpretes: initialData.interpretes || '',
+        release: initialData.release || ''
+      });
+    }
+  }, [initialData]);
 
   const handleFieldChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -83,7 +103,7 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({
         <FormFieldInput
           id="horario"
           label="Horário"
-          type="time"
+          type="time-select"
           value={formData.horario}
           onChange={(value) => handleFieldChange('horario', value)}
           required
@@ -135,7 +155,7 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({
           type="submit"
           disabled={isSubmitting}
         >
-          {isSubmitting ? 'Cadastrando...' : 'Cadastrar Performance'}
+          {isSubmitting ? (isEdit ? 'Atualizando...' : 'Cadastrando...') : (isEdit ? 'Atualizar Performance' : 'Cadastrar Performance')}
         </Button>
       </div>
     </form>

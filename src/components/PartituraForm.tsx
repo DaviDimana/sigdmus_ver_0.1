@@ -43,6 +43,8 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
   isSubmitting = false 
 }) => {
   const [pdfFiles, setPdfFiles] = useState<File[]>([]);
+  const [oldFiles, setOldFiles] = useState<any[]>(partitura?.pdf_urls || []);
+  const [removedFiles, setRemovedFiles] = useState<string[]>([]);
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -63,8 +65,14 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
     },
   });
 
+  const handleRemoveOldFile = (fileName: string) => {
+    setRemovedFiles((prev) =>
+      prev.includes(fileName) ? prev.filter((f) => f !== fileName) : [...prev, fileName]
+    );
+  };
+
   const handleSubmit = (data: FormData) => {
-    onSubmit({ ...data, pdfFiles });
+    onSubmit({ ...data, pdfFiles, oldFiles, removedFiles });
   };
 
   const setoresOptions = [
@@ -348,7 +356,27 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
 
           {form.watch('digitalizado') && (
             <div className="space-y-2">
-              <FormLabel className="text-sm sm:text-base">Upload de PDFs da Partitura</FormLabel>
+              <FormLabel className="text-sm sm:text-base">Arquivos PDF digitalizados</FormLabel>
+              {oldFiles.length > 0 && (
+                <ul className="text-xs mt-1 list-disc ml-4">
+                  {oldFiles.map((file) => (
+                    <li key={file.fileName} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={removedFiles.includes(file.fileName)}
+                        onChange={() => handleRemoveOldFile(file.fileName)}
+                        id={`remove-old-${file.fileName}`}
+                        className="accent-red-500"
+                      />
+                      <label htmlFor={`remove-old-${file.fileName}`}
+                        className={removedFiles.includes(file.fileName) ? 'line-through text-red-500' : ''}
+                      >
+                        {file.fileName}
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+              )}
               <Input
                 type="file"
                 accept="application/pdf"

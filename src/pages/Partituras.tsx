@@ -3,7 +3,7 @@ import { usePartituras } from '@/hooks/usePartituras';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Search, Filter, Download, Upload, Trash2 } from 'lucide-react';
+import { Search, Filter, Download, Upload, Trash2, ChevronDown, FileText } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -19,10 +19,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { instrumentList } from '@/utils/instrumentList';
 
 const Partituras = () => {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, profile } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSetor, setSelectedSetor] = useState<string>('');
   const [selectedCompositor, setSelectedCompositor] = useState<string>('');
@@ -31,8 +32,9 @@ const Partituras = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedPartitura, setSelectedPartitura] = useState<any>(null);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [downloadingFile, setDownloadingFile] = useState<string | null>(null);
 
-  const { partituras, isLoading, error } = usePartituras();
+  const { partituras, isLoading, error, updateFileInstrument } = usePartituras();
 
   useEffect(() => {
     if (error?.message === 'JWT expired') {
@@ -90,6 +92,61 @@ const Partituras = () => {
 
   const handleViewDetails = (partitura: any) => {
     setSelectedPartitura(partitura);
+  };
+
+  const handleInstrumentChange = (partituraId: string, fileName: string, newInstrument: string) => {
+    toast.info(`Atualizando instrumento para ${newInstrument}...`);
+    updateFileInstrument.mutate({
+      partituraId,
+      fileName,
+      instrument: newInstrument,
+    }, {
+      onSuccess: (updatedPartitura) => {
+        toast.success("Instrumento atualizado com sucesso!");
+        // Atualiza o estado local para refletir a mudança imediatamente
+        setSelectedPartitura(updatedPartitura);
+      }
+    });
+  };
+
+  const handleDownloadSecurely = async (partituraId: string, fileName: string) => {
+    setDownloadingFile(fileName);
+    toast.info(`Baixando ${fileName}...`, { id: `download-${fileName}` });
+
+    try {
+      const { data, error } = await supabase.functions.invoke('download-arquivo', {
+        body: { filePath: `${partituraId}/${fileName}` },
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      if (!(data instanceof Blob)) {
+        // Se a função retornou um erro JSON, o 'data' pode não ser um Blob.
+        const errorText = await new Response(data).text();
+        const parsedError = JSON.parse(errorText);
+        throw new Error(parsedError.error || 'Falha ao processar o arquivo.');
+      }
+
+      const url = window.URL.createObjectURL(data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', fileName);
+      document.body.appendChild(link);
+      link.click();
+      
+      toast.success(`${fileName} baixado com sucesso!`, { id: `download-${fileName}` });
+      
+      link.parentNode?.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+    } catch (err: any) {
+      console.error("Erro no download seguro:", err);
+      toast.error(`Erro ao baixar: ${err.message}`, { id: `download-${fileName}` });
+    } finally {
+      setDownloadingFile(null);
+    }
   };
 
   const filteredPartituras = partituras?.filter((partitura) => {
@@ -160,9 +217,9 @@ const Partituras = () => {
     if (!window.confirm(`Tem certeza que deseja deletar o arquivo "${fileInfo.fileName}"?`)) return;
     try {
       // Remove do Storage
-      const { error: storageError } = await supabase.storage.from('arquivos').remove([`${partituraId}/${fileInfo.fileName}`]);
+      const { error: storageError } = await supabase.storage.from('partituras').remove([`${partituraId}/${fileInfo.fileName}`]);
       if (storageError) {
-        alert('Erro ao remover do Storage: ' + storageError.message);
+        toast.error('Erro ao remover do Storage: ' + storageError.message);
         return;
       }
       // Remove do array pdf_urls
@@ -172,22 +229,23 @@ const Partituras = () => {
         .eq('id', partituraId)
         .single();
       if (fetchError) {
-        alert('Erro ao buscar partitura: ' + fetchError.message);
+        toast.error('Erro ao buscar partitura: ' + fetchError.message);
         return;
       }
-      const newPdfUrls = (partitura.pdf_urls || []).filter((f: any) => f.url !== fileInfo.url);
+      const newPdfUrls = (partitura.pdf_urls || []).filter((f: any) => f.fileName !== fileInfo.fileName);
       const { error: updateError } = await supabase
         .from('partituras')
         .update({ pdf_urls: newPdfUrls })
         .eq('id', partituraId);
       if (updateError) {
-        alert('Erro ao atualizar partitura: ' + updateError.message);
+        toast.error('Erro ao atualizar partitura: ' + updateError.message);
         return;
       }
       // Atualiza a interface
       setSelectedPartitura((prev: any) => ({ ...prev, pdf_urls: newPdfUrls }));
+      toast.success(`Arquivo "${fileInfo.fileName}" deletado com sucesso.`);
     } catch (err: any) {
-      alert('Erro inesperado: ' + err.message);
+      toast.error('Erro inesperado: ' + err.message);
     }
   }
 
@@ -198,9 +256,9 @@ const Partituras = () => {
       // Remove todos do Storage
       const filePaths = pdfUrls.map(f => `${partituraId}/${f.fileName}`);
       if (filePaths.length > 0) {
-        const { error: storageError } = await supabase.storage.from('arquivos').remove(filePaths);
+        const { error: storageError } = await supabase.storage.from('partituras').remove(filePaths);
         if (storageError) {
-          alert('Erro ao remover do Storage: ' + storageError.message);
+          toast.error('Erro ao remover do Storage: ' + storageError.message);
           return;
         }
       }
@@ -210,20 +268,23 @@ const Partituras = () => {
         .update({ pdf_urls: [] })
         .eq('id', partituraId);
       if (updateError) {
-        alert('Erro ao atualizar partitura: ' + updateError.message);
+        toast.error('Erro ao atualizar partitura: ' + updateError.message);
         return;
       }
       // Atualiza a interface
       setSelectedPartitura((prev: any) => ({ ...prev, pdf_urls: [] }));
+      toast.success('Todos os arquivos foram deletados.');
     } catch (err: any) {
-      alert('Erro inesperado: ' + err.message);
+      toast.error('Erro inesperado: ' + err.message);
     }
   }
 
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PartituraPageHeader onNewPartitura={handleNewPartitura} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+          <PartituraPageHeader onNewPartitura={handleNewPartitura} />
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Card key={i} className="animate-pulse">
@@ -245,7 +306,9 @@ const Partituras = () => {
   if (error && error.message !== 'JWT expired') {
     return (
       <div className="space-y-6">
-        <PartituraPageHeader onNewPartitura={handleNewPartitura} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+          <PartituraPageHeader onNewPartitura={handleNewPartitura} />
+        </div>
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <p className="text-red-600">Erro ao carregar partituras: {error.message}</p>
@@ -257,7 +320,9 @@ const Partituras = () => {
 
   return (
     <div className="space-y-6">
-      <PartituraPageHeader onNewPartitura={() => navigate('/partituras/nova')} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+        <PartituraPageHeader onNewPartitura={() => navigate('/partituras/nova')} />
+      </div>
 
       {/* Barra de pesquisa e filtros */}
       <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 md:space-x-4">
@@ -378,7 +443,7 @@ const Partituras = () => {
             <PartituraCard
               key={partitura.id}
               partitura={partitura}
-              relatedArquivos={[]}
+              relatedArquivos={partitura.pdf_urls || []}
               onView={handleViewDetails}
               onDownload={() => {}}
             />
@@ -440,53 +505,92 @@ const Partituras = () => {
 
               {selectedPartitura.pdf_urls && selectedPartitura.pdf_urls.length > 0 && (
                 <div className="pt-2">
-                  <div className="flex items-center justify-between mb-1">
-                    <strong>Arquivos PDF Digitalizados:</strong>
-                    <button
-                      className="text-red-500 hover:text-red-700 text-sm border border-red-200 rounded px-2 py-1 ml-2"
+                  <Collapsible defaultOpen>
+                    <div className="flex items-center gap-2 mb-1">
+                      <CollapsibleTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 p-0">
+                          <ChevronDown className="h-5 w-5" />
+                        </Button>
+                      </CollapsibleTrigger>
+                      <h4 className="font-semibold">Arquivos PDF Digitalizados</h4>
+                      <span className="text-xs text-gray-500">({selectedPartitura.pdf_urls.length})</span>
+                    </div>
+                    <CollapsibleContent className="pl-4 pt-2">
+                      <div className="flex items-center justify-between p-2 bg-red-50 rounded mb-2 border border-red-200">
+                        <span className="text-sm text-red-700 font-medium">Apagar todos os arquivos</span>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="flex items-center gap-1"
                       onClick={() => handleDeleteAllPdfs(selectedPartitura.id, selectedPartitura.pdf_urls)}
                       title="Apagar todos os arquivos"
-                    >
-                      Apagar todos
-                    </button>
-                  </div>
-                  <ul className="list-disc ml-6 mt-1 space-y-1">
-                    {sortByInstrumentOrder(selectedPartitura.pdf_urls).map((fileInfo: { url: string; fileName: string; instrument: string | null }, idx: number) => (
-                      <li key={idx} className="flex items-center gap-2">
-                        <a href={fileInfo.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                          {fileInfo.fileName}
-                        </a>
-                        {fileInfo.instrument && (
-                          <span className="ml-2 text-gray-500">({fileInfo.instrument})</span>
-                        )}
-                        <button
-                          className="ml-2 text-red-500 hover:text-red-700"
-                          title="Deletar arquivo"
-                          onClick={() => handleDeletePdf(selectedPartitura.id, fileInfo)}
                         >
                           <Trash2 className="h-4 w-4" />
+                          Apagar todos
+                        </Button>
+                      </div>
+                      <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+                        {(profile && profile.role_user_role === 'MUSICO' && profile.instrumento)
+                          ? sortByInstrumentOrder(selectedPartitura.pdf_urls.filter((file: any) => file.instrument === profile.instrumento))
+                          : sortByInstrumentOrder(selectedPartitura.pdf_urls)
+                        .map((file: any) => (
+                          <div key={file.fileName} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
+                            <div className="flex items-center space-x-4">
+                              <FileText className="h-6 w-6 text-gray-400" />
+                              <div>
+                                <button 
+                                  onClick={() => handleDownloadSecurely(selectedPartitura.id, file.fileName)}
+                                  className="font-medium text-blue-600 hover:underline disabled:text-gray-400 disabled:no-underline"
+                                  disabled={downloadingFile === file.fileName}
+                                >
+                                  {downloadingFile === file.fileName ? 'Baixando...' : file.fileName}
                         </button>
-                      </li>
-                    ))}
-                  </ul>
+                                <p className="text-sm text-gray-500">{file.instrument || 'Não classificado'}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Select
+                                value={file.instrument || ''}
+                                onValueChange={(newInstrument) => handleInstrumentChange(selectedPartitura.id, file.fileName, newInstrument)}
+                              >
+                                <SelectTrigger className="w-48">
+                                  <SelectValue placeholder="Classificar..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {instrumentList.map(instrument => (
+                                    <SelectItem key={instrument.value} value={instrument.value}>
+                                      {instrument.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <Button variant="ghost" size="icon" onClick={() => handleDeletePdf(selectedPartitura.id, file)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
                 </div>
               )}
+
               <div className="flex gap-2 pt-4">
                 <Button variant="outline" onClick={() => navigate(`/partituras/nova?id=${selectedPartitura.id}`)}>
                   Editar
                 </Button>
                 <Button variant="destructive" onClick={async () => {
                   if (window.confirm('Tem certeza que deseja deletar esta partitura?')) {
-                    // Chamar deleção
                     const { error } = await supabase
                       .from('partituras')
                       .delete()
                       .eq('id', selectedPartitura.id);
                     if (!error) {
                       setSelectedPartitura(null);
-                      window.location.reload();
+                      toast.success('Partitura deletada com sucesso!');
                     } else {
-                      alert('Erro ao deletar partitura: ' + error.message);
+                      toast.error('Erro ao deletar partitura: ' + error.message);
                     }
                   }
                 }}>

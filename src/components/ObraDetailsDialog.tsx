@@ -7,6 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 interface ObraDetailsDialogProps {
   isOpen: boolean;
@@ -25,6 +27,23 @@ const ObraDetailsDialog: React.FC<ObraDetailsDialogProps> = ({
   formatFileSize,
   onDeleteAllArquivos,
 }) => {
+  const { profile } = useAuth();
+  const isMusico = profile?.role === 'MUSICO';
+  const userInstrument = profile?.instrumento;
+
+  // Função para normalizar nomes de instrumento
+  const normalize = (str: string) => str?.toLowerCase().replace(/[^a-z0-9]/gi, '');
+
+  // Filtrar arquivos pelo instrumento do músico (aceita variações)
+  const arquivosFiltrados = isMusico && userInstrument
+    ? arquivos.filter(a => {
+        const cat = normalize(a.categoria || '');
+        const userInst = normalize(userInstrument || '');
+        // Aceita se for igual ou se o nome do instrumento do usuário for substring da categoria
+        return cat.includes(userInst) || userInst.includes(cat);
+      })
+    : arquivos;
+
   // Buscar partituras relacionadas à obra
   const { data: partituras = [] } = useQuery({
     queryKey: ['partituras-obra', obra],
@@ -57,6 +76,32 @@ const ObraDetailsDialog: React.FC<ObraDetailsDialogProps> = ({
   };
 
   const [isArquivosOpen, setIsArquivosOpen] = React.useState(true);
+
+  // Função de download com tratamento de erro amigável
+  const handleDownload = async (arquivo: any) => {
+    try {
+      if (!arquivo.arquivo_url) {
+        toast.error('Arquivo não disponível para download.');
+        return;
+      }
+      const response = await fetch(arquivo.arquivo_url);
+      if (!response.ok) {
+        toast.error('Arquivo não encontrado ou acesso não autorizado.');
+        return;
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = arquivo.nome;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      toast.error('Erro ao baixar arquivo. Tente novamente ou contate o administrador.');
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -181,37 +226,21 @@ const ObraDetailsDialog: React.FC<ObraDetailsDialogProps> = ({
 
           {/* Lista de Arquivos com Collapse */}
           <Collapsible open={isArquivosOpen} onOpenChange={setIsArquivosOpen}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg font-semibold">Arquivos PDF digitalizados</h3>
-                <span className="text-xs text-gray-500">({arquivos.length})</span>
-              </div>
+            <div className="flex items-center gap-2 mb-3">
               <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+                <Button variant="ghost" size="icon" className="h-7 w-7 p-0">
                   {isArquivosOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                 </Button>
               </CollapsibleTrigger>
+              <h3 className="text-lg font-semibold">Arquivos PDF digitalizados</h3>
+              <span className="text-xs text-gray-500">({arquivosFiltrados.length})</span>
             </div>
             <CollapsibleContent>
               <div className="space-y-2 max-h-60 overflow-y-auto">
-                {/* Botão Apagar todos */}
-                <div className="flex items-center justify-between p-2 bg-red-50 rounded mb-2">
-                  <span className="text-sm text-red-700 font-medium">Apagar todos os arquivos</span>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="flex items-center gap-1"
-                    onClick={onDeleteAllArquivos}
-                    title="Apagar todos os arquivos"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Apagar todos
-                  </Button>
-                </div>
-                {arquivos.length === 0 && (
+                {arquivosFiltrados.length === 0 && (
                   <div className="text-sm text-gray-500 italic">Nenhum arquivo digitalizado.</div>
                 )}
-                {arquivos.map((arquivo) => (
+                {arquivosFiltrados.map((arquivo) => (
                   <div key={arquivo.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-3 flex-1 min-w-0">
                       {getFileIcon(arquivo.tipo)}
@@ -234,13 +263,50 @@ const ObraDetailsDialog: React.FC<ObraDetailsDialogProps> = ({
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2 text-xs text-gray-500">
-                      <Download className="h-3 w-3" />
-                      <span>{arquivo.downloads || 0}</span>
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-2 text-xs text-gray-500">
+                        <Download className="h-3 w-3" />
+                        <span>{arquivo.downloads || 0}</span>
+                      </div>
+                      {/* Botões de ação: só para não-músicos */}
+                      {!isMusico && (
+                        <>
+                          {/* Botões de editar, deletar, select de instrumento, etc, só aparecem para não-músicos */}
+                          {arquivo.instrumentoSelect}
+                          {arquivo.deleteButton}
+                          {arquivo.editButton}
+                        </>
+                      )}
+                      {/* Botão de download para músicos (se autorizado) */}
+                      {isMusico && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDownload(arquivo)}
+                          className="h-8 w-8 p-0 flex-shrink-0"
+                          title="Download"
+                          disabled={arquivo.restricao_download && !arquivo.autorizado}
+                        >
+                          <Download className="h-3 w-3" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
+              {/* Botão Apagar todos: só para não-músicos */}
+              {!isMusico && onDeleteAllArquivos && arquivosFiltrados.length > 0 && (
+                <div className="mt-4 flex justify-end">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={onDeleteAllArquivos}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Apagar todos os arquivos
+                  </Button>
+                </div>
+              )}
             </CollapsibleContent>
           </Collapsible>
 

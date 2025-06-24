@@ -8,12 +8,13 @@ import { ptBR } from 'date-fns/locale';
 
 interface PerformanceCardProps {
   performance: any;
-  onViewProgram?: (performance: any) => void;
+  onViewProgram?: (performance: any, sharedProgramUrl?: string) => void;
   onEdit?: (performance: any) => void;
   onDelete?: (performance: any) => void;
+  allPerformances?: any[];
 }
 
-const PerformanceCard: React.FC<PerformanceCardProps> = ({ performance, onViewProgram, onEdit, onDelete }) => {
+const PerformanceCard: React.FC<PerformanceCardProps> = ({ performance, onViewProgram, onEdit, onDelete, allPerformances = [] }) => {
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
@@ -22,13 +23,23 @@ const PerformanceCard: React.FC<PerformanceCardProps> = ({ performance, onViewPr
     }
   };
 
-  // Log para debug - vamos ver se o programa_arquivo_url está chegando
-  console.log('Performance data:', performance);
-  console.log('programa_arquivo_url:', performance.programa_arquivo_url);
+  const getSharedProgramUrl = () => {
+    if (performance.programa_arquivo_url && performance.programa_arquivo_url.trim() !== '') {
+      return performance.programa_arquivo_url;
+    }
+    const found = allPerformances.find((p) =>
+      p.id !== performance.id &&
+      p.local === performance.local &&
+      p.data === performance.data &&
+      p.horario === performance.horario &&
+      p.programa_arquivo_url &&
+      p.programa_arquivo_url.trim() !== ''
+    );
+    return found ? found.programa_arquivo_url : '';
+  };
 
-  const hasProgram = performance.programa_arquivo_url && performance.programa_arquivo_url.trim() !== '';
-
-  console.log('hasProgram:', hasProgram);
+  const sharedProgramUrl = getSharedProgramUrl();
+  const hasProgram = Boolean(sharedProgramUrl);
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
@@ -94,12 +105,11 @@ const PerformanceCard: React.FC<PerformanceCardProps> = ({ performance, onViewPr
             </div>
           )}
 
-          {/* Botões de ação */}
           <div className="flex gap-2 pt-3 border-t">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onViewProgram?.(performance)}
+              onClick={() => onViewProgram?.(performance, sharedProgramUrl)}
               className="flex-1"
               disabled={!hasProgram}
             >

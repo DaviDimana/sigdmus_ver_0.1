@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,8 +10,10 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell, LineCh
 import { toast } from 'sonner';
 import { usePartituras } from '@/hooks/usePartituras';
 import { usePerformances } from '@/hooks/usePerformances';
+import { useUsers } from '@/hooks/useUsers';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Dashboard = () => {
   // Estados para configuração dos gráficos
@@ -29,6 +30,7 @@ const Dashboard = () => {
   // Hooks para dados reais
   const { partituras, isLoading: isLoadingPartituras } = usePartituras();
   const { performances, isLoading: isLoadingPerformances } = usePerformances();
+  const { users, isLoading: isLoadingUsers } = useUsers();
 
   // Carregar configurações salvas do localStorage
   useEffect(() => {
@@ -361,13 +363,62 @@ const Dashboard = () => {
     );
   };
 
-  // Cálculo das métricas em tempo real
-  const totalPartituras = partituras.length;
-  const totalPerformances = performances.length;
-  const usuariosAtivos = 45; // Este valor viria de uma consulta aos usuários
-  const relatoriosGerados = 23; // Este valor viria de um sistema de relatórios
+  // Atividades Recentes (últimas 3 de cada tipo)
+  const recentPartituras = [...partituras].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 3);
+  const recentPerformances = [...performances].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime()).slice(0, 3);
+  const recentUsers = [...users].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 3);
 
-  if (isLoadingPartituras || isLoadingPerformances) {
+  // Próximos Eventos (performances futuras)
+  const now = new Date();
+  const upcomingPerformances = [...performances]
+    .filter(p => new Date(p.data) > now)
+    .sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime())
+    .slice(0, 3);
+
+  // Contagem real de usuários
+  const usuariosAtivos = users.length;
+  // Relatórios: 0 (ou implementar lógica real se houver tabela)
+  const relatoriosGerados = 0;
+
+  const isLoading = isLoadingPartituras || isLoadingPerformances || isLoadingUsers;
+
+  // Cards de resumo
+  const summaryCards = [
+    { 
+      title: "Total de Partituras", 
+      value: partituras.length, 
+      icon: FileMusic, 
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+      isLoading: isLoadingPartituras
+    },
+    { 
+      title: "Total de Performances", 
+      value: performances.length, 
+      icon: Calendar, 
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+      isLoading: isLoadingPerformances
+    },
+    { 
+      title: "Total de Usuários", 
+      value: users.length, 
+      icon: Users, 
+      color: "text-orange-600",
+      bgColor: "bg-orange-50",
+      isLoading: isLoadingUsers
+    },
+    { 
+      title: "Downloads Totais", 
+      value: 'N/A', 
+      icon: Download, 
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+      isLoading: false // Placeholder
+    },
+  ];
+
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <div>
@@ -379,72 +430,46 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-2">
-          Visão geral do sistema de gestão musical
-        </p>
+    <div className="flex-1 space-y-6 p-1 sm:p-4 md:p-8 pt-6">
+      <div className="flex items-center justify-between space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <div className="flex items-center space-x-2">
+          <Button variant="outline">
+            <Download className="mr-2 h-4 w-4" />
+            Exportar Relatório
+          </Button>
+        </div>
       </div>
 
-      {/* Cards de métricas com dados reais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="shadow-xl">
+      {/* Cards de Resumo */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {summaryCards.map((card, index) => (
+          <Card key={index} className="shadow-lg hover:shadow-xl transition-shadow duration-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Partituras</CardTitle>
-            <FileMusic className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
+              <card.icon className={`h-4 w-4 text-muted-foreground ${card.color}`} />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalPartituras}</div>
+              {card.isLoading ? (
+                <Skeleton className="h-8 w-24 mt-1" />
+              ) : (
+                <div className="text-2xl font-bold">{card.value}</div>
+              )}
             <p className="text-xs text-muted-foreground">
-              Cadastradas no sistema
+                {card.title === 'Total de Partituras' ? 'Cadastradas no sistema' : 
+                 card.title === 'Total de Performances' ? 'Registradas no sistema' :
+                 card.title === 'Total de Usuários' ? 'Registrados na plataforma' : 
+                 'Desde o início'}
             </p>
           </CardContent>
         </Card>
-
-        <Card className="shadow-xl">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Performances</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalPerformances}</div>
-            <p className="text-xs text-muted-foreground">
-              Registradas no sistema
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-xl">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Usuários Ativos</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{usuariosAtivos}</div>
-            <p className="text-xs text-muted-foreground">
-              Usuários cadastrados
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-xl">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Relatórios</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{relatoriosGerados}</div>
-            <p className="text-xs text-muted-foreground">
-              Gerados este mês
-            </p>
-          </CardContent>
-        </Card>
+        ))}
       </div>
 
-      {/* Seção de gráficos com dados reais */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        <Card className="shadow-xl">
+      {/* Gráficos */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 mt-6">
+        {/* Gráfico de Partituras por Compositor */}
+        <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div>
               <CardTitle className="text-lg">Partituras por Compositor</CardTitle>
@@ -488,7 +513,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="shadow-xl">
+        <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div>
               <CardTitle className="text-lg">Distribuição por Setor</CardTitle>
@@ -532,7 +557,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="shadow-xl">
+        <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div>
               <CardTitle className="text-lg">Performances por Mês</CardTitle>
@@ -593,7 +618,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="shadow-xl">
+        <Card className="shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div>
               <CardTitle className="text-lg">Status de Digitalização</CardTitle>
@@ -640,61 +665,62 @@ const Dashboard = () => {
 
       {/* Seção existente de atividades e eventos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="shadow-xl">
+        <Card className="shadow-lg">
           <CardHeader>
             <CardTitle>Atividades Recentes</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center space-x-4">
+              {recentPartituras.map((p) => (
+                <div key={p.id} className="flex items-center space-x-4">
                 <FileMusic className="h-4 w-4 text-blue-600" />
                 <div className="flex-1">
                   <p className="text-sm font-medium">Nova partitura adicionada</p>
-                  <p className="text-xs text-gray-500">Sinfonia nº 9 - Beethoven</p>
+                    <p className="text-xs text-gray-500">{p.titulo} - {p.compositor}</p>
+                  </div>
+                  <span className="text-xs text-gray-400">{new Date(p.created_at).toLocaleString('pt-BR')}</span>
                 </div>
-                <span className="text-xs text-gray-400">2h atrás</span>
-              </div>
-              <div className="flex items-center space-x-4">
+              ))}
+              {recentPerformances.map((perf) => (
+                <div key={perf.id} className="flex items-center space-x-4">
                 <Calendar className="h-4 w-4 text-green-600" />
                 <div className="flex-1">
                   <p className="text-sm font-medium">Performance agendada</p>
-                  <p className="text-xs text-gray-500">Concerto de Primavera</p>
+                    <p className="text-xs text-gray-500">{perf.titulo_obra || perf.titulo || 'Sem título'}</p>
+                  </div>
+                  <span className="text-xs text-gray-400">{new Date(perf.data).toLocaleString('pt-BR')}</span>
                 </div>
-                <span className="text-xs text-gray-400">5h atrás</span>
-              </div>
-              <div className="flex items-center space-x-4">
+              ))}
+              {recentUsers.map((u) => (
+                <div key={u.id} className="flex items-center space-x-4">
                 <Users className="h-4 w-4 text-purple-600" />
                 <div className="flex-1">
                   <p className="text-sm font-medium">Novo usuário registrado</p>
-                  <p className="text-xs text-gray-500">João Silva - Violinista</p>
+                    <p className="text-xs text-gray-500">{u.name} - {u.instrumento || ''}</p>
+                  </div>
+                  <span className="text-xs text-gray-400">{new Date(u.created_at).toLocaleString('pt-BR')}</span>
                 </div>
-                <span className="text-xs text-gray-400">1d atrás</span>
-              </div>
+              ))}
             </div>
           </CardContent>
         </Card>
 
-        <Card className="shadow-xl">
+        <Card className="shadow-lg">
           <CardHeader>
             <CardTitle>Próximos Eventos</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="border-l-4 border-blue-500 pl-4">
-                <h4 className="text-sm font-medium">Ensaio Geral</h4>
-                <p className="text-xs text-gray-500">Amanhã, 14:00</p>
-                <p className="text-xs text-gray-400">Sala Principal</p>
+              {upcomingPerformances.length === 0 && (
+                <div className="text-xs text-gray-500">Nenhum evento futuro agendado.</div>
+              )}
+              {upcomingPerformances.map((perf) => (
+                <div key={perf.id} className="border-l-4 border-blue-500 pl-4">
+                  <h4 className="text-sm font-medium">{perf.titulo_obra || perf.titulo || 'Sem título'}</h4>
+                  <p className="text-xs text-gray-500">{new Date(perf.data).toLocaleString('pt-BR')}</p>
+                  <p className="text-xs text-gray-400">{perf.local || ''}</p>
               </div>
-              <div className="border-l-4 border-green-500 pl-4">
-                <h4 className="text-sm font-medium">Concerto de Câmara</h4>
-                <p className="text-xs text-gray-500">15/06, 19:30</p>
-                <p className="text-xs text-gray-400">Teatro Municipal</p>
-              </div>
-              <div className="border-l-4 border-purple-500 pl-4">
-                <h4 className="text-sm font-medium">Workshop de Regência</h4>
-                <p className="text-xs text-gray-500">20/06, 10:00</p>
-                <p className="text-xs text-gray-400">Conservatório</p>
-              </div>
+              ))}
             </div>
           </CardContent>
         </Card>

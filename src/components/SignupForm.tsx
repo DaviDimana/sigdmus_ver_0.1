@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,12 @@ import { Label } from '@/components/ui/label';
 import { Mail, Lock, User, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import InstitutionSelector from './SignupForm/InstitutionSelector';
+import SectorSelector from './SignupForm/SectorSelector';
+import FunctionInstrumentFields from './SignupForm/FunctionInstrumentFields';
+import PersonalInfoFields from './SignupForm/PersonalInfoFields';
+import ApprovalNotice from './SignupForm/ApprovalNotice';
 
 interface SignupFormProps {
   onBack: () => void;
@@ -16,10 +22,30 @@ const SignupForm: React.FC<SignupFormProps> = ({ onBack }) => {
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    instituicao: '',
+    setor: '',
+    funcao: '',
+    instrumento: ''
   });
   const [loading, setLoading] = useState(false);
+  const [instituicoes, setInstituicoes] = useState<any[]>([]);
+  const [setores, setSetores] = useState<any[]>([]);
   const { signUp } = useAuth();
+
+  const fetchInitialData = async () => {
+    const { data: instituicoesData, error: instituicoesError } = await supabase.from('instituicoes').select('*');
+    if (instituicoesError) console.error('Error fetching instituicoes', instituicoesError);
+    else setInstituicoes(instituicoesData || []);
+    
+    const { data: setoresData, error: setoresError } = await supabase.from('setores').select('*');
+    if (setoresError) console.error('Error fetching setores', setoresError);
+    else setSetores(setoresData || []);
+  };
+
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,8 +58,14 @@ const SignupForm: React.FC<SignupFormProps> = ({ onBack }) => {
     }
 
     try {
-      await signUp(formData.email, formData.password, formData.name);
-      toast.success('Cadastro realizado com sucesso! Aguarde a aprovação do administrador.');
+      await signUp(formData.email, formData.password, {
+        name: formData.name,
+        instituicao: formData.instituicao,
+        setor: formData.setor,
+        funcao: formData.funcao,
+        instrumento: formData.instrumento
+      });
+      toast.success('Cadastro realizado! Verifique sua caixa de entrada para confirmar seu e-mail.');
       onBack();
     } catch (error: any) {
       console.error('Error signing up:', error);
@@ -44,7 +76,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ onBack }) => {
   };
 
   return (
-    <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm animate-scale-in">
+    <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm animate-scale-in w-full">
       <CardHeader className="text-center pb-6">
         <CardTitle className="text-2xl font-bold text-gray-900">Criar Nova Conta</CardTitle>
         <CardDescription className="text-gray-600 text-base">
@@ -53,69 +85,28 @@ const SignupForm: React.FC<SignupFormProps> = ({ onBack }) => {
       </CardHeader>
       <CardContent className="space-y-6">
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="name" className="text-gray-700 font-medium">Nome Completo</Label>
-            <div className="relative group">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
-              <Input
-                id="name"
-                type="text"
-                placeholder="Seu nome completo"
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="pl-11 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-200"
-                required
-              />
-            </div>
-          </div>
+          <PersonalInfoFields formData={formData} setFormData={setFormData} />
+          
+          <InstitutionSelector 
+            value={formData.instituicao}
+            onChange={(value) => setFormData(prev => ({ ...prev, instituicao: value }))}
+            instituicoes={instituicoes}
+            onInstitutionAdded={fetchInitialData}
+          />
+          
+          <SectorSelector
+            value={formData.setor}
+            onChange={(value) => setFormData(prev => ({ ...prev, setor: value }))}
+            setores={setores}
+            onSectorAdded={fetchInitialData}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-gray-700 font-medium">Email</Label>
-            <div className="relative group">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
-              <Input
-                id="email"
-                type="email"
-                placeholder="seu.email@exemplo.com"
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-                className="pl-11 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-200"
-                required
-              />
-            </div>
-          </div>
+          <FunctionInstrumentFields 
+            formData={formData}
+            setFormData={setFormData}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-gray-700 font-medium">Senha</Label>
-            <div className="relative group">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
-              <Input
-                id="password"
-                type="password"
-                placeholder="Sua senha"
-                value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
-                className="pl-11 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-200"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword" className="text-gray-700 font-medium">Confirmar Senha</Label>
-            <div className="relative group">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="Confirme sua senha"
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                className="pl-11 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-200"
-                required
-              />
-            </div>
-          </div>
+          <ApprovalNotice />
 
           <Button 
             type="submit" 

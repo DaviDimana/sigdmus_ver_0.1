@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
@@ -66,12 +65,6 @@ const AppSidebar: React.FC = () => {
       roles: ['ADMIN', 'GERENTE']
     },
     {
-      name: 'Repositório',
-      href: '/repositorio',
-      icon: FolderOpen,
-      roles: ['ADMIN', 'GERENTE', 'ARQUIVISTA', 'MUSICO']
-    },
-    {
       name: 'Relatórios',
       href: '/relatorios',
       icon: BarChart3,
@@ -83,12 +76,12 @@ const AppSidebar: React.FC = () => {
   console.log('=== SIDEBAR DEBUG ===');
   console.log('User:', user);
   console.log('Profile:', profile);
-  console.log('Profile role:', profile?.role);
+  console.log('Profile role:', profile?.role_user_role);
   console.log('Total navigation items:', navigationItems.length);
 
   // Filtrar itens sem depender do role do profile se não existir
-  const filteredItems = profile?.role 
-    ? navigationItems.filter(item => item.roles.includes(profile.role))
+  const filteredItems = profile?.role_user_role 
+    ? navigationItems.filter(item => item.roles.includes(profile.role_user_role))
     : navigationItems; // Mostrar todos se não tiver role (para debug)
 
   console.log('Filtered items:', filteredItems);
@@ -155,7 +148,7 @@ const AppSidebar: React.FC = () => {
       </SidebarContent>
       <SidebarFooter className="px-4 py-3 border-t border-gray-200 mt-auto">
         <div className="text-xs text-gray-500">
-          Role: {profile?.role || 'Carregando...'}
+          Role: {profile?.role_user_role || 'Carregando...'}
         </div>
       </SidebarFooter>
     </Sidebar>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,7 +36,7 @@ const Configuracoes: React.FC = () => {
   }
 
   console.log('Configurações: Rendering page for user:', user.email);
-  console.log('Configurações: Profile role:', profile?.role);
+  console.log('Configurações: Profile role:', profile?.role_user_role);
 
   // Sempre mostrar as configurações básicas, independente do profile
   const showUserManagement = profile?.role === 'ADMIN';

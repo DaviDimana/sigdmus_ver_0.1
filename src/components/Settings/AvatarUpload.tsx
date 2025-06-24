@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -100,9 +99,9 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
   return (
     <div className="flex items-center space-x-6">
       <div className="relative">
-        <Avatar className="h-20 w-20">
-          <AvatarImage src={currentAvatarUrl} alt={userName} />
-          <AvatarFallback className="text-lg bg-blue-100 text-blue-600">
+        <Avatar className="h-20 w-20 border-2 border-blue-600 rounded-full">
+          <AvatarImage src={currentAvatarUrl} alt={userName} className="rounded-full object-cover" />
+          <AvatarFallback className="text-lg bg-blue-100 text-blue-600 rounded-full">
             {userName ? getInitials(userName) : <User className="h-8 w-8" />}
           </AvatarFallback>
         </Avatar>

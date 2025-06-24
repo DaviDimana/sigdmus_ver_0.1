@@ -5,9 +5,10 @@ import { User } from '@supabase/supabase-js';
 interface Profile {
   id: string;
   name: string;
-  role: string;
+  role_user_role: string;
   email: string;
   avatar_url?: string;
+  // adicione outros campos se necessário
 }
 
 export const useAuth = () => {
@@ -44,16 +45,17 @@ export const useAuth = () => {
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('user_profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
       if (error) {
+        // Se o perfil não for encontrado (PGRST116), é um estado esperado
+        // em alguns momentos do fluxo, mas não devemos criar um perfil aqui.
+        // A criação é responsabilidade do trigger no DB.
+        if (error.code !== 'PGRST116') {
         console.error('Error fetching profile:', error);
-        // Se não encontrar o perfil, cria um novo
-        if (error.code === 'PGRST116') {
-          await createProfile(userId);
         }
         return;
       }
@@ -61,36 +63,6 @@ export const useAuth = () => {
       setProfile(data);
     } catch (error) {
       console.error('Error in fetchProfile:', error);
-    }
-  };
-
-  const createProfile = async (userId: string) => {
-    try {
-      const { data: userData } = await supabase.auth.getUser();
-      const email = userData.user?.email || '';
-      const name = userData.user?.user_metadata?.name || email.split('@')[0];
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .insert([
-          {
-            id: userId,
-            name: name,
-            email: email,
-            role: 'MUSICO' // Role padrão
-          }
-        ])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error creating profile:', error);
-        return;
-      }
-
-      setProfile(data);
-    } catch (error) {
-      console.error('Error in createProfile:', error);
     }
   };
 
@@ -109,15 +81,13 @@ export const useAuth = () => {
     }
   };
 
-  const signUp = async (email: string, password: string, name: string) => {
+  const signUp = async (email: string, password: string, metadata: object) => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: {
-            name: name
-          }
+          data: metadata
         }
       });
 

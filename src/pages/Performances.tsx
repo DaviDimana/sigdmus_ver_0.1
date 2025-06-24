@@ -21,6 +21,7 @@ const Performances = () => {
   const { signOut } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPerformance, setSelectedPerformance] = useState<any>(null);
+  const [sharedProgramUrl, setSharedProgramUrl] = useState<string | undefined>(undefined);
 
   // Filtros multi-select
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
@@ -95,8 +96,9 @@ const Performances = () => {
     return matchesSearch && matchesTitulo && matchesCompositor && matchesLocal && matchesData && matchesHorario && matchesMaestros && matchesInterpretes && matchesRelease;
   }) || [];
 
-  const handleViewProgram = (performance: any) => {
+  const handleViewProgram = (performance: any, sharedUrl?: string) => {
     setSelectedPerformance(performance);
+    setSharedProgramUrl(sharedUrl);
   };
 
   const handleEdit = (performance: any) => {
@@ -117,11 +119,13 @@ const Performances = () => {
   if (error && error.message !== 'JWT expired') {
     return (
       <div className="space-y-6">
-        <PerformancePageHeader
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          onNewPerformance={() => navigate('/performances/nova')}
-        />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+          <PerformancePageHeader
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            onNewPerformance={() => navigate('/performances/nova')}
+          />
+        </div>
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <p className="text-red-600">Erro ao carregar performances: {error.message}</p>
@@ -134,11 +138,13 @@ const Performances = () => {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PerformancePageHeader
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          onNewPerformance={() => navigate('/performances/nova')}
-        />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+          <PerformancePageHeader
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            onNewPerformance={() => navigate('/performances/nova')}
+          />
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
             <Card key={i}>
@@ -157,11 +163,13 @@ const Performances = () => {
 
   return (
     <div className="space-y-6">
-      <PerformancePageHeader
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        onNewPerformance={() => navigate('/performances/nova')}
-      />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+        <PerformancePageHeader
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          onNewPerformance={() => navigate('/performances/nova')}
+        />
+      </div>
 
       {/* Barra de pesquisa e filtros */}
       <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 md:space-x-4">
@@ -320,6 +328,7 @@ const Performances = () => {
             onViewProgram={handleViewProgram}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            allPerformances={filteredPerformances}
           />
         ))}
       </div>
@@ -348,8 +357,8 @@ const Performances = () => {
       {/* Dialog para visualizar programa */}
       <ProgramViewer
         isOpen={!!selectedPerformance}
-        onClose={() => setSelectedPerformance(null)}
-        performance={selectedPerformance || {}}
+        onClose={() => { setSelectedPerformance(null); setSharedProgramUrl(undefined); }}
+        performance={{ ...(selectedPerformance || {}), programa_arquivo_url: sharedProgramUrl || (selectedPerformance?.programa_arquivo_url ?? '') }}
       />
     </div>
   );

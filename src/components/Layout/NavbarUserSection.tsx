@@ -16,14 +16,12 @@ interface NavbarUserSectionProps {
   user: any;
   profile: any;
   onSignOut: () => void;
-  onCreateProfile: () => void;
 }
 
 const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
   user,
   profile,
   onSignOut,
-  onCreateProfile
 }) => {
   const navigate = useNavigate();
 
@@ -66,7 +64,7 @@ const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="flex items-center space-x-3 hover:bg-blue-50 hover:text-blue-600 h-12 w-12 rounded-full p-0">
-            <Avatar className="h-10 w-10">
+            <Avatar className="h-16 w-16 border-2 border-blue-600">
               <AvatarImage src={profile?.avatar_url} alt={profile?.name || user.email} />
               <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-semibold">
                 {profile?.name ? profile.name.charAt(0).toUpperCase() : user.email?.charAt(0).toUpperCase() || 'U'}
@@ -78,7 +76,7 @@ const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
           {/* Header do usuário */}
           <div className="px-3 py-2 border-b">
             <div className="flex items-center space-x-3">
-              <Avatar className="h-8 w-8">
+              <Avatar className="h-12 w-12 border-2 border-blue-600">
                 <AvatarImage src={profile?.avatar_url} alt={profile?.name || user.email} />
                 <AvatarFallback className="bg-blue-100 text-blue-600">
                   {profile?.name ? profile.name.charAt(0).toUpperCase() : user.email?.charAt(0).toUpperCase() || 'U'}
@@ -91,8 +89,8 @@ const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
                 <div className="flex items-center space-x-2 mt-1">
                   {profile?.role ? (
                     <>
-                      <Badge variant={getRoleBadgeVariant(profile.role)} className="text-xs">
-                        {getRoleLabel(profile.role)}
+                      <Badge variant={getRoleBadgeVariant(profile.role_user_role)} className="text-xs">
+                        {getRoleLabel(profile.role_user_role)}
                       </Badge>
                       {profile.setor && (
                         <span className="text-xs text-gray-500 truncate">
@@ -117,15 +115,6 @@ const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
           >
             <User className="mr-2 h-4 w-4 transition-all duration-200 group-hover:scale-110" />
             <span className="transition-all duration-200 group-hover:font-semibold">Meu Perfil</span>
-          </DropdownMenuItem>
-
-          {/* Configurações - sempre visível para usuários logados */}
-          <DropdownMenuItem 
-            className="hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 cursor-pointer"
-            onClick={() => navigate('/configuracoes')}
-          >
-            <Settings className="mr-2 h-4 w-4 transition-all duration-200 group-hover:scale-110" />
-            <span className="transition-all duration-200 group-hover:font-semibold">Configurações</span>
           </DropdownMenuItem>
 
           {/* Usuários - para ADMINs (mesmo sem perfil criado) */}

@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
@@ -14,21 +13,32 @@ export const usePerformances = () => {
   const { data: performances = [], isLoading, error } = useQuery({
     queryKey: ['performances'],
     queryFn: async () => {
-      console.log('Fetching performances...');
       const { data, error } = await supabase
         .from('performances')
         .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        console.error('Error fetching performances:', error);
-        throw error;
-      }
-      
-      console.log('Performances fetched:', data);
-      return data as Performance[];
+        .order('data', { ascending: false });
+      if (error) throw error;
+      return data || [];
     },
+    keepPreviousData: true,
   });
+
+  // Realtime subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel('public:performances')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'performances' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['performances'] });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const createPerformance = useMutation({
     mutationFn: async (performance: PerformanceInsert) => {
