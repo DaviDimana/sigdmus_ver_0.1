@@ -28,7 +28,9 @@ const ObraDetailsDialog: React.FC<ObraDetailsDialogProps> = ({
   onDeleteAllArquivos,
 }) => {
   const { profile } = useAuth();
-  const isMusico = profile?.role === 'MUSICO';
+  const canEditOrDelete = profile?.role_user_role === 'ADMIN' || profile?.role_user_role === 'GERENTE';
+  console.log('ObraDetailsDialog.tsx - profile:', profile, 'canEditOrDelete:', canEditOrDelete);
+  const isMusico = profile?.role_user_role === 'MUSICO';
   const userInstrument = profile?.instrumento;
 
   // Função para normalizar nomes de instrumento
@@ -39,7 +41,6 @@ const ObraDetailsDialog: React.FC<ObraDetailsDialogProps> = ({
     ? arquivos.filter(a => {
         const cat = normalize(a.categoria || '');
         const userInst = normalize(userInstrument || '');
-        // Aceita se for igual ou se o nome do instrumento do usuário for substring da categoria
         return cat.includes(userInst) || userInst.includes(cat);
       })
     : arquivos;
@@ -102,6 +103,10 @@ const ObraDetailsDialog: React.FC<ObraDetailsDialogProps> = ({
       toast.error('Erro ao baixar arquivo. Tente novamente ou contate o administrador.');
     }
   };
+
+  if (profile === null) {
+    return <div className="p-8 text-center text-gray-500">Carregando perfil...</div>;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -268,17 +273,16 @@ const ObraDetailsDialog: React.FC<ObraDetailsDialogProps> = ({
                         <Download className="h-3 w-3" />
                         <span>{arquivo.downloads || 0}</span>
                       </div>
-                      {/* Botões de ação: só para não-músicos */}
-                      {!isMusico && (
+                      {/* Botões de ação: só para ADMIN e GERENTE */}
+                      {canEditOrDelete && (
                         <>
-                          {/* Botões de editar, deletar, select de instrumento, etc, só aparecem para não-músicos */}
                           {arquivo.instrumentoSelect}
                           {arquivo.deleteButton}
                           {arquivo.editButton}
                         </>
                       )}
-                      {/* Botão de download para músicos (se autorizado) */}
-                      {isMusico && (
+                      {/* Botão de download para músicos e usuários comuns (se autorizado) */}
+                      {!canEditOrDelete && (
                         <Button
                           size="sm"
                           variant="outline"
@@ -294,8 +298,8 @@ const ObraDetailsDialog: React.FC<ObraDetailsDialogProps> = ({
                   </div>
                 ))}
               </div>
-              {/* Botão Apagar todos: só para não-músicos */}
-              {!isMusico && onDeleteAllArquivos && arquivosFiltrados.length > 0 && (
+              {/* Botão Apagar todos: só para ADMIN e GERENTE */}
+              {canEditOrDelete && onDeleteAllArquivos && arquivosFiltrados.length > 0 && (
                 <div className="mt-4 flex justify-end">
                   <Button
                     variant="destructive"

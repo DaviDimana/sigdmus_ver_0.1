@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar, MapPin, Clock, User, Music, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useAuth } from '@/hooks/useAuth';
 
 interface PerformanceCardProps {
   performance: any;
@@ -15,6 +16,10 @@ interface PerformanceCardProps {
 }
 
 const PerformanceCard: React.FC<PerformanceCardProps> = ({ performance, onViewProgram, onEdit, onDelete, allPerformances = [] }) => {
+  const { profile } = useAuth();
+  const canEditOrDelete = profile?.role_user_role === 'ADMIN' || profile?.role_user_role === 'GERENTE';
+  console.log('PerformanceCard.tsx - profile:', profile, 'canEditOrDelete:', canEditOrDelete);
+
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
@@ -40,6 +45,10 @@ const PerformanceCard: React.FC<PerformanceCardProps> = ({ performance, onViewPr
 
   const sharedProgramUrl = getSharedProgramUrl();
   const hasProgram = Boolean(sharedProgramUrl);
+
+  if (profile === null) {
+    return null; // Ou um skeleton, se preferir
+  }
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
@@ -116,22 +125,26 @@ const PerformanceCard: React.FC<PerformanceCardProps> = ({ performance, onViewPr
               <FileText className="h-4 w-4" />
               <span>{hasProgram ? 'Visualizar Programa' : 'Programa não disponível'}</span>
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onEdit?.(performance)}
-              className="flex-1"
-            >
-              Editar
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => onDelete?.(performance)}
-              className="flex-1"
-            >
-              Deletar
-            </Button>
+            {canEditOrDelete && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onEdit?.(performance)}
+                className="flex-1"
+              >
+                Editar
+              </Button>
+            )}
+            {canEditOrDelete && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => onDelete?.(performance)}
+                className="flex-1"
+              >
+                Deletar
+              </Button>
+            )}
           </div>
         </div>
       </CardContent>
