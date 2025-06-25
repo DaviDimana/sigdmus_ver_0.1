@@ -526,16 +526,16 @@ const Partituras = () => {
                       <div className="flex items-center justify-between p-2 bg-red-50 rounded mb-2 border border-red-200">
                         <span className="text-sm text-red-700 font-medium">Apagar todos os arquivos</span>
                         {canEditOrDelete && (
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            className="flex items-center gap-1"
-                            onClick={() => handleDeleteAllPdfs(selectedPartitura.id, selectedPartitura.pdf_urls)}
-                            title="Apagar todos os arquivos"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Apagar todos
-                          </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="flex items-center gap-1"
+                      onClick={() => handleDeleteAllPdfs(selectedPartitura.id, selectedPartitura.pdf_urls)}
+                      title="Apagar todos os arquivos"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Apagar todos
+                        </Button>
                         )}
                       </div>
                       <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
@@ -547,39 +547,39 @@ const Partituras = () => {
                             <div className="flex items-center space-x-4">
                               <FileText className="h-6 w-6 text-gray-400" />
                               <div>
-                                <button
+                                <button 
                                   type="button"
                                   className="font-medium text-blue-600 hover:underline disabled:text-gray-400 disabled:no-underline bg-transparent border-0 p-0 cursor-pointer"
                                   onClick={() => setSelectedPdfFile(file)}
                                   disabled={downloadingFile === file.fileName}
                                 >
                                   {downloadingFile === file.fileName ? 'Baixando...' : file.fileName}
-                                </button>
+                        </button>
                                 <p className="text-sm text-gray-500">{file.instrument || 'Não classificado'}</p>
                               </div>
                             </div>
                             <div className="flex items-center space-x-2">
                               {canEditOrDelete && (
-                                <Select
-                                  value={file.instrument || ''}
-                                  onValueChange={(newInstrument) => handleInstrumentChange(selectedPartitura.id, file.fileName, newInstrument)}
-                                >
-                                  <SelectTrigger className="w-48">
-                                    <SelectValue placeholder="Classificar..." />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {instrumentList.map(instrument => (
-                                      <SelectItem key={instrument.value} value={instrument.value}>
-                                        {instrument.label}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
+                              <Select
+                                value={file.instrument || ''}
+                                onValueChange={(newInstrument) => handleInstrumentChange(selectedPartitura.id, file.fileName, newInstrument)}
+                              >
+                                <SelectTrigger className="w-48">
+                                  <SelectValue placeholder="Classificar..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {instrumentList.map(instrument => (
+                                    <SelectItem key={instrument.value} value={instrument.value}>
+                                      {instrument.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                               )}
                               {canEditOrDelete && (
-                                <Button variant="ghost" size="icon" onClick={() => handleDeletePdf(selectedPartitura.id, file)}>
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleDeletePdf(selectedPartitura.id, file)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                               )}
                             </div>
                           </div>
@@ -592,27 +592,27 @@ const Partituras = () => {
 
               <div className="flex gap-2 pt-4">
                 {canEditOrDelete && (
-                  <Button variant="outline" onClick={() => navigate(`/partituras/nova?id=${selectedPartitura.id}`)}>
-                    Editar
-                  </Button>
+                <Button variant="outline" onClick={() => navigate(`/partituras/nova?id=${selectedPartitura.id}`)}>
+                  Editar
+                </Button>
                 )}
                 {canEditOrDelete && (
-                  <Button variant="destructive" onClick={async () => {
-                    if (window.confirm('Tem certeza que deseja deletar esta partitura?')) {
-                      const { error } = await supabase
-                        .from('partituras')
-                        .delete()
-                        .eq('id', selectedPartitura.id);
-                      if (!error) {
-                        setSelectedPartitura(null);
-                        toast.success('Partitura deletada com sucesso!');
-                      } else {
-                        toast.error('Erro ao deletar partitura: ' + error.message);
-                      }
+                <Button variant="destructive" onClick={async () => {
+                  if (window.confirm('Tem certeza que deseja deletar esta partitura?')) {
+                    const { error } = await supabase
+                      .from('partituras')
+                      .delete()
+                      .eq('id', selectedPartitura.id);
+                    if (!error) {
+                      setSelectedPartitura(null);
+                      toast.success('Partitura deletada com sucesso!');
+                    } else {
+                      toast.error('Erro ao deletar partitura: ' + error.message);
                     }
-                  }}>
-                    Deletar
-                  </Button>
+                  }
+                }}>
+                  Deletar
+                </Button>
                 )}
               </div>
             </div>

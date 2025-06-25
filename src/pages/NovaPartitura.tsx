@@ -9,6 +9,7 @@ import PartituraForm from '@/components/PartituraForm';
 import { supabase } from '@/integrations/supabase/client';
 import { identifyInstrument } from '@/utils/instrumentIdentifier';
 import { useArquivos } from '@/hooks/useArquivos';
+import { useAuth } from '@/hooks/useAuth';
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -21,6 +22,8 @@ const NovaPartitura = () => {
   const { createPartitura, updatePartitura } = usePartituras();
   const { partitura, isLoading } = usePartitura(id || '');
   const { deleteArquivo, uploadArquivo } = useArquivos();
+  const { profile } = useAuth();
+  const canEditOrDelete = profile?.role_user_role === 'ADMIN' || profile?.role_user_role === 'GERENTE';
 
   const isEdit = Boolean(id);
   const [isSaving, setIsSaving] = React.useState(false);
@@ -122,6 +125,10 @@ const NovaPartitura = () => {
       toast.error('Erro ao salvar partitura. Tente novamente.');
     }
   };
+
+  if (!profile) {
+    return <div className="flex items-center justify-center h-64">Carregando perfil do usuário...</div>;
+  }
 
   return (
     <div className="space-y-3 sm:space-y-6 p-1 sm:p-0 relative">

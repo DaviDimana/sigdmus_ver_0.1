@@ -7,6 +7,7 @@ import { usePerformances, usePerformance } from '@/hooks/usePerformances';
 import { toast } from 'sonner';
 import PerformanceForm from '@/components/PerformanceForm';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -18,6 +19,8 @@ const NovaPerformance = () => {
   const id = query.get('id');
   const { createPerformance, updatePerformance } = usePerformances();
   const { performance, isLoading } = usePerformance(id || '');
+  const { profile } = useAuth();
+  const canEditOrDelete = profile?.role_user_role === 'ADMIN' || profile?.role_user_role === 'GERENTE';
 
   const isEdit = Boolean(id);
 
@@ -252,6 +255,10 @@ const NovaPerformance = () => {
       toast.error('Erro ao salvar performance. Tente novamente.');
     }
   };
+
+  if (!profile) {
+    return <div className="flex items-center justify-center h-64">Carregando perfil do usuário...</div>;
+  }
 
   return (
     <div className="space-y-6">

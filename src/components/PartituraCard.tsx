@@ -41,7 +41,7 @@ const PartituraCard: React.FC<PartituraCardProps> = ({
             ATIVO
           </Badge>
         </div>
-        <CardDescription className="space-y-1">
+        <div className="space-y-1">
           {/* 2. Compositor */}
           {partitura.compositor && (
           <div className="flex items-center text-sm text-gray-600">
@@ -87,13 +87,13 @@ const PartituraCard: React.FC<PartituraCardProps> = ({
           {/* 8,9,10. Nº Armário, Prateleira, Pasta */}
           <div className="flex flex-wrap gap-2 text-sm text-gray-600">
             {partitura.numero_armario && (
-              <span className="flex items-center"><Folder className="h-4 w-4 mr-1" />Armário: {partitura.numero_armario}</span>
+              <div className="flex items-center"><Folder className="h-4 w-4 mr-1" />Armário: {partitura.numero_armario}</div>
             )}
             {partitura.numero_prateleira && (
-              <span className="flex items-center"><Archive className="h-4 w-4 mr-1" />Prateleira: {partitura.numero_prateleira}</span>
+              <div className="flex items-center"><Archive className="h-4 w-4 mr-1" />Prateleira: {partitura.numero_prateleira}</div>
             )}
             {partitura.numero_pasta && (
-              <span className="flex items-center"><Folder className="h-4 w-4 mr-1" />Pasta: {partitura.numero_pasta}</span>
+              <div className="flex items-center"><Folder className="h-4 w-4 mr-1" />Pasta: {partitura.numero_pasta}</div>
             )}
           </div>
           {/* 11. Tonalidade */}
@@ -124,14 +124,14 @@ const PartituraCard: React.FC<PartituraCardProps> = ({
           {partitura.observacoes && (
             <div className="flex items-center text-sm text-gray-600">
               <Info className="h-4 w-4 mr-1" />
-              <span className="line-clamp-2">{partitura.observacoes}</span>
+              <div className="line-clamp-2">{partitura.observacoes}</div>
             </div>
             )}
           {/* Arquivos */}
           <div className="flex items-center text-sm text-gray-600">
             <FileText className="h-4 w-4 mr-1" />Arquivos: {relatedArquivos.length}
           </div>
-        </CardDescription>
+        </div>
       </CardHeader>
       <CardContent>
           <div className="flex flex-wrap gap-2 pt-2">

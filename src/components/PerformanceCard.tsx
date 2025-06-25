@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar, MapPin, Clock, User, Music, FileText } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -22,7 +22,7 @@ const PerformanceCard: React.FC<PerformanceCardProps> = ({ performance, onViewPr
 
   const formatDate = (dateString: string) => {
     try {
-      return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR });
+      return format(parse(dateString, 'yyyy-MM-dd', new Date()), 'dd/MM/yyyy', { locale: ptBR });
     } catch {
       return dateString;
     }
@@ -62,10 +62,8 @@ const PerformanceCard: React.FC<PerformanceCardProps> = ({ performance, onViewPr
           </Badge>
         </div>
         <CardDescription>
-          <div className="flex items-center text-sm text-gray-600">
-            <User className="h-4 w-4 mr-1" />
-            {performance.nome_compositor}
-          </div>
+          <User className="h-4 w-4 mr-1 inline" />
+          <span>{performance.nome_compositor}</span>
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -126,24 +124,24 @@ const PerformanceCard: React.FC<PerformanceCardProps> = ({ performance, onViewPr
               <span>{hasProgram ? 'Visualizar Programa' : 'Programa não disponível'}</span>
             </Button>
             {canEditOrDelete && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onEdit?.(performance)}
-                className="flex-1"
-              >
-                Editar
-              </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onEdit?.(performance)}
+              className="flex-1"
+            >
+              Editar
+            </Button>
             )}
             {canEditOrDelete && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => onDelete?.(performance)}
-                className="flex-1"
-              >
-                Deletar
-              </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => onDelete?.(performance)}
+              className="flex-1"
+            >
+              Deletar
+            </Button>
             )}
           </div>
         </div>

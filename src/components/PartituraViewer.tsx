@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -30,27 +29,6 @@ const PartituraViewer: React.FC<PartituraViewerProps> = ({
     <div className="flex-1 overflow-auto">
       <div className="flex items-center justify-between mb-4">
         <span className="font-medium">{arquivo.nome}</span>
-        <div className="flex space-x-2">
-          <Button
-            size="sm"
-            onClick={onDownload}
-            className="flex items-center space-x-1"
-          >
-            <Download className="h-3 w-3" />
-            <span>Download</span>
-          </Button>
-          {arquivo.arquivo_url && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => window.open(arquivo.arquivo_url, '_blank')}
-              className="flex items-center space-x-1"
-            >
-              <ExternalLink className="h-3 w-3" />
-              <span>Abrir</span>
-            </Button>
-          )}
-        </div>
       </div>
       
       <div className="flex-1 overflow-auto">
@@ -75,7 +53,7 @@ const PartituraViewer: React.FC<PartituraViewerProps> = ({
             <p className="text-lg mb-2">Prévia não disponível</p>
             <p className="text-sm text-center">
               {arquivo.arquivo_url ? 
-                'Este tipo de arquivo não pode ser visualizado inline. Use o botão Download ou Abrir.' :
+                'Este tipo de arquivo não pode ser visualizado inline. Use o botão Download.' :
                 'URL do arquivo não disponível.'
               }
             </p>

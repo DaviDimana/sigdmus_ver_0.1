@@ -20,7 +20,9 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
   const handleSignOut = async () => {
     try {
       await signOut();
-      navigate('/auth');
+      navigate('/auth', { replace: true });
+      // Se necessário, descomente para forçar reload total:
+      // window.location.reload();
     } catch (error) {
       console.error('Error signing out:', error);
     }

@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Camera } from 'lucide-react';
 
 const ProfileSettings: React.FC = () => {
-  const { user, profile, loading, setProfile } = useAuth();
+  const { user, profile, loading, setProfile, fetchProfile } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -33,6 +33,12 @@ const ProfileSettings: React.FC = () => {
       const file = e.target.files?.[0];
       if (!file) return;
 
+      // Verificar se o usuário está autenticado
+      if (!user?.id) {
+        toast.error('Usuário não autenticado');
+        return;
+      }
+
       // Verificar tipo e tamanho do arquivo
       if (!file.type.startsWith('image/')) {
         toast.error('Por favor, selecione uma imagem válida');
@@ -45,15 +51,16 @@ const ProfileSettings: React.FC = () => {
       }
 
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user?.id}-${Math.random()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      // Usar o ID do usuário como nome do arquivo para seguir as políticas RLS
+      const fileName = `${user.id}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
 
-      console.log('Iniciando upload do avatar:', { filePath, userId: user?.id });
+      console.log('Iniciando upload do avatar:', { filePath, userId: user.id });
 
-      // Upload da imagem
+      // Upload da imagem com upsert para sobrescrever se existir
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(filePath, file, { upsert: true });
 
       if (uploadError) {
         console.error('Erro no upload do arquivo:', uploadError);
@@ -62,17 +69,46 @@ const ProfileSettings: React.FC = () => {
 
       console.log('Upload do arquivo concluído, obtendo URL pública');
 
-      // Atualizar o perfil com a URL do avatar
+      // Obter URL pública
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
 
       console.log('URL pública obtida:', publicUrl);
 
-      const { error: updateError } = await supabase
+      // Verificar se o perfil existe antes de tentar atualizar
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('Erro ao verificar perfil existente:', checkError);
+        throw checkError;
+      }
+
+      let updateError;
+      if (existingProfile) {
+        // Atualizar perfil existente
+        const { error } = await supabase
         .from('user_profiles')
         .update({ avatar_url: publicUrl })
-        .eq('id', user?.id);
+          .eq('id', user.id);
+        updateError = error;
+      } else {
+        // Criar novo perfil se não existir
+        const { error } = await supabase
+          .from('user_profiles')
+          .insert({
+            id: user.id,
+            name: user.user_metadata?.name || user.email?.split('@')[0] || 'Usuário',
+            email: user.email || '',
+            avatar_url: publicUrl,
+            role: 'user'
+          });
+        updateError = error;
+      }
 
       if (updateError) {
         console.error('Erro ao atualizar o perfil com a URL do avatar:', updateError);
@@ -82,28 +118,25 @@ const ProfileSettings: React.FC = () => {
       console.log('Perfil atualizado com a URL do avatar, buscando perfil atualizado');
 
       // Buscar o perfil atualizado
-      const { data: updatedProfile, error: fetchError } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', user?.id)
-        .single();
-
-      if (fetchError) {
-        console.error('Erro ao buscar perfil atualizado:', fetchError);
-        throw fetchError;
-      }
-
-      console.log('Perfil atualizado obtido:', updatedProfile);
-
-      // Atualizar o estado do perfil
-      if (updatedProfile) {
-        setProfile(updatedProfile);
-      }
+      await fetchProfile(user.id);
 
       toast.success('Avatar atualizado com sucesso!');
     } catch (error: any) {
       console.error('Erro detalhado ao fazer upload do avatar:', error);
-      toast.error(`Erro ao fazer upload do avatar: ${error.message || 'Erro desconhecido'}`);
+      
+      // Mensagens de erro mais específicas
+      let errorMessage = 'Erro ao fazer upload do avatar';
+      if (error.message) {
+        if (error.message.includes('JWT')) {
+          errorMessage = 'Sessão expirada. Por favor, faça login novamente.';
+        } else if (error.message.includes('storage')) {
+          errorMessage = 'Erro no armazenamento. Tente novamente.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setUploading(false);
     }
@@ -111,6 +144,12 @@ const ProfileSettings: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Verificar se o usuário está autenticado
+    if (!user?.id) {
+      toast.error('Usuário não autenticado');
+      return;
+    }
     
     // Validação dos campos
     if (!formData.name.trim()) {
@@ -131,49 +170,74 @@ const ProfileSettings: React.FC = () => {
     setSaving(true);
     try {
       console.log('Iniciando atualização do perfil:', { 
-        userId: user?.id, 
+        userId: user.id, 
         name: formData.name.trim(), 
         email: formData.email.trim() 
       });
 
+      // Verificar se o perfil existe antes de tentar atualizar
+      const { data: existingProfile, error: checkError } = await supabase
+        .from('user_profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error('Erro ao verificar perfil existente:', checkError);
+        throw checkError;
+      }
+
+      let updateError;
+      if (existingProfile) {
+        // Atualizar perfil existente
       const { error } = await supabase
         .from('user_profiles')
         .update({
           name: formData.name.trim(),
           email: formData.email.trim(),
         })
-        .eq('id', user?.id);
+          .eq('id', user.id);
+        updateError = error;
+      } else {
+        // Criar novo perfil se não existir
+        const { error } = await supabase
+          .from('user_profiles')
+          .insert({
+            id: user.id,
+            name: formData.name.trim(),
+            email: formData.email.trim(),
+            role: 'user'
+          });
+        updateError = error;
+      }
 
-      if (error) {
-        console.error('Erro ao atualizar o perfil:', error);
-        throw error;
+      if (updateError) {
+        console.error('Erro ao atualizar o perfil:', updateError);
+        throw updateError;
       }
 
       console.log('Perfil atualizado, buscando perfil atualizado');
 
       // Buscar o perfil atualizado
-      const { data: updatedProfile, error: fetchError } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', user?.id)
-        .single();
-
-      if (fetchError) {
-        console.error('Erro ao buscar perfil atualizado:', fetchError);
-        throw fetchError;
-      }
-
-      console.log('Perfil atualizado obtido:', updatedProfile);
-
-      // Atualizar o estado do perfil
-      if (updatedProfile) {
-        setProfile(updatedProfile);
-      }
+      await fetchProfile(user.id);
 
       toast.success('Perfil atualizado com sucesso!');
     } catch (error: any) {
       console.error('Erro detalhado ao atualizar perfil:', error);
-      toast.error(`Erro ao atualizar perfil: ${error.message || 'Erro desconhecido'}`);
+      
+      // Mensagens de erro mais específicas
+      let errorMessage = 'Erro ao atualizar perfil';
+      if (error.message) {
+        if (error.message.includes('JWT')) {
+          errorMessage = 'Sessão expirada. Por favor, faça login novamente.';
+        } else if (error.message.includes('duplicate')) {
+          errorMessage = 'Email já está em uso.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }

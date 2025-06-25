@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
 import MainLayout from "./components/Layout/MainLayout";
 import Dashboard from "./pages/Dashboard";
@@ -21,6 +21,7 @@ const queryClient = new QueryClient();
 
 const ProtectedRoutes = () => {
   const { user, profile, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -31,6 +32,11 @@ const ProtectedRoutes = () => {
         </div>
       </div>
     );
+  }
+
+  // Redirecionar para /auth se não autenticado e tentar acessar /
+  if (!user && location.pathname === "/") {
+    return <Navigate to="/auth" replace />;
   }
 
   if (!user) {
@@ -74,6 +80,8 @@ const App = () => {
         <Sonner />
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            {/* Redirecionar / para /auth se não autenticado */}
+            <Route path="/" element={<ProtectedRoutes />} />
             <Route path="/*" element={<ProtectedRoutes />} />
           </Routes>
         </BrowserRouter>

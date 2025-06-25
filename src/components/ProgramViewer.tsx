@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -110,25 +109,15 @@ const ProgramViewer: React.FC<ProgramViewerProps> = ({
             <File className="h-16 w-16 mb-4 text-blue-600" />
             <p className="text-lg mb-2">Documento Word</p>
             <p className="text-sm text-center mb-4">
-              Para visualizar este documento, clique em "Abrir" ou "Download"
+              Para visualizar este documento, faça o download
             </p>
-            <div className="flex space-x-2">
-              <Button
-                onClick={handleDownload}
-                className="flex items-center space-x-1"
-              >
-                <Download className="h-4 w-4" />
-                <span>Download</span>
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => window.open(performance.programa_arquivo_url, '_blank')}
-                className="flex items-center space-x-1"
-              >
-                <ExternalLink className="h-4 w-4" />
-                <span>Abrir</span>
-              </Button>
-            </div>
+            <Button
+              onClick={handleDownload}
+              className="flex items-center space-x-1"
+            >
+              <Download className="h-4 w-4" />
+              <span>Download</span>
+            </Button>
           </div>
         );
       
@@ -167,27 +156,6 @@ const ProgramViewer: React.FC<ProgramViewerProps> = ({
         <div className="flex-1 overflow-auto">
           <div className="flex items-center justify-between mb-4">
             <span className="font-medium">Programa do Concerto</span>
-            {performance.programa_arquivo_url && (
-              <div className="flex space-x-2">
-                <Button
-                  size="sm"
-                  onClick={handleDownload}
-                  className="flex items-center space-x-1"
-                >
-                  <Download className="h-3 w-3" />
-                  <span>Download</span>
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => window.open(performance.programa_arquivo_url, '_blank')}
-                  className="flex items-center space-x-1"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  <span>Abrir</span>
-                </Button>
-              </div>
-            )}
           </div>
           
           <div className="flex-1 overflow-auto">

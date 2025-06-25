@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 
@@ -15,54 +15,71 @@ export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const lastFetchedUserId = useRef<string | null>(null);
 
   useEffect(() => {
-    // Get initial session
+    let isMounted = true;
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        if (lastFetchedUserId.current !== session.user.id) {
+          lastFetchedUserId.current = session.user.id;
+          fetchProfile(session.user.id);
+        }
+      } else {
+        setProfile(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
-
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        await fetchProfile(session.user.id);
+        if (lastFetchedUserId.current !== session.user.id) {
+          lastFetchedUserId.current = session.user.id;
+          await fetchProfile(session.user.id);
+        }
       } else {
         setProfile(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
-
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, []);
 
   const fetchProfile = async (userId: string) => {
+    setLoading(true);
+    setError(null);
     try {
+      console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('id', userId)
         .single();
-
       if (error) {
-        // Se o perfil não for encontrado (PGRST116), é um estado esperado
-        // em alguns momentos do fluxo, mas não devemos criar um perfil aqui.
-        // A criação é responsabilidade do trigger no DB.
-        if (error.code !== 'PGRST116') {
-        console.error('Error fetching profile:', error);
+        if (error.code === 'PGRST116') {
+          console.log('Profile not found for user:', userId);
+          setProfile(null);
+          setError('Perfil não encontrado.');
+        } else {
+          console.error('Error fetching profile:', error);
+          setProfile(null);
+          setError(error.message || 'Erro ao buscar perfil.');
         }
-        return;
+      } else {
+        console.log('Profile fetched successfully:', data);
+        setProfile(data);
+        setError(null);
       }
-
-      setProfile(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in fetchProfile:', error);
+      setError(error.message || 'Erro inesperado ao buscar perfil.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -103,6 +120,8 @@ export const useAuth = () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      setUser(null);
+      setProfile(null);
     } catch (error) {
       console.error('Error signing out:', error);
       throw error;
@@ -113,6 +132,7 @@ export const useAuth = () => {
     user,
     profile,
     loading,
+    error,
     setProfile,
     signIn,
     signUp,
