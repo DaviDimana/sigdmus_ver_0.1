@@ -51,7 +51,7 @@ export const useArquivos = () => {
 
   const uploadArquivo = useMutation({
     mutationFn: async ({ file, metadata }) => {
-      // Upload do arquivo para a API local
+      // Upload do arquivo para a API
       const formData = new FormData();
       formData.append('file', file);
 

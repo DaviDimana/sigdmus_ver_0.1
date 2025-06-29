@@ -8,7 +8,7 @@ const app = express();
 const PORT = 4000;
 
 // Permitir apenas o domínio do frontend
-app.use(cors({ origin: 'http://82.25.74.109:5173' }));
+app.use(cors({ origin: ['http://82.25.74.109', 'http://82.25.74.109:5173'] }));
 
 const UPLOADS_DIR = '/var/www/sigdmus-uploads';
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
