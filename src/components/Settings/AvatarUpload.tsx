@@ -20,6 +20,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   const getInitials = (name: string) => {
     return name
@@ -64,7 +65,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('http://localhost:4000/api/upload', {
+      const res = await fetch(`${apiUrl}/api/upload`, {
         method: 'POST',
         body: formData,
       });

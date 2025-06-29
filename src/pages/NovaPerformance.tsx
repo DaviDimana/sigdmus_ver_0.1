@@ -26,6 +26,8 @@ const NovaPerformance = () => {
   const [sharedProgramUrl, setSharedProgramUrl] = useState<string | undefined>(undefined);
   const [sharedProgramFileName, setSharedProgramFileName] = useState<string | undefined>(undefined);
 
+  const apiUrl = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     if (isEdit && performance && !performance?.programa_arquivo_url) {
       // Buscar outra performance do mesmo grupo que tenha programa
@@ -57,7 +59,7 @@ const NovaPerformance = () => {
     const formData = new FormData();
     formData.append('file', file);
 
-    const res = await fetch('http://localhost:4000/api/upload', {
+    const res = await fetch(`${apiUrl}/api/upload`, {
       method: 'POST',
       body: formData,
     });

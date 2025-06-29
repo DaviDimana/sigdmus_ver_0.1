@@ -47,13 +47,15 @@ export const useArquivos = () => {
     };
   }, [queryClient]);
 
+  const apiUrl = import.meta.env.VITE_API_URL;
+
   const uploadArquivo = useMutation({
     mutationFn: async ({ file, metadata }) => {
       // Upload do arquivo para a API local
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('https://www.sigdmus.com/api/upload', {
+      const res = await fetch(`${apiUrl}/api/upload`, {
         method: 'POST',
         body: formData,
       });
