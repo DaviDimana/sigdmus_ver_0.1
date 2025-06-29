@@ -2,6 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import FormFieldInput from './FormFieldInput';
 import ProgramFileUpload from './ProgramFileUpload';
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
 
 interface PerformanceFormProps {
   onSubmit: (data: any) => void;
@@ -29,6 +40,8 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({
     release: ''
   });
   const [programFile, setProgramFile] = useState<File | null>(null);
+  const [existingFileRemoved, setExistingFileRemoved] = useState(false);
+  const [showRemoveDialog, setShowRemoveDialog] = useState(false);
 
   // Carregar dados iniciais quando disponíveis (para edição)
   useEffect(() => {
@@ -53,12 +66,41 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({
     }));
   };
 
+  const handleRemoveExistingFile = () => {
+    setShowRemoveDialog(true);
+  };
+
+  const confirmRemoveExistingFile = () => {
+    setExistingFileRemoved(true);
+    setShowRemoveDialog(false);
+  };
+
+  const cancelRemoveExistingFile = () => {
+    setShowRemoveDialog(false);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
       ...formData,
-      programFile
+      programFile,
+      removeExistingFile: existingFileRemoved
     });
+  };
+
+  // Extrair nome do arquivo da URL existente
+  const getExistingFileName = (url: string) => {
+    if (!url) return '';
+    const fileName = url.split('/').pop();
+    if (!fileName) return 'programa.pdf';
+    
+    // Se o nome for muito genérico, criar um nome mais descritivo
+    if (fileName === 'programa.pdf' || fileName === 'programa.doc' || fileName === 'programa.docx') {
+      const extension = fileName.split('.').pop();
+      return `Programa do Concerto.${extension}`;
+    }
+    
+    return fileName;
   };
 
   return (
@@ -140,7 +182,27 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({
       <ProgramFileUpload
         file={programFile}
         onFileChange={setProgramFile}
+        existingFileUrl={isEdit && !existingFileRemoved ? initialData?.programa_arquivo_url : undefined}
+        existingFileName={isEdit && !existingFileRemoved ? getExistingFileName(initialData?.programa_arquivo_url) : undefined}
+        onRemoveExisting={handleRemoveExistingFile}
       />
+
+      {/* Modal de confirmação para remoção do programa */}
+      <AlertDialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover Programa de Concerto?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja remover o Programa de Concerto? <br />
+              <b>Esta ação irá remover o arquivo de todas as performances com o mesmo local, data e horário.</b>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelRemoveExistingFile}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRemoveExistingFile}>Remover</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <div className="flex justify-end space-x-4 pt-4">
         <Button

@@ -3,7 +3,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, User, Camera } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 
 interface AvatarUploadProps {
   currentAvatarUrl?: string;
@@ -62,23 +61,21 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
     setUploading(true);
 
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const formData = new FormData();
+      formData.append('file', file);
 
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, { upsert: true });
+      const res = await fetch('https://www.sigdmus.com/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
 
-      if (uploadError) {
-        throw uploadError;
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Erro no upload');
       }
 
-      const { data } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      onAvatarUpdate(data.publicUrl);
+      const { url } = await res.json();
+      onAvatarUpdate(url);
 
       toast({
         title: "Sucesso!",

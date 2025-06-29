@@ -30,7 +30,7 @@ const Configuracoes: React.FC = () => {
   }
 
   // Sempre mostrar as configurações básicas, independente do profile
-  const showUserManagement = profile?.role === 'ADMIN';
+  const showUserManagement = true;
 
   return (
     <div className="space-y-6">

@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
+import { debugSupabaseStorage, testUpload } from '@/utils/debugSupabase';
 
 const Performances = () => {
   const navigate = useNavigate();
@@ -320,12 +321,12 @@ const Performances = () => {
         )}
       </div>
 
+      {/* Grid dos cards de performance padrão */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredPerformances.map((performance) => (
           <PerformanceCard 
             key={performance.id} 
             performance={performance} 
-            onViewProgram={handleViewProgram}
             onEdit={handleEdit}
             onDelete={handleDelete}
             allPerformances={filteredPerformances}

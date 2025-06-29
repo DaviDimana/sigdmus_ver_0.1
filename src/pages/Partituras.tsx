@@ -3,11 +3,11 @@ import { usePartituras } from '@/hooks/usePartituras';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Search, Filter, Download, Upload, Trash2, ChevronDown, FileText } from 'lucide-react';
+import { Search, Filter, Download, Upload, Trash2, ChevronDown, ChevronRight, FileText, Plus, Minus } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import PartituraPageHeader from '@/components/PartituraPageHeader';
 import PartituraCard from '@/components/PartituraCard';
 import PartituraEmptyState from '@/components/PartituraEmptyState';
@@ -24,7 +24,7 @@ import { instrumentList } from '@/utils/instrumentList';
 const Partituras = () => {
   const navigate = useNavigate();
   const { signOut, profile } = useAuth();
-  const canEditOrDelete = profile?.role_user_role === 'ADMIN' || profile?.role_user_role === 'GERENTE';
+  const canEditOrDelete = true;
   console.log('Partituras.tsx - profile:', profile, 'canEditOrDelete:', canEditOrDelete);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSetor, setSelectedSetor] = useState<string>('');
@@ -36,6 +36,7 @@ const Partituras = () => {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [downloadingFile, setDownloadingFile] = useState<string | null>(null);
   const [selectedPdfFile, setSelectedPdfFile] = useState<any | null>(null);
+  const [isSetOpen, setIsSetOpen] = useState(false);
 
   const { partituras, isLoading, error, updateFileInstrument } = usePartituras();
 
@@ -465,13 +466,14 @@ const Partituras = () => {
 
       {/* Dialog de Detalhes */}
       <Dialog open={!!selectedPartitura} onOpenChange={(open) => !open && setSelectedPartitura(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-full p-2 md:max-w-4xl md:p-8 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{selectedPartitura?.titulo}</DialogTitle>
           </DialogHeader>
           {selectedPartitura && (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Detalhes da partitura em 2 colunas */}
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-2 md:gap-4 text-sm md:text-base px-1 md:px-0">
                 <div>
                   <strong>Compositor:</strong> {selectedPartitura.compositor}
                 </div>
@@ -510,84 +512,93 @@ const Partituras = () => {
                 </div>
               </div>
 
+              {/* Set de partituras sempre em 1 coluna */}
               {selectedPartitura.pdf_urls && selectedPartitura.pdf_urls.length > 0 && (
-                <div className="pt-2">
-                  <Collapsible defaultOpen>
-                    <div className="flex items-center gap-2 mb-1">
-                      <CollapsibleTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 p-0">
-                          <ChevronDown className="h-5 w-5" />
-                        </Button>
-                      </CollapsibleTrigger>
-                      <h4 className="font-semibold">Arquivos PDF Digitalizados</h4>
-                      <span className="text-xs text-gray-500">({selectedPartitura.pdf_urls.length})</span>
-                    </div>
-                    <CollapsibleContent className="pl-4 pt-2">
-                      <div className="flex items-center justify-between p-2 bg-red-50 rounded mb-2 border border-red-200">
-                        <span className="text-sm text-red-700 font-medium">Apagar todos os arquivos</span>
-                        {canEditOrDelete && (
+                <Collapsible open={isSetOpen} onOpenChange={setIsSetOpen}>
+                  <CollapsibleTrigger asChild>
+                    <button
+                      className="flex items-center gap-2 px-2 py-2 rounded font-bold text-sm md:text-base bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 w-full justify-center mt-4"
+                      type="button"
+                    >
+                      {isSetOpen ? (
+                        <>
+                          <Minus className="h-5 w-5" />
+                          Ocultar set de partituras
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-5 w-5" />
+                          Mostrar set de partituras
+                        </>
+                      )}
+                      <span className="ml-2 text-xs font-normal">({selectedPartitura.pdf_urls.length})</span>
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="w-full max-w-2xl mx-auto flex flex-col gap-2 mt-2">
+                      {/* Ajuste para responsividade mobile */}
+                      <div className="md:hidden text-xs text-gray-500 mb-2">Arraste para o lado para ver mais informações</div>
+                      {/* Botão de exclusão de todos os arquivos */}
+                      <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-red-50">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-semibold text-red-700">Excluir todos os arquivos</span>
+                          <span className="text-xs text-red-500">Este botão exclui <b>todos</b> os arquivos da lista de uma só vez.</span>
+                        </div>
                         <Button
-                          variant="destructive"
-                          size="sm"
-                          className="flex items-center gap-1"
-                      onClick={() => handleDeleteAllPdfs(selectedPartitura.id, selectedPartitura.pdf_urls)}
-                      title="Apagar todos os arquivos"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteAllPdfs(selectedPartitura.id, selectedPartitura.pdf_urls)}
+                          className="text-red-600 hover:text-red-700"
                         >
-                          <Trash2 className="h-4 w-4" />
-                          Apagar todos
+                          <Trash2 className="h-5 w-5" />
                         </Button>
-                        )}
                       </div>
-                      <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
-                        {(profile && profile.role_user_role === 'MUSICO' && profile.instrumento)
-                          ? sortByInstrumentOrder(selectedPartitura.pdf_urls.filter((file: any) => file.instrument === profile.instrumento))
-                          : sortByInstrumentOrder(selectedPartitura.pdf_urls)
-                        .map((file: any) => (
-                          <div key={file.fileName} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50">
-                            <div className="flex items-center space-x-4">
-                              <FileText className="h-6 w-6 text-gray-400" />
-                              <div>
-                                <button 
-                                  type="button"
-                                  className="font-medium text-blue-600 hover:underline disabled:text-gray-400 disabled:no-underline bg-transparent border-0 p-0 cursor-pointer"
-                                  onClick={() => setSelectedPdfFile(file)}
-                                  disabled={downloadingFile === file.fileName}
-                                >
-                                  {downloadingFile === file.fileName ? 'Baixando...' : file.fileName}
-                        </button>
-                                <p className="text-sm text-gray-500">{file.instrument || 'Não classificado'}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              {canEditOrDelete && (
-                              <Select
-                                value={file.instrument || ''}
-                                onValueChange={(newInstrument) => handleInstrumentChange(selectedPartitura.id, file.fileName, newInstrument)}
+                      {/* Lista de arquivos individuais */}
+                      {sortByInstrumentOrder(selectedPartitura.pdf_urls).map((file: any, index: number) => (
+                        <div key={index} className="flex items-center justify-between py-2 px-1 md:px-3 rounded-lg hover:bg-gray-50 text-xs md:text-base">
+                          <div className="flex items-center space-x-4">
+                            <FileText className="h-6 w-6 text-gray-400" />
+                            <div>
+                              <button 
+                                type="button"
+                                className="font-medium text-blue-600 hover:underline disabled:text-gray-400 disabled:no-underline bg-transparent border-0 p-0 cursor-pointer break-all text-xs md:text-base"
+                                onClick={() => setSelectedPdfFile(file)}
+                                disabled={downloadingFile === file.fileName}
                               >
-                                <SelectTrigger className="w-48">
-                                  <SelectValue placeholder="Classificar..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {instrumentList.map(instrument => (
-                                    <SelectItem key={instrument.value} value={instrument.value}>
-                                      {instrument.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              )}
-                              {canEditOrDelete && (
-                              <Button variant="ghost" size="icon" onClick={() => handleDeletePdf(selectedPartitura.id, file)}>
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                              )}
+                                {downloadingFile === file.fileName ? 'Baixando...' : file.fileName}
+                              </button>
+                              <p className="text-sm text-gray-500">{file.instrument || 'Não classificado'}</p>
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </div>
+                          <div className="flex items-center space-x-2">
+                            {canEditOrDelete && (
+                            <Select
+                              value={file.instrument || ''}
+                              onValueChange={(newInstrument) => handleInstrumentChange(selectedPartitura.id, file.fileName, newInstrument)}
+                            >
+                              <SelectTrigger className="w-32 md:w-48 text-xs md:text-base">
+                                <SelectValue placeholder="Classificar..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {instrumentList.map(instrument => (
+                                  <SelectItem key={instrument.value} value={instrument.value}>
+                                    {instrument.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            )}
+                            {canEditOrDelete && (
+                            <Button variant="ghost" size="icon" onClick={() => handleDeletePdf(selectedPartitura.id, file)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               )}
 
               <div className="flex gap-2 pt-4">
@@ -623,6 +634,10 @@ const Partituras = () => {
       {/* Modal de visualização de PDF */}
       <Dialog open={!!selectedPdfFile} onOpenChange={(open) => !open && setSelectedPdfFile(null)}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Visualização de Arquivo</DialogTitle>
+            <DialogDescription>Visualize ou baixe o arquivo PDF da partitura selecionada.</DialogDescription>
+          </DialogHeader>
           {selectedPdfFile && (
             <PartituraViewer
               isOpen={!!selectedPdfFile}

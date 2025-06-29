@@ -9,7 +9,7 @@ max_rows = 1000
 
 [auth]
 enabled = true
-site_url = ""
+site_url = "http://localhost:5173"
 additional_redirect_urls = ["https://oyidopwxlxwrwcjxjyek.supabase.co/auth/v1/callback"]
 jwt_expiry = 3600
 

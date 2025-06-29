@@ -28,22 +28,18 @@ const ObraDetailsDialog: React.FC<ObraDetailsDialogProps> = ({
   onDeleteAllArquivos,
 }) => {
   const { profile } = useAuth();
-  const canEditOrDelete = profile?.role_user_role === 'ADMIN' || profile?.role_user_role === 'GERENTE';
+  // Removendo verificação de role - qualquer usuário pode editar/deletar
+  const canEditOrDelete = true;
   console.log('ObraDetailsDialog.tsx - profile:', profile, 'canEditOrDelete:', canEditOrDelete);
-  const isMusico = profile?.role_user_role === 'MUSICO';
+  // Removendo verificação de role - qualquer usuário vê todos os arquivos
+  const isMusico = false;
   const userInstrument = profile?.instrumento;
 
   // Função para normalizar nomes de instrumento
   const normalize = (str: string) => str?.toLowerCase().replace(/[^a-z0-9]/gi, '');
 
-  // Filtrar arquivos pelo instrumento do músico (aceita variações)
-  const arquivosFiltrados = isMusico && userInstrument
-    ? arquivos.filter(a => {
-        const cat = normalize(a.categoria || '');
-        const userInst = normalize(userInstrument || '');
-        return cat.includes(userInst) || userInst.includes(cat);
-      })
-    : arquivos;
+  // Removendo filtro por instrumento - qualquer usuário vê todos os arquivos
+  const arquivosFiltrados = arquivos;
 
   // Buscar partituras relacionadas à obra
   const { data: partituras = [] } = useQuery({
@@ -112,10 +108,8 @@ const ObraDetailsDialog: React.FC<ObraDetailsDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">{obra}</DialogTitle>
-          <DialogDescription>
-            Informações detalhadas sobre a obra musical
-          </DialogDescription>
+          <DialogTitle>Detalhes da Obra</DialogTitle>
+          <DialogDescription>Veja as informações completas da obra selecionada.</DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6">

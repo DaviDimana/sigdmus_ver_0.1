@@ -65,7 +65,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
                   />
                   <div className="flex flex-col">
                     <div className="text-2xl font-bold text-blue-700 tracking-wide">
-                      SiGMus
+                      SiGDMus
                     </div>
                     <div className="text-sm text-gray-600 leading-tight max-w-[200px] font-sans font-semibold">
                       Sistema Integrado de Gestão e
@@ -83,7 +83,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser }) => {
                   />
                   <div className="flex flex-col">
                     <div className="text-base font-bold text-blue-700 tracking-wide">
-                      SiGMus
+                      SiGDMus
                     </div>
                     <div className="text-[10px] text-gray-600 leading-tight max-w-[140px] font-sans font-medium">
                       Sistema Integrado de Gestão e

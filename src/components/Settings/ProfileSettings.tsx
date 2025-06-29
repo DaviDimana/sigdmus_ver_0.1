@@ -93,7 +93,12 @@ const ProfileSettings: React.FC = () => {
         // Atualizar perfil existente
         const { error } = await supabase
         .from('user_profiles')
-        .update({ avatar_url: publicUrl })
+        .update({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          // role: sempre maiúsculo, se existir no profile
+          ...(profile?.role_user_role && { role: profile.role_user_role.toUpperCase() })
+        })
           .eq('id', user.id);
         updateError = error;
       } else {
@@ -105,7 +110,8 @@ const ProfileSettings: React.FC = () => {
             name: user.user_metadata?.name || user.email?.split('@')[0] || 'Usuário',
             email: user.email || '',
             avatar_url: publicUrl,
-            role: 'user'
+            // role: sempre maiúsculo, se existir no profile, senão 'MUSICO'
+            role: (profile?.role_user_role || 'MUSICO').toUpperCase()
           });
         updateError = error;
       }
@@ -195,6 +201,8 @@ const ProfileSettings: React.FC = () => {
         .update({
           name: formData.name.trim(),
           email: formData.email.trim(),
+          // role: sempre maiúsculo, se existir no profile
+          ...(profile?.role_user_role && { role: profile.role_user_role.toUpperCase() })
         })
           .eq('id', user.id);
         updateError = error;
@@ -204,9 +212,11 @@ const ProfileSettings: React.FC = () => {
           .from('user_profiles')
           .insert({
             id: user.id,
-            name: formData.name.trim(),
-            email: formData.email.trim(),
-            role: 'user'
+            name: user.user_metadata?.name || user.email?.split('@')[0] || 'Usuário',
+            email: user.email || '',
+            avatar_url: publicUrl,
+            // role: sempre maiúsculo, se existir no profile, senão 'MUSICO'
+            role: (profile?.role_user_role || 'MUSICO').toUpperCase()
           });
         updateError = error;
       }

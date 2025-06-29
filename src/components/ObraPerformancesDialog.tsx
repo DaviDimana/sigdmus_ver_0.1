@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -28,10 +27,8 @@ const ObraPerformancesDialog: React.FC<ObraPerformancesDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Performances de "{obra}"</DialogTitle>
-          <DialogDescription>
-            Histórico de performances registradas desta obra
-          </DialogDescription>
+          <DialogTitle>Performances Relacionadas</DialogTitle>
+          <DialogDescription>Veja todas as performances relacionadas a esta obra.</DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4">

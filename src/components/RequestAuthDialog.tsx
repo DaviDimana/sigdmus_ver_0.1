@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -31,13 +30,8 @@ const RequestAuthDialog: React.FC<RequestAuthDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            <MessageSquare className="h-5 w-5" />
-            <span>Solicitar Autorização</span>
-          </DialogTitle>
-          <DialogDescription>
-            Este arquivo requer autorização para download. Envie uma mensagem ao responsável.
-          </DialogDescription>
+          <DialogTitle>Solicitação de Autorização</DialogTitle>
+          <DialogDescription>Solicite autorização para acessar arquivos restritos.</DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4">

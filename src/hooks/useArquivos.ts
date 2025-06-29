@@ -48,60 +48,47 @@ export const useArquivos = () => {
   }, [queryClient]);
 
   const uploadArquivo = useMutation({
-    mutationFn: async ({ file, metadata }: { 
-      file: File; 
-      metadata: { 
-        categoria: string; 
-        obra: string; 
-        partitura_id?: string; 
-        performance_id?: string;
-        restricao_download?: boolean;
-      } 
-    }) => {
-      console.log('Uploading arquivo:', file.name);
-      
-      // Upload do arquivo para o storage
-      const fileName = `${Date.now()}_${file.name}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('arquivos')
-        .upload(fileName, file);
-      
-      if (uploadError) {
-        console.error('Error uploading file:', uploadError);
-        throw uploadError;
+    mutationFn: async ({ file, metadata }) => {
+      // Upload do arquivo para a API local
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('https://www.sigdmus.com/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Erro no upload');
       }
-      
-      // Obter URL pública do arquivo
-      const { data: urlData } = supabase.storage
-        .from('arquivos')
-        .getPublicUrl(fileName);
-      
-      // Obter usuário atual
+
+      const { url } = await res.json();
+
+      // Obter usuário atual (continua pelo Supabase Auth)
       const { data: { user } } = await supabase.auth.getUser();
-      
-      // Criar entrada no banco de dados
-      const arquivoData: ArquivoInsert = {
+
+      // Criar entrada no banco de dados (continua igual)
+      const arquivoData = {
         ...metadata,
         nome: file.name,
         tipo: file.type,
         tamanho: file.size,
-        arquivo_url: urlData.publicUrl,
+        arquivo_url: url, // agora é a URL da sua API local
         usuario_upload: user?.id,
         restricao_download: metadata.restricao_download || false,
       };
-      
+
       const { data, error } = await supabase
         .from('arquivos')
         .insert(arquivoData)
         .select()
         .single();
-      
+
       if (error) {
-        console.error('Error creating arquivo record:', error);
         throw error;
       }
-      
-      console.log('Arquivo uploaded and recorded:', data);
+
       return data;
     },
     onSuccess: () => {

@@ -38,44 +38,36 @@ const AppSidebar: React.FC = () => {
       name: 'Dashboard',
       href: '/',
       icon: Home,
-      roles: ['ADMIN', 'GERENTE', 'ARQUIVISTA', 'MUSICO']
     },
     {
       name: 'Partituras',
       href: '/partituras',
       icon: FileMusic,
-      roles: ['ADMIN', 'GERENTE', 'ARQUIVISTA', 'MUSICO']
     },
     {
       name: 'Nova Partitura',
       href: '/partituras/nova',
       icon: Plus,
-      roles: ['ADMIN', 'GERENTE']
     },
     {
       name: 'Performances',
       href: '/performances',
       icon: Calendar,
-      roles: ['ADMIN', 'GERENTE', 'ARQUIVISTA', 'MUSICO']
     },
     {
       name: 'Nova Performance',
       href: '/performances/nova',
       icon: Plus,
-      roles: ['ADMIN', 'GERENTE']
     },
     {
       name: 'Relatórios',
       href: '/relatorios',
       icon: BarChart3,
-      roles: ['ADMIN', 'GERENTE', 'ARQUIVISTA', 'MUSICO']
     }
   ];
 
-  // Filtrar itens sem depender do role do profile se não existir
-  const filteredItems = profile?.role_user_role 
-    ? navigationItems.filter(item => item.roles.includes(profile.role_user_role))
-    : navigationItems; // Mostrar todos se não tiver role (para debug)
+  // Removendo filtro por role - todos os usuários veem todos os itens
+  const filteredItems = navigationItems;
 
   return (
     <Sidebar className="border-r border-gray-200">
@@ -88,7 +80,7 @@ const AppSidebar: React.FC = () => {
           />
           <div className="flex flex-col min-w-0">
             <div className="text-lg font-bold text-blue-700 tracking-wide">
-              SiGMus
+              SiGDMus
             </div>
             <div className="text-xs text-gray-600 leading-tight font-sans font-semibold">
               Sistema Integrado de Gestão e

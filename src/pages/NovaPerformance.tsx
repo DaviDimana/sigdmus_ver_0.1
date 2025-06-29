@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -20,56 +20,96 @@ const NovaPerformance = () => {
   const { createPerformance, updatePerformance } = usePerformances();
   const { performance, isLoading } = usePerformance(id || '');
   const { profile } = useAuth();
-  const canEditOrDelete = profile?.role_user_role === 'ADMIN' || profile?.role_user_role === 'GERENTE';
+  const canEditOrDelete = true;
 
   const isEdit = Boolean(id);
+  const [sharedProgramUrl, setSharedProgramUrl] = useState<string | undefined>(undefined);
+  const [sharedProgramFileName, setSharedProgramFileName] = useState<string | undefined>(undefined);
 
-  const uploadProgramFile = async (file: File, performanceId: string): Promise<string | null> => {
+  useEffect(() => {
+    if (isEdit && performance && !performance?.programa_arquivo_url) {
+      // Buscar outra performance do mesmo grupo que tenha programa
+      (async () => {
+        const { data: groupPerformances, error } = await supabase
+          .from('performances')
+          .select('programa_arquivo_url')
+          .eq('local', performance.local)
+          .eq('data', performance.data)
+          .eq('horario', performance.horario);
+        if (!error && groupPerformances) {
+          const found = groupPerformances.find((p: any) => p.programa_arquivo_url && p.programa_arquivo_url.trim() !== '');
+          if (found && found.programa_arquivo_url) {
+            setSharedProgramUrl(found.programa_arquivo_url);
+            // Extrair nome do arquivo
+            const fileName = found.programa_arquivo_url.split('/').pop();
+            setSharedProgramFileName(fileName || 'programa.pdf');
+          }
+        }
+      })();
+    } else if (isEdit && performance?.programa_arquivo_url) {
+      setSharedProgramUrl(performance.programa_arquivo_url);
+      const fileName = performance.programa_arquivo_url.split('/').pop();
+      setSharedProgramFileName(fileName || 'programa.pdf');
+    }
+  }, [isEdit, performance]);
+
+  const uploadProgramFile = async (file, performanceId) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await fetch('https://www.sigdmus.com/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Erro no upload');
+    }
+
+    const { url } = await res.json();
+    return url; // já retorna a URL pública
+  };
+
+  const deleteProgramFile = async (performanceId: string, local: string, dataStr: string, horario: string): Promise<boolean> => {
     try {
-      console.log('Iniciando upload do arquivo:', file.name, 'para performance:', performanceId);
-      console.log('Tamanho do arquivo:', file.size, 'bytes');
-      console.log('Tipo do arquivo:', file.type);
-      
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${performanceId}/programa.${fileExt}`;
-      
-      console.log('Nome do arquivo no storage:', fileName);
-      
-      const { data, error } = await supabase.storage
+      console.log('Deletando arquivo do programa para performance:', performanceId);
+      // Listar arquivos na pasta da performance
+      const { data: files, error: listError } = await supabase.storage
         .from('programas-concerto')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
-      
-      if (error) {
-        console.error('Erro no upload:', error);
-        console.error('Detalhes do erro:', {
-          message: error.message,
-          statusCode: error.statusCode,
-          error: error.error
-        });
-        return null;
+        .list(performanceId);
+      if (listError) {
+        console.error('Erro ao listar arquivos:', listError);
+        return false;
       }
-      
-      console.log('Upload realizado com sucesso:', data);
-      
-      const { data: publicUrlData } = supabase.storage
-        .from('programas-concerto')
-        .getPublicUrl(fileName);
-      
-      console.log('URL pública gerada:', publicUrlData.publicUrl);
-      
-      // Verificar se a URL é válida
-      if (!publicUrlData.publicUrl) {
-        console.error('URL pública não foi gerada');
-        return null;
+      if (files && files.length > 0) {
+        // Deletar todos os arquivos na pasta
+        const filePaths = files.map(file => `${performanceId}/${file.name}`);
+        const { error: deleteError } = await supabase.storage
+          .from('programas-concerto')
+          .remove(filePaths);
+        if (deleteError) {
+          console.error('Erro ao deletar arquivos:', deleteError);
+          return false;
+        }
+        console.log('Arquivos deletados com sucesso:', filePaths);
       }
-      
-      return publicUrlData.publicUrl;
+      // Limpar o campo programa_arquivo_url de todas as performances com mesmo local, data e horário
+      const { error: updateError } = await supabase
+        .from('performances')
+        .update({ programa_arquivo_url: null })
+        .eq('local', local)
+        .eq('data', dataStr)
+        .eq('horario', horario);
+      if (updateError) {
+        console.error('Erro ao limpar programa_arquivo_url das performances relacionadas:', updateError);
+        return false;
+      }
+      console.log('Campo programa_arquivo_url limpo para todas as performances relacionadas');
+      return true;
     } catch (error) {
-      console.error('Erro no upload do arquivo:', error);
-      return null;
+      console.error('Erro ao deletar arquivo do programa:', error);
+      return false;
     }
   };
 
@@ -145,18 +185,31 @@ const NovaPerformance = () => {
 
   const handleSubmit = async (data: any) => {
     try {
-      const { programFile, ...performanceData } = data;
+      const { programFile, removeExistingFile, ...performanceData } = data;
       let perfId = id;
       let programaUrl: string | null = null;
       
       console.log('Dados da performance:', performanceData);
       console.log('Arquivo de programa:', programFile);
+      console.log('Remover arquivo existente:', removeExistingFile);
       console.log('Modo de edição:', isEdit);
       
       // Validar dados obrigatórios
       if (!performanceData.data || !performanceData.local || !performanceData.horario) {
         toast.error('Data, local e horário são obrigatórios');
         return;
+      }
+      
+      // Se está editando e o usuário quer remover o arquivo existente
+      if (isEdit && removeExistingFile && id) {
+        console.log('Removendo arquivo existente da performance:', id);
+        const deleted = await deleteProgramFile(id, performanceData.local, performanceData.data, performanceData.horario);
+        if (deleted) {
+          console.log('Arquivo existente removido com sucesso');
+          performanceData.programa_arquivo_url = null;
+        } else {
+          console.log('Erro ao remover arquivo existente, mas continuando...');
+        }
       }
       
       // 1. Buscar se já existe performance com mesma data, local e horário
@@ -243,7 +296,12 @@ const NovaPerformance = () => {
       } else {
         console.log('Nenhum programa para processar');
         if (isEdit) {
+          if (removeExistingFile) {
+            console.log('Performance editada com arquivo removido');
+            toast.info('Performance atualizada e arquivo removido com sucesso!');
+          } else {
           console.log('Performance editada sem alteração de programa');
+          }
         } else {
           console.log('Nova performance sem programa');
         }
@@ -293,7 +351,11 @@ const NovaPerformance = () => {
             onSubmit={handleSubmit}
             onCancel={() => navigate('/performances')}
             isSubmitting={createPerformance.isPending || updatePerformance.isPending}
-            initialData={performance}
+            initialData={{
+              ...performance,
+              programa_arquivo_url: sharedProgramUrl || performance?.programa_arquivo_url,
+              programa_arquivo_nome: sharedProgramFileName,
+            }}
             isEdit={isEdit}
           />
           )}

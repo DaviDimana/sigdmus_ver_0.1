@@ -19,10 +19,12 @@ const PerformancePageHeader: React.FC<PerformancePageHeaderProps> = ({
       </div>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex-1" />
-        <Button onClick={onNewPerformance} className="w-full sm:w-auto">
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Performance
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={onNewPerformance} className="w-full sm:w-auto">
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Performance
+          </Button>
+        </div>
       </div>
     </div>
   );

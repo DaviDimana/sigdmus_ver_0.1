@@ -267,10 +267,8 @@ const Dashboard = () => {
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Configurar {title}</DialogTitle>
-            <DialogDescription>
-              Personalize a apresentação do seu gráfico
-            </DialogDescription>
+            <DialogTitle>Detalhes</DialogTitle>
+            <DialogDescription>Veja ou edite os detalhes deste item.</DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
@@ -433,43 +431,37 @@ const Dashboard = () => {
     <div className="flex-1 space-y-6 p-1 sm:p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            Exportar Relatório
-          </Button>
-        </div>
       </div>
 
       {/* Cards de Resumo */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-2 sm:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
         {summaryCards.map((card, index) => (
-          <Card key={index} className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Card key={index} className="shadow-lg hover:shadow-xl transition-shadow duration-300 min-w-0 w-full">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
               <card.icon className={`h-4 w-4 text-muted-foreground ${card.color}`} />
-          </CardHeader>
-          <CardContent>
+            </CardHeader>
+            <CardContent>
               {card.isLoading ? (
                 <Skeleton className="h-8 w-24 mt-1" />
               ) : (
                 <div className="text-2xl font-bold">{card.value}</div>
               )}
-            <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {card.title === 'Total de Partituras' ? 'Cadastradas no sistema' : 
-                 card.title === 'Total de Performances' ? 'Registradas no sistema' :
-                 card.title === 'Total de Usuários' ? 'Registrados na plataforma' : 
-                 'Desde o início'}
-            </p>
-          </CardContent>
-        </Card>
+                  card.title === 'Total de Performances' ? 'Registradas no sistema' :
+                  card.title === 'Total de Usuários' ? 'Registrados na plataforma' : 
+                  'Desde o início'}
+              </p>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
       {/* Gráficos */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 mt-6">
+      <div className="grid gap-2 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-2 mt-6">
         {/* Gráfico de Partituras por Compositor */}
-        <Card className="shadow-lg">
+        <Card className="shadow-lg min-w-0 w-full">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div>
               <CardTitle className="text-lg">Partituras por Compositor</CardTitle>
@@ -496,11 +488,8 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div 
-              ref={(el) => chartRefs.current['partiturasPorCompositor'] = el}
-              className="chart-container"
-            >
-              <ChartContainer config={chartConfig} className="h-[400px] w-full">
+            <div className="w-full overflow-x-auto">
+              <ChartContainer config={chartConfig} className="h-[250px] sm:h-[400px] w-full">
                 {partiturasPorCompositor.length > 0 ? (
                   renderChart('partiturasPorCompositor', partiturasPorCompositor, 'Partituras por Compositor')
                 ) : (
@@ -513,7 +502,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="shadow-lg">
+        <Card className="shadow-lg min-w-0 w-full">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div>
               <CardTitle className="text-lg">Distribuição por Setor</CardTitle>
@@ -540,11 +529,8 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div 
-              ref={(el) => chartRefs.current['partiturasPorSetor'] = el}
-              className="chart-container"
-            >
-              <ChartContainer config={chartConfig} className="h-[400px] w-full">
+            <div className="w-full overflow-x-auto">
+              <ChartContainer config={chartConfig} className="h-[250px] sm:h-[400px] w-full">
                 {partiturasPorSetor.length > 0 ? (
                   renderChart('partiturasPorSetor', partiturasPorSetor, 'Distribuição por Setor')
                 ) : (
@@ -557,7 +543,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="shadow-lg">
+        <Card className="shadow-lg min-w-0 w-full">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div>
               <CardTitle className="text-lg">Performances por Mês</CardTitle>
@@ -585,11 +571,8 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div 
-              ref={(el) => chartRefs.current['performancesPorMes'] = el}
-              className="chart-container"
-            >
-              <ChartContainer config={chartConfig} className="h-[400px] w-full">
+            <div className="w-full overflow-x-auto">
+              <ChartContainer config={chartConfig} className="h-[250px] sm:h-[400px] w-full">
                 {performancesPorMes.length > 0 ? (
                   chartConfigs.performancesPorMes.type === 'line' ? (
                     <LineChart data={performancesPorMes}>
@@ -618,7 +601,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="shadow-lg">
+        <Card className="shadow-lg min-w-0 w-full">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div>
               <CardTitle className="text-lg">Status de Digitalização</CardTitle>
@@ -645,11 +628,8 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div 
-              ref={(el) => chartRefs.current['digitalizacaoStatus'] = el}
-              className="chart-container"
-            >
-              <ChartContainer config={chartConfig} className="h-[400px] w-full">
+            <div className="w-full overflow-x-auto">
+              <ChartContainer config={chartConfig} className="h-[250px] sm:h-[400px] w-full">
                 {digitalizacaoStatus.length > 0 && digitalizacaoStatus.some(item => item.quantidade > 0) ? (
                   renderChart('digitalizacaoStatus', digitalizacaoStatus, 'Status de Digitalização')
                 ) : (
@@ -664,8 +644,8 @@ const Dashboard = () => {
       </div>
 
       {/* Seção existente de atividades e eventos */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="shadow-lg">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-6">
+        <Card className="shadow-lg min-w-0 w-full">
           <CardHeader>
             <CardTitle>Atividades Recentes</CardTitle>
           </CardHeader>
@@ -705,7 +685,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="shadow-lg">
+        <Card className="shadow-lg min-w-0 w-full">
           <CardHeader>
             <CardTitle>Próximos Eventos</CardTitle>
           </CardHeader>

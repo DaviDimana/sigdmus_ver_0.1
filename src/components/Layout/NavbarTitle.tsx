@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 const NavbarTitle: React.FC = () => {
@@ -13,12 +12,10 @@ const NavbarTitle: React.FC = () => {
         />
         <div className="flex flex-col">
           <div className="text-2xl font-bold text-blue-700 tracking-wide">
-            SiGMus
+            SiGDMus
           </div>
-          <div className="text-sm text-gray-600 leading-tight max-w-[200px] font-sans font-semibold">
-            Sistema Integrado de Gestão e
-            <br />
-            Documentação Musical
+          <div className="text-sm text-gray-600 leading-tight max-w-[200px] font-sans font-semibold whitespace-nowrap">
+            Sistema Integrado de Gestão e Documentação Musical
           </div>
         </div>
       </div>
@@ -32,12 +29,10 @@ const NavbarTitle: React.FC = () => {
         />
         <div className="flex flex-col">
           <div className="text-lg font-bold text-blue-700 tracking-wide">
-            SiGMus
+            SiGDMus
           </div>
-          <div className="text-xs text-gray-600 leading-tight max-w-[140px] font-sans font-semibold">
-            Sistema Integrado de Gestão e
-            <br />
-            Documentação Musical
+          <div className="text-xs text-gray-600 leading-tight max-w-[140px] font-sans font-semibold whitespace-nowrap">
+            Sistema Integrado de Gestão e Documentação Musical
           </div>
         </div>
       </div>

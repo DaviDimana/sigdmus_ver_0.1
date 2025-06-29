@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -121,9 +120,7 @@ const UploadDialog: React.FC<UploadDialogProps> = ({ children, onUpload }) => {
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Upload de Arquivo</DialogTitle>
-          <DialogDescription>
-            Adicione um novo arquivo PDF ao repositório
-          </DialogDescription>
+          <DialogDescription>Envie um novo arquivo para o sistema.</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>

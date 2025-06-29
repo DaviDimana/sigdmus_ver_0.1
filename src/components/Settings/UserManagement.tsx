@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Edit2, Search } from 'lucide-react';
@@ -41,9 +41,7 @@ const UserManagement: React.FC = () => {
   ];
 
   useEffect(() => {
-    if (profile?.role === 'ADMIN') {
       fetchUsers();
-    }
     // Buscar instituições para o seletor
     const fetchInstituicoes = async () => {
       const { data, error } = await supabase.from('instituicoes').select('*');
@@ -101,10 +99,6 @@ const UserManagement: React.FC = () => {
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  if (profile?.role !== 'ADMIN') {
-    return <div>Acesso negado.</div>;
-  }
 
   if (loading) {
     return <div>Carregando usuários...</div>;
@@ -176,7 +170,8 @@ const UserManagement: React.FC = () => {
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
-                    <DialogTitle>Editar Usuário</DialogTitle>
+                    <DialogTitle>Gerenciamento de Usuário</DialogTitle>
+                    <DialogDescription>Adicione, edite ou remova usuários do sistema.</DialogDescription>
                   </DialogHeader>
                   {selectedUser && (
                     <UserEditForm
@@ -240,6 +235,7 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
     setor: user.setor || '',
     instrumento: user.instrumento || '',
     status: user.status || '',
+    funcao: user.role_user_role || '',
   });
   const [instituicoesState, setInstituicoesState] = useState<{ id: string; nome: string }[]>(instituicoes);
   const [saving, setSaving] = useState(false);
@@ -272,11 +268,9 @@ const UserEditForm: React.FC<UserEditFormProps> = ({
         name: formData.name,
         email: formData.email,
         telefone: formData.telefone,
-        instituicao: formData.instituicao,
-        setor: formData.setor,
-        instrumento: formData.instrumento,
         status: formData.status,
-        role_user_role: user.role_user_role,
+        role_user_role: (formData.funcao || 'MUSICO').toUpperCase(),
+        updated_at: new Date().toISOString(),
       };
       // Filtrar campos undefined ou vazios
       const filteredUpdates = Object.fromEntries(

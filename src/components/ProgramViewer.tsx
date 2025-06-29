@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Download, ExternalLink, FileText, Image, File } from 'lucide-react';
 
@@ -147,10 +147,8 @@ const ProgramViewer: React.FC<ProgramViewerProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            {getFileIcon(fileType)}
-            <span>Programa do Concerto - {performance.titulo_obra}</span>
-          </DialogTitle>
+          <DialogTitle>Visualização de Programa</DialogTitle>
+          <DialogDescription>Veja o programa de concerto anexado à performance.</DialogDescription>
         </DialogHeader>
         
         <div className="flex-1 overflow-auto">

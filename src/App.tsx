@@ -80,9 +80,8 @@ const App = () => {
         <Sonner />
           <Routes>
             <Route path="/auth" element={<Auth />} />
-            {/* Redirecionar / para /auth se não autenticado */}
-            <Route path="/" element={<ProtectedRoutes />} />
-            <Route path="/*" element={<ProtectedRoutes />} />
+            {/* Redirecionar tudo que não for /auth para ProtectedRoutes */}
+            <Route path="*" element={<ProtectedRoutes />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

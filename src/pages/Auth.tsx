@@ -59,7 +59,7 @@ const Auth = () => {
                 />
                 <div className="flex flex-col text-left">
                   <div className="text-3xl font-bold text-blue-700 tracking-wide">
-                    SiGMus
+                    SiGDMus
                   </div>
                   <div className="text-base text-gray-600 leading-tight max-w-[250px] font-bold">
                     Sistema Integrado de Gestão e
@@ -90,7 +90,7 @@ const Auth = () => {
               />
               <div className="flex flex-col text-left">
                 <div className="text-3xl font-bold text-blue-700 tracking-wide">
-                  SiGMus
+                  SiGDMus
                 </div>
                 <div className="text-base text-gray-600 leading-tight max-w-[250px] font-bold">
                   Sistema Integrado de Gestão e

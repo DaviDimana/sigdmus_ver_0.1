@@ -134,6 +134,7 @@ export const useAuth = () => {
     loading,
     error,
     setProfile,
+    fetchProfile,
     signIn,
     signUp,
     signOut,

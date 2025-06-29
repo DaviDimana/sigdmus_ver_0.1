@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -6,10 +5,9 @@ import { Loader2 } from 'lucide-react';
 
 interface AuthGuardProps {
   children: React.ReactNode;
-  requiredRole?: 'ADMIN' | 'GERENTE' | 'ARQUIVISTA' | 'MUSICO';
 }
 
-const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRole }) => {
+const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const { user, profile, loading } = useAuth();
 
   // Show loading spinner while checking auth
@@ -29,18 +27,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRole }) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Check role requirements
-  if (requiredRole && profile?.role !== requiredRole && profile?.role !== 'ADMIN') {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Acesso Negado</h2>
-          <p className="text-gray-600">Você não tem permissão para acessar esta página.</p>
-        </div>
-      </div>
-    );
-  }
-
+  // Removendo verificação de role - qualquer usuário autenticado pode acessar
   return <>{children}</>;
 };
 
