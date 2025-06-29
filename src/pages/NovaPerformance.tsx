@@ -57,7 +57,7 @@ const NovaPerformance = () => {
     const formData = new FormData();
     formData.append('file', file);
 
-    const res = await fetch('https://www.sigdmus.com/api/upload', {
+    const res = await fetch('http://localhost:4000/api/upload', {
       method: 'POST',
       body: formData,
     });
