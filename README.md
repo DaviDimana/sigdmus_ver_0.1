@@ -1,6 +1,8 @@
-# Score Performance Hub
+# SIGDMUS v0.1
 
-Uma aplicação moderna para gerenciamento de performance e métricas, construída com React, TypeScript e Supabase.
+Sistema Integrado de Gerenciamento de Documentos Musicais - Versão 0.1
+
+Uma aplicação moderna para gerenciamento de partituras, performances e acervo musical, construída com React, TypeScript e Supabase.
 
 ## 🚀 Tecnologias
 
@@ -23,8 +25,8 @@ Uma aplicação moderna para gerenciamento de performance e métricas, construí
 
 1. Clone o repositório:
 ```bash
-git clone https://github.com/seu-usuario/score-performance-hub.git
-cd score-performance-hub
+git clone https://github.com/seu-usuario/sigdmus_ver_0.1.git
+cd sigdmus_ver_0.1
 ```
 
 2. Instale as dependências:

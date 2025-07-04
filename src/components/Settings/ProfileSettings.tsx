@@ -12,6 +12,7 @@ const ProfileSettings: React.FC = () => {
   const { user, profile, loading, setProfile, fetchProfile } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [avatarTimestamp, setAvatarTimestamp] = useState(Date.now());
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -74,7 +75,10 @@ const ProfileSettings: React.FC = () => {
         .from('avatars')
         .getPublicUrl(filePath);
 
-      console.log('URL pública obtida:', publicUrl);
+      // Adicionar timestamp para evitar cache do navegador
+      const publicUrlWithTimestamp = `${publicUrl}?t=${Date.now()}`;
+
+      console.log('URL pública obtida:', publicUrlWithTimestamp);
 
       // Verificar se o perfil existe antes de tentar atualizar
       const { data: existingProfile, error: checkError } = await supabase
@@ -96,6 +100,7 @@ const ProfileSettings: React.FC = () => {
         .update({
           name: formData.name.trim(),
           email: formData.email.trim(),
+          avatar_url: publicUrlWithTimestamp,
           // role: sempre maiúsculo, se existir no profile
           ...(profile?.role_user_role && { role: profile.role_user_role.toUpperCase() })
         })
@@ -109,7 +114,7 @@ const ProfileSettings: React.FC = () => {
             id: user.id,
             name: user.user_metadata?.name || user.email?.split('@')[0] || 'Usuário',
             email: user.email || '',
-            avatar_url: publicUrl,
+            avatar_url: publicUrlWithTimestamp,
             // role: sempre maiúsculo, se existir no profile, senão 'MUSICO'
             role: (profile?.role_user_role || 'MUSICO').toUpperCase()
           });
@@ -123,9 +128,16 @@ const ProfileSettings: React.FC = () => {
 
       console.log('Perfil atualizado com a URL do avatar, buscando perfil atualizado');
 
+      // Aguardar um pouco para o Supabase processar a atualização
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       // Buscar o perfil atualizado
       await fetchProfile(user.id);
 
+      // Atualizar timestamp para forçar recarregamento da imagem
+      setAvatarTimestamp(Date.now());
+
+      console.log('Avatar atualizado com sucesso! URL:', publicUrlWithTimestamp);
       toast.success('Avatar atualizado com sucesso!');
     } catch (error: any) {
       console.error('Erro detalhado ao fazer upload do avatar:', error);
@@ -214,7 +226,6 @@ const ProfileSettings: React.FC = () => {
             id: user.id,
             name: user.user_metadata?.name || user.email?.split('@')[0] || 'Usuário',
             email: user.email || '',
-            avatar_url: publicUrl,
             // role: sempre maiúsculo, se existir no profile, senão 'MUSICO'
             role: (profile?.role_user_role || 'MUSICO').toUpperCase()
           });
@@ -275,7 +286,9 @@ const ProfileSettings: React.FC = () => {
       <div className="flex flex-col items-center space-y-4">
         <div className="relative group">
           <Avatar className="h-24 w-24">
-            <AvatarImage src={profile?.avatar_url} />
+            <AvatarImage 
+              src={profile?.avatar_url ? `${profile.avatar_url}?t=${avatarTimestamp}` : undefined} 
+            />
             <AvatarFallback>{getInitials(profile?.name || '')}</AvatarFallback>
           </Avatar>
           <label

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,6 +24,14 @@ const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
   onSignOut,
 }) => {
   const navigate = useNavigate();
+  const [avatarTimestamp, setAvatarTimestamp] = useState(Date.now());
+
+  // Atualizar timestamp quando o avatar mudar
+  useEffect(() => {
+    if (profile?.avatar_url) {
+      setAvatarTimestamp(Date.now());
+    }
+  }, [profile?.avatar_url]);
 
   const getRoleLabel = (role: string) => {
     switch (role) {
@@ -56,7 +64,10 @@ const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="flex items-center space-x-3 hover:bg-blue-50 hover:text-blue-600 h-12 w-12 rounded-full p-0">
             <Avatar className="h-16 w-16 border-2 border-blue-600">
-              <AvatarImage src={profile?.avatar_url} alt={profile?.name || user.email} />
+              <AvatarImage 
+                src={profile?.avatar_url ? `${profile.avatar_url}?t=${avatarTimestamp}` : undefined} 
+                alt={profile?.name || user.email} 
+              />
               <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-semibold">
                 {profile?.name ? profile.name.charAt(0).toUpperCase() : user.email?.charAt(0).toUpperCase() || 'U'}
               </AvatarFallback>
@@ -68,7 +79,10 @@ const NavbarUserSection: React.FC<NavbarUserSectionProps> = ({
           <div className="px-3 py-2 border-b">
             <div className="flex items-center space-x-3">
               <Avatar className="h-12 w-12 border-2 border-blue-600">
-                <AvatarImage src={profile?.avatar_url} alt={profile?.name || user.email} />
+                <AvatarImage 
+                  src={profile?.avatar_url ? `${profile.avatar_url}?t=${avatarTimestamp}` : undefined} 
+                  alt={profile?.name || user.email} 
+                />
                 <AvatarFallback className="bg-blue-100 text-blue-600">
                   {profile?.name ? profile.name.charAt(0).toUpperCase() : user.email?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>

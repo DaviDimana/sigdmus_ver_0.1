@@ -1,0 +1,168 @@
+version: '3.8'
+
+services:
+  # Supabase Studio (Interface web)
+  studio:
+    image: supabase/studio:latest
+    container_name: supabase_studio
+    ports:
+      - "3000:3000"
+    environment:
+      STUDIO_PG_META_URL: http://meta:8080
+      POSTGRES_PASSWORD: your-super-secret-and-long-postgres-password
+      DEFAULT_ORGANIZATION_NAME: Default Organization
+      DEFAULT_PROJECT_NAME: Default Project
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_PUBLIC_URL: http://localhost:8000
+      SUPABASE_ANON_KEY: your-anon-key
+      SUPABASE_SERVICE_KEY: your-service-key
+    depends_on:
+      - kong
+    networks:
+      - supabase
+
+  # Kong API Gateway
+  kong:
+    image: kong:2.8.1
+    container_name: supabase_kong
+    ports:
+      - "8000:8000"
+      - "8443:8443"
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth,http-log
+    volumes:
+      - ./volumes/api/kong.yml:/var/lib/kong/kong.yml
+    networks:
+      - supabase
+
+  # PostgREST API
+  postgrest:
+    image: postgrest/postgrest:latest
+    container_name: supabase_postgrest
+    environment:
+      PGRST_DB_URI: postgres://authenticator:your-super-secret-and-long-postgres-password@db:5432/postgres
+      PGRST_DB_SCHEMAS: public,storage,graphql_public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: your-super-secret-jwt-token-with-at-least-32-characters-long
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+    depends_on:
+      - db
+    networks:
+      - supabase
+
+  # PostgreSQL Database
+  db:
+    image: supabase/postgres:15.1.0.117
+    container_name: supabase_db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: your-super-secret-and-long-postgres-password
+      JWT_SECRET: your-super-secret-jwt-token-with-at-least-32-characters-long
+      JWT_EXP: 3600
+      JWT_DEFAULT_GROUP_NAME: authenticated
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - ./volumes/db:/var/lib/postgresql/data
+      - ./supabase/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - supabase
+
+  # GoTrue Auth
+  auth:
+    image: supabase/gotrue:latest
+    container_name: supabase_auth
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: http://localhost:8000
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:your-super-secret-and-long-postgres-password@db:5432/postgres
+      GOTRUE_SITE_URL: http://localhost:3000
+      GOTRUE_URI_ALLOW_LIST: ""
+      GOTRUE_DISABLE_SIGNUP: "false"
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_JWT_SECRET: your-super-secret-jwt-token-with-at-least-32-characters-long
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "false"
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
+      GOTRUE_SMTP_ADMIN_EMAIL: admin@example.com
+      GOTRUE_SMTP_HOST: mail
+      GOTRUE_SMTP_PORT: 2500
+      GOTRUE_SMTP_USER: fake_mail_user
+      GOTRUE_SMTP_PASS: fake_mail_password
+      GOTRUE_SMTP_SENDER_NAME: fake_sender_name
+    depends_on:
+      - db
+    networks:
+      - supabase
+
+  # Storage API
+  storage:
+    image: supabase/storage-api:latest
+    container_name: supabase_storage
+    environment:
+      ANON_KEY: your-anon-key
+      SERVICE_KEY: your-service-key
+      PROJECT_REF: your-project-ref
+      POSTGREST_URL: http://postgrest:3000
+      PGRST_JWT_SECRET: your-super-secret-jwt-token-with-at-least-32-characters-long
+      DATABASE_URL: postgres://supabase_storage_admin:your-super-secret-and-long-postgres-password@db:5432/postgres
+      PGOPTIONS: "-c search_path=storage"
+      FILE_SIZE_LIMIT: 52428800
+      STORAGE_BACKEND: file
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      TENANT_ID: stub
+      REGION: stub
+      GLOBAL_S3_BUCKET: stub
+    volumes:
+      - ./volumes/storage:/var/lib/storage
+    depends_on:
+      - db
+    networks:
+      - supabase
+
+  # Realtime API
+  realtime:
+    image: supabase/realtime:latest
+    container_name: supabase_realtime
+    environment:
+      DB_HOST: db
+      DB_NAME: postgres
+      DB_USER: supabase_realtime_admin
+      DB_PASSWORD: your-super-secret-and-long-postgres-password
+      DB_PORT: 5432
+      PORT: 4000
+      JWT_SECRET: your-super-secret-jwt-token-with-at-least-32-characters-long
+      REPLICATION_MODE: RLS
+      SECURE_CHANNELS: "true"
+      DB_SSL: "false"
+    depends_on:
+      - db
+    networks:
+      - supabase
+
+  # Meta API
+  meta:
+    image: supabase/postgres-meta:latest
+    container_name: supabase_meta
+    environment:
+      PG_META_PORT: 8080
+      PG_META_DB_HOST: db
+      PG_META_DB_NAME: postgres
+      PG_META_DB_USER: supabase_admin
+      PG_META_DB_PASSWORD: your-super-secret-and-long-postgres-password
+      PG_META_DB_PORT: 5432
+    depends_on:
+      - db
+    networks:
+      - supabase
+
+networks:
+  supabase:
+    driver: bridge 
