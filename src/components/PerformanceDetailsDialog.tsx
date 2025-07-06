@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -37,6 +37,20 @@ const PerformanceDetailsDialog: React.FC<PerformanceDetailsDialogProps> = ({
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [sharedProgramUrl, setSharedProgramUrl] = React.useState<string | null>(null);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
+  const [arquivos, setArquivos] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function fetchArquivos() {
+      if (performance?.id) {
+        const { data } = await supabase
+          .from('arquivos')
+          .select('*')
+          .eq('performance_id', performance.id);
+        setArquivos(data || []);
+      }
+    }
+    if (isOpen && performance?.id) fetchArquivos();
+  }, [isOpen, performance?.id]);
 
   React.useEffect(() => {
     async function fetchSharedProgram() {
@@ -119,51 +133,22 @@ const PerformanceDetailsDialog: React.FC<PerformanceDetailsDialogProps> = ({
           {/* Seção do Programa de Concerto */}
           <div>
             <h3 className="text-lg font-semibold mb-3">Programa de Concerto</h3>
-            {sharedProgramUrl ? (
-              <div className="bg-gray-50 rounded-lg p-3 flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-blue-600" />
-                  {/* Link azul com texto customizado e modal PDF */}
-                  <button
-                    className="text-blue-700 font-medium hover:underline truncate focus:outline-none"
-                    onClick={() => setShowProgram(true)}
-                    type="button"
-                  >
-                    {`Programa dia ${formatDateBR(performance.data)}`}
-                  </button>
-                  {/* Ícone de lixeira para remover com confirmação */}
-                  <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
-                    <AlertDialogTrigger asChild>
-                      <button
-                        className="ml-2 text-red-600 hover:text-red-800 focus:outline-none"
-                        title="Remover programa de concerto"
-                        type="button"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Remover Programa de Concerto</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Tem certeza que deseja remover o programa de concerto? Esta ação não poderá ser desfeita.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => {
-                            setConfirmDeleteOpen(false);
-                            handleDeleteProgram();
-                          }}
-                        >
-                          Remover
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+            {arquivos.length > 0 ? (
+              arquivos.map(arquivo => (
+                <div key={arquivo.id} className="bg-gray-50 rounded-lg p-3 flex flex-col gap-2 mb-2">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                    <a
+                      href={arquivo.url}
+                      className="text-blue-700 font-medium hover:underline truncate focus:outline-none"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {arquivo.nome || `Programa dia ${formatDateBR(performance.data)}`}
+                    </a>
+                  </div>
                 </div>
-              </div>
+              ))
             ) : (
               <div className="text-gray-500 italic">Nenhum programa de concerto carregado.</div>
             )}
