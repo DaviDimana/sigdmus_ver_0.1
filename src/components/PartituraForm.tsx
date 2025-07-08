@@ -9,13 +9,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Save } from 'lucide-react';
 import type { Partitura, PartituraInsert } from '@/hooks/usePartituras';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
   instituicao: z.string().optional(),
   setor: z.string().min(1, 'Setor é obrigatório'),
   titulo: z.string().min(1, 'Título da obra é obrigatório'),
   compositor: z.string().min(1, 'Nome do compositor é obrigatório'),
-  instrumentacao: z.string().min(1, 'Instrumentação é obrigatória'),
+  instrumentos: z.string().min(1, 'Instrumentação é obrigatória'),
   edicao: z.string().optional(),
   ano_edicao: z.string().optional(),
   numero_armario: z.string().optional(),
@@ -42,28 +44,36 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
   onCancel,
   isSubmitting = false 
 }) => {
+  const { profile } = useAuth();
   const [pdfFiles, setPdfFiles] = useState<File[]>([]);
   const [oldFiles, setOldFiles] = useState<any[]>(partitura?.pdf_urls || []);
   const [removedFiles, setRemovedFiles] = useState<string[]>([]);
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      instituicao: partitura?.instituicao || '',
-      setor: partitura?.setor || '',
+      instituicao: profile?.instituicao || partitura?.instituicao || '',
+      setor: profile?.setor || partitura?.setor || '',
       titulo: partitura?.titulo || '',
       compositor: partitura?.compositor || '',
-      instrumentacao: partitura?.instrumentacao || '',
+      instrumentos: partitura?.instrumentacao || '', // <-- Corrigido aqui!
       edicao: partitura?.edicao || '',
-      ano_edicao: partitura?.ano_edicao || '',
+      ano_edicao: partitura?.ano_edicao ? String(partitura.ano_edicao) : '',
       numero_armario: partitura?.numero_armario || '',
       numero_prateleira: partitura?.numero_prateleira || '',
       numero_pasta: partitura?.numero_pasta || '',
       tonalidade: partitura?.tonalidade || '',
       genero: partitura?.genero || '',
-      digitalizado: partitura?.digitalizado || false,
+      digitalizado: partitura?.digitalizado === true,
       observacoes: partitura?.observacoes || '',
+      ...(partitura?.ano_aquisicao !== undefined ? { ano_aquisicao: String(partitura.ano_aquisicao) } : {}),
     },
   });
+
+  React.useEffect(() => {
+    if (profile?.setor) {
+      form.setValue('setor', profile.setor);
+    }
+  }, [profile?.setor, form]);
 
   const handleRemoveOldFile = (fileName: string) => {
     setRemovedFiles((prev) =>
@@ -72,7 +82,30 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
   };
 
   const handleSubmit = (data: FormData) => {
-    onSubmit({ ...data, pdfFiles, oldFiles, removedFiles });
+    if (form.watch('digitalizado') && pdfFiles.length === 0) {
+      toast.error('Selecione ao menos um arquivo PDF para digitalizados.');
+      return;
+    }
+    const { instituicao, setor, titulo, compositor, instrumentos, edicao, ano_edicao, numero_armario, numero_prateleira, numero_pasta, tonalidade, genero, digitalizado, observacoes } = data;
+    onSubmit({
+      instituicao: profile?.instituicao ?? '',
+      setor: profile?.setor ?? '',
+      titulo,
+      compositor,
+      instrumentacao: instrumentos, // <-- Corrigido aqui!
+      edicao,
+      ano_edicao: ano_edicao ? Number(ano_edicao) : null,
+      numero_armario,
+      numero_prateleira,
+      numero_pasta,
+      tonalidade,
+      genero,
+      digitalizado,
+      observacoes,
+      pdfFiles, // <-- Adicionado!
+      oldFiles, // <-- Adicionado!
+      removedFiles, // <-- Adicionado!
+    });
   };
 
   const setoresOptions = [
@@ -100,7 +133,9 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
                   <Input 
                     placeholder="Digite a instituição"
                     className="text-sm sm:text-base h-9 sm:h-10"
-                    {...field} 
+                    {...field}
+                    value={profile?.instituicao ?? ''}
+                    disabled
                   />
                 </FormControl>
                 <FormMessage />
@@ -114,20 +149,15 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-sm sm:text-base">Setor *</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger className="text-sm sm:text-base h-9 sm:h-10">
-                      <SelectValue placeholder="Selecione o setor" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {setoresOptions.map((setor) => (
-                      <SelectItem key={setor} value={setor}>
-                        {setor}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <Input
+                    placeholder="Digite o setor"
+                    className="text-sm sm:text-base h-9 sm:h-10"
+                    {...field}
+                    value={form.watch('setor')}
+                    readOnly
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -177,7 +207,7 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
           <FormField
             control={form.control}
-            name="instrumentacao"
+            name="instrumentos"
             render={({ field }) => (
               <FormItem className="lg:col-span-1">
                 <FormLabel className="text-sm sm:text-base">Instrumentação *</FormLabel>
@@ -220,9 +250,11 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
                   <FormLabel className="text-sm sm:text-base">Ano da Edição</FormLabel>
                   <FormControl>
                     <Input 
+                      type="text"
                       placeholder="Ex: 2024" 
                       className="text-sm sm:text-base h-9 sm:h-10"
                       {...field} 
+                      onChange={e => field.onChange(e.target.value)}
                     />
                   </FormControl>
                   <FormMessage />
@@ -425,7 +457,7 @@ const PartituraForm: React.FC<PartituraFormProps> = ({
           <Button 
             type="submit" 
             className="flex items-center justify-center space-x-2 w-full sm:w-auto text-sm sm:text-base h-9 sm:h-10"
-            disabled={isSubmitting}
+            disabled={isSubmitting || (form.watch('digitalizado') && pdfFiles.length === 0)}
           >
             <Save className="h-4 w-4" />
             <span>{partitura ? 'Atualizar' : 'Salvar'} Partitura</span>

@@ -8,6 +8,8 @@ interface Profile {
   role_user_role: string;
   email: string;
   avatar_url?: string;
+  instituicao?: string | null;
+  setor?: string | null;
   // adicione outros campos se necessário
 }
 
@@ -17,33 +19,74 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const lastFetchedUserId = useRef<string | null>(null);
+  const isInitialized = useRef(false);
 
   useEffect(() => {
     let isMounted = true;
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        if (lastFetchedUserId.current !== session.user.id) {
-          lastFetchedUserId.current = session.user.id;
-          fetchProfile(session.user.id);
+    
+    const initializeAuth = async () => {
+      try {
+        console.log('Initializing auth...');
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          if (isMounted) {
+            setError(sessionError.message);
+            setLoading(false);
+          }
+          return;
         }
-      } else {
-        setProfile(null);
-        setLoading(false);
+
+        if (isMounted) {
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            if (lastFetchedUserId.current !== session.user.id) {
+              lastFetchedUserId.current = session.user.id;
+              await fetchProfile(session.user.id);
+            } else {
+              setLoading(false);
+            }
+          } else {
+            setProfile(null);
+            setLoading(false);
+          }
+        }
+      } catch (error: any) {
+        console.error('Error initializing auth:', error);
+        if (isMounted) {
+          setError(error.message || 'Erro ao inicializar autenticação');
+          setLoading(false);
+        }
       }
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    };
+
+    if (!isInitialized.current) {
+      isInitialized.current = true;
+      initializeAuth();
+    }
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id);
+      
+      if (!isMounted) return;
+      
       setUser(session?.user ?? null);
+      
       if (session?.user) {
         if (lastFetchedUserId.current !== session.user.id) {
           lastFetchedUserId.current = session.user.id;
           await fetchProfile(session.user.id);
+        } else {
+          setLoading(false);
         }
       } else {
         setProfile(null);
         setLoading(false);
       }
     });
+
     return () => {
       isMounted = false;
       subscription.unsubscribe();
@@ -51,8 +94,14 @@ export const useAuth = () => {
   }, []);
 
   const fetchProfile = async (userId: string) => {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
+    
     try {
       console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
@@ -60,6 +109,7 @@ export const useAuth = () => {
         .select('*')
         .eq('id', userId)
         .single();
+        
       if (error) {
         if (error.code === 'PGRST116') {
           console.log('Profile not found for user:', userId);

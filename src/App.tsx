@@ -16,12 +16,50 @@ import Perfil from "./pages/Perfil";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Usuarios from "./pages/Usuarios";
+import { useEffect } from "react";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutos
+      cacheTime: 10 * 60 * 1000, // 10 minutos
+      retry: (failureCount, error: any) => {
+        // Não tentar novamente para erros de autenticação
+        if (error?.message?.includes('JWT expired') || error?.message?.includes('authentication')) {
+          return false;
+        }
+        return failureCount < 3;
+      },
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true,
+    },
+    mutations: {
+      retry: 1,
+    },
+  },
+});
 
 const ProtectedRoutes = () => {
   const { user, profile, loading } = useAuth();
   const location = useLocation();
+
+  // Limpar cache quando o usuário mudar
+  useEffect(() => {
+    if (user) {
+      // Limpar cache antigo quando o usuário fizer login
+      queryClient.clear();
+    }
+  }, [user]);
+
+  // Forçar refresh dos dados quando a página for carregada
+  useEffect(() => {
+    if (user && !loading) {
+      // Invalidar queries principais para forçar refresh
+      queryClient.invalidateQueries({ queryKey: ['partituras'] });
+      queryClient.invalidateQueries({ queryKey: ['performances'] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    }
+  }, [user, loading]);
 
   if (loading) {
     return (

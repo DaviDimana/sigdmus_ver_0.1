@@ -72,44 +72,27 @@ export const usePartituras = () => {
 
   const updateFileInstrument = useMutation({
     mutationFn: async ({ partituraId, fileName, instrument }: { partituraId: string; fileName: string; instrument: string }) => {
-      // 1. Fetch a partitura específica
-      const { data: partitura, error: fetchError } = await supabase
-        .from('partituras')
-        .select('pdf_urls')
-        .eq('id', partituraId)
-        .single();
-
-      if (fetchError || !partitura) {
-        throw new Error(fetchError?.message || "Partitura não encontrada");
-      }
-
-      // 2. Modifica o array pdf_urls
-      const updatedPdfUrls = (partitura.pdf_urls as any[]).map(fileInfo => {
-        if (fileInfo.fileName === fileName) {
-          return { ...fileInfo, instrument };
-        }
-        return fileInfo;
-      });
-
-      // 3. Atualiza a partitura com o novo array
+      // Atualiza o campo instrument na tabela arquivos
       const { data, error } = await supabase
-        .from('partituras')
-        .update({ pdf_urls: updatedPdfUrls })
-        .eq('id', partituraId)
-        .select()
-        .single();
-
+        .from('arquivos')
+        .update({ instrument })
+        .eq('partitura_id', partituraId)
+        .eq('nome', fileName)
+        .select();
       if (error) {
         throw error;
       }
-      return data;
+      if (!data || data.length !== 1) {
+        throw new Error('Erro ao atualizar: nenhum ou múltiplos registros retornados.');
+      }
+      return data[0];
     },
     onSuccess: (data, variables) => {
-      // Invalida a query da partitura específica e a lista geral
-      queryClient.invalidateQueries({ queryKey: ['partitura', variables.partituraId] });
+      // Invalida a query dos arquivos da partitura e a lista geral
+      queryClient.invalidateQueries({ queryKey: ['arquivos-partitura', variables.partituraId] });
       queryClient.invalidateQueries({ queryKey: ['partituras'] });
     },
-     onError: (error) => {
+    onError: (error) => {
       toast.error(`Erro ao atualizar instrumento: ${error.message}`);
     }
   });
@@ -121,8 +104,7 @@ export const usePartituras = () => {
         .from('partituras')
         .update(updates)
         .eq('id', id)
-        .select()
-        .single();
+        .select();
       
       if (error) {
         console.error('Error updating partitura:', error);
@@ -140,20 +122,52 @@ export const usePartituras = () => {
   const deletePartitura = useMutation({
     mutationFn: async (id: string) => {
       console.log('Deleting partitura:', id);
-      const { error } = await supabase
+      // 1. Buscar todos os arquivos relacionados à partitura
+      const { data: arquivos, error: fetchError } = await supabase
+        .from('arquivos')
+        .select('nome, partitura_id')
+        .eq('partitura_id', id);
+
+      if (fetchError) {
+        console.error('Erro ao buscar arquivos para deleção do storage:', fetchError);
+        // Continue mesmo assim, se quiser garantir deleção do banco
+      }
+
+      // 2. Montar os caminhos dos arquivos no bucket
+      const filePaths = arquivos ? arquivos.map(a => `${id}/${a.nome}`) : [];
+
+      // 3. Remover do bucket
+      if (filePaths.length > 0) {
+        const { error: storageError } = await supabase.storage.from('arquivos').remove(filePaths);
+        if (storageError) {
+          console.error('Erro ao remover arquivos do bucket:', storageError);
+          // Continue mesmo assim, se quiser garantir deleção do banco
+        }
+      }
+
+      // 4. Agora delete a partitura (já faz o cascade nas tabelas)
+      const { data, error } = await supabase
         .from('partituras')
         .delete()
         .eq('id', id);
-      
+      console.log('Delete result:', { data, error });
       if (error) {
         console.error('Error deleting partitura:', error);
         throw error;
       }
-      
-      console.log('Partitura deleted:', id);
+      if (!data || data.length === 0) {
+        console.warn('Nenhuma partitura foi deletada!');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['partituras'] });
+      queryClient.invalidateQueries({ queryKey: ['performances'] });
+      queryClient.invalidateQueries({ queryKey: ['arquivos'] });
+      toast.success('Partitura deletada com sucesso!');
+    },
+    onError: (error: any) => {
+      console.error('Error in deletePartitura mutation:', error);
+      toast.error(error.message || 'Erro ao deletar partitura');
     },
   });
 

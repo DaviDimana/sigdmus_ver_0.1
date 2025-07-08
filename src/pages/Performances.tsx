@@ -15,6 +15,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { debugSupabaseStorage, testUpload } from '@/utils/debugSupabase';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const Performances = () => {
   const navigate = useNavigate();
@@ -34,6 +36,24 @@ const Performances = () => {
   const [selectedMaestros, setSelectedMaestros] = useState('');
   const [selectedInterpretes, setSelectedInterpretes] = useState('');
   const [selectedRelease, setSelectedRelease] = useState('');
+
+  // Buscar arquivo de programa da performance selecionada
+  const { data: arquivosPrograma = [] } = useQuery({
+    queryKey: ['arquivos-programa', selectedPerformance?.id],
+    queryFn: async () => {
+      if (!selectedPerformance?.id) return [];
+      const { data, error } = await supabase
+        .from('arquivos')
+        .select('*')
+        .eq('performance_id', selectedPerformance.id);
+      if (error) {
+        console.error('Erro ao buscar arquivos do programa:', error);
+        return [];
+      }
+      return data;
+    },
+    enabled: !!selectedPerformance?.id,
+  });
 
   useEffect(() => {
     if (error?.message === 'JWT expired') {
@@ -359,7 +379,10 @@ const Performances = () => {
       <ProgramViewer
         isOpen={!!selectedPerformance}
         onClose={() => { setSelectedPerformance(null); setSharedProgramUrl(undefined); }}
-        performance={{ ...(selectedPerformance || {}), programa_arquivo_url: sharedProgramUrl || (selectedPerformance?.programa_arquivo_url ?? '') }}
+        performance={{
+          ...(selectedPerformance || {}),
+          programa_arquivo_url: sharedProgramUrl || (arquivosPrograma[0]?.url ?? '')
+        }}
       />
     </div>
   );

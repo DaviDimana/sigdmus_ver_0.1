@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, User, Camera } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AvatarUploadProps {
   currentAvatarUrl?: string;
@@ -20,7 +21,6 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const apiUrl = import.meta.env.VITE_API_URL;
 
   const getInitials = (name: string) => {
     return name
@@ -62,21 +62,47 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
     setUploading(true);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const res = await fetch(`${apiUrl}/api/upload`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Erro no upload');
+      console.log('Iniciando upload do avatar:', file.name, 'para usuário:', userId);
+      
+      // Obter usuário atual
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('Usuário não autenticado');
       }
 
-      const { url } = await res.json();
-      onAvatarUpdate(url);
+      // Gerar nome único para o arquivo
+      const fileExtension = file.name.split('.').pop();
+      const fileName = `${userId}/${userId}.${fileExtension}`;
+      const filePath = `avatars/${fileName}`;
+
+      console.log('Uploading avatar to path:', filePath);
+
+      // Upload direto para o Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+      });
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw new Error(`Erro no upload: ${uploadError.message}`);
+      }
+
+      console.log('Avatar uploaded successfully:', uploadData);
+
+      // Obter URL pública do arquivo
+      const { data: urlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      if (!urlData?.publicUrl) {
+        throw new Error('Não foi possível obter a URL pública do avatar');
+      }
+
+      console.log('Public URL obtained:', urlData.publicUrl);
+      onAvatarUpdate(urlData.publicUrl);
 
       toast({
         title: "Sucesso!",

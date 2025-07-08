@@ -7,89 +7,93 @@ export type Json =
   | Json[]
 
 export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          operationName?: string
+          query?: string
+          variables?: Json
+          extensions?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
-      _prisma_migrations: {
-        Row: {
-          applied_steps_count: number
-          checksum: string
-          finished_at: string | null
-          id: string
-          logs: string | null
-          migration_name: string
-          rolled_back_at: string | null
-          started_at: string
-        }
-        Insert: {
-          applied_steps_count?: number
-          checksum: string
-          finished_at?: string | null
-          id: string
-          logs?: string | null
-          migration_name: string
-          rolled_back_at?: string | null
-          started_at?: string
-        }
-        Update: {
-          applied_steps_count?: number
-          checksum?: string
-          finished_at?: string | null
-          id?: string
-          logs?: string | null
-          migration_name?: string
-          rolled_back_at?: string | null
-          started_at?: string
-        }
-        Relationships: []
-      }
       arquivos: {
         Row: {
-          arquivo_url: string | null
-          categoria: string
-          created_at: string
-          downloads: number | null
+          aquisicao_at: string | null
+          categoria: string | null
+          created_at: string | null
+          digitalizado: boolean | null
+          download_url: string | null
+          hash: string | null
           id: string
-          nome: string
-          obra: string
+          instituicao: string | null
+          nome: string | null
+          obra: string | null
+          observacoes: string | null
           partitura_id: string | null
           performance_id: string | null
-          restricao_download: boolean
-          tamanho: number
-          tipo: string
-          updated_at: string
-          usuario_upload: string | null
+          tamanho: string | null
+          tipo: string | null
+          updated_at: string | null
+          url: string | null
+          usuario_id: string | null
         }
         Insert: {
-          arquivo_url?: string | null
-          categoria: string
-          created_at?: string
-          downloads?: number | null
+          aquisicao_at?: string | null
+          categoria?: string | null
+          created_at?: string | null
+          digitalizado?: boolean | null
+          download_url?: string | null
+          hash?: string | null
           id?: string
-          nome: string
-          obra: string
+          instituicao?: string | null
+          nome?: string | null
+          obra?: string | null
+          observacoes?: string | null
           partitura_id?: string | null
           performance_id?: string | null
-          restricao_download?: boolean
-          tamanho: number
-          tipo: string
-          updated_at?: string
-          usuario_upload?: string | null
+          tamanho?: string | null
+          tipo?: string | null
+          updated_at?: string | null
+          url?: string | null
+          usuario_id?: string | null
         }
         Update: {
-          arquivo_url?: string | null
-          categoria?: string
-          created_at?: string
-          downloads?: number | null
+          aquisicao_at?: string | null
+          categoria?: string | null
+          created_at?: string | null
+          digitalizado?: boolean | null
+          download_url?: string | null
+          hash?: string | null
           id?: string
-          nome?: string
-          obra?: string
+          instituicao?: string | null
+          nome?: string | null
+          obra?: string | null
+          observacoes?: string | null
           partitura_id?: string | null
           performance_id?: string | null
-          restricao_download?: boolean
-          tamanho?: number
-          tipo?: string
-          updated_at?: string
-          usuario_upload?: string | null
+          tamanho?: string | null
+          tipo?: string | null
+          updated_at?: string | null
+          url?: string | null
+          usuario_id?: string | null
         }
         Relationships: [
           {
@@ -110,253 +114,192 @@ export type Database = {
       }
       instituicoes: {
         Row: {
-          created_at: string
+          created_at: string | null
           id: string
           nome: string
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           id?: string
           nome: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           id?: string
           nome?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      Partitura: {
-        Row: {
-          anoAquisicao: number | null
-          anoEdicao: number | null
-          arquivoUrl: string | null
-          compositor: string
-          createdAt: string
-          digitalizado: boolean
-          edicao: string | null
-          generoForma: string | null
-          id: number
-          instrumentacao: string
-          numArmario: string | null
-          numPasta: string | null
-          numPrateleira: string | null
-          observacoes: string | null
-          setor: Database["public"]["Enums"]["Setor"]
-          titulo: string
-          tonalidade: string | null
-          updatedAt: string
-        }
-        Insert: {
-          anoAquisicao?: number | null
-          anoEdicao?: number | null
-          arquivoUrl?: string | null
-          compositor: string
-          createdAt?: string
-          digitalizado?: boolean
-          edicao?: string | null
-          generoForma?: string | null
-          id?: number
-          instrumentacao: string
-          numArmario?: string | null
-          numPasta?: string | null
-          numPrateleira?: string | null
-          observacoes?: string | null
-          setor: Database["public"]["Enums"]["Setor"]
-          titulo: string
-          tonalidade?: string | null
-          updatedAt: string
-        }
-        Update: {
-          anoAquisicao?: number | null
-          anoEdicao?: number | null
-          arquivoUrl?: string | null
-          compositor?: string
-          createdAt?: string
-          digitalizado?: boolean
-          edicao?: string | null
-          generoForma?: string | null
-          id?: number
-          instrumentacao?: string
-          numArmario?: string | null
-          numPasta?: string | null
-          numPrateleira?: string | null
-          observacoes?: string | null
-          setor?: Database["public"]["Enums"]["Setor"]
-          titulo?: string
-          tonalidade?: string | null
-          updatedAt?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
       partituras: {
         Row: {
-          ano_edicao: string | null
-          compositor: string
-          created_at: string
-          digitalizado: boolean
+          ano_aquisicao: number | null
+          ano_edicao: number | null
+          compositor: string | null
+          created_at: string | null
+          digitalizado: boolean | null
           edicao: string | null
           genero: string | null
           id: string
           instituicao: string | null
-          instrumentacao: string
+          instrumentos: string | null
           numero_armario: string | null
           numero_pasta: string | null
           numero_prateleira: string | null
           observacoes: string | null
-          setor: string
-          titulo: string
+          pdf_urls: Json | null
+          setor: string | null
+          titulo: string | null
           tonalidade: string | null
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
-          ano_edicao?: string | null
-          compositor: string
-          created_at?: string
-          digitalizado?: boolean
+          ano_aquisicao?: number | null
+          ano_edicao?: number | null
+          compositor?: string | null
+          created_at?: string | null
+          digitalizado?: boolean | null
           edicao?: string | null
           genero?: string | null
           id?: string
           instituicao?: string | null
-          instrumentacao: string
+          instrumentos?: string | null
           numero_armario?: string | null
           numero_pasta?: string | null
           numero_prateleira?: string | null
           observacoes?: string | null
-          setor: string
-          titulo: string
+          pdf_urls?: Json | null
+          setor?: string | null
+          titulo?: string | null
           tonalidade?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
-          ano_edicao?: string | null
-          compositor?: string
-          created_at?: string
-          digitalizado?: boolean
+          ano_aquisicao?: number | null
+          ano_edicao?: number | null
+          compositor?: string | null
+          created_at?: string | null
+          digitalizado?: boolean | null
           edicao?: string | null
           genero?: string | null
           id?: string
           instituicao?: string | null
-          instrumentacao?: string
+          instrumentos?: string | null
           numero_armario?: string | null
           numero_pasta?: string | null
           numero_prateleira?: string | null
           observacoes?: string | null
-          setor?: string
-          titulo?: string
+          pdf_urls?: Json | null
+          setor?: string | null
+          titulo?: string | null
           tonalidade?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
       performances: {
         Row: {
-          created_at: string
-          data: string
-          horario: string
+          created_at: string | null
+          data: string | null
+          horario: string | null
           id: string
-          interpretes: string
-          local: string
-          maestros: string
-          nome_compositor: string
-          programa_arquivo_url: string | null
+          interpretes: string | null
+          local: string | null
+          maestros: string | null
+          partitura_id: string | null
+          programa_anotado: string | null
           release: string | null
-          titulo_obra: string
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
-          created_at?: string
-          data: string
-          horario: string
+          created_at?: string | null
+          data?: string | null
+          horario?: string | null
           id?: string
-          interpretes: string
-          local: string
-          maestros: string
-          nome_compositor: string
-          programa_arquivo_url?: string | null
+          interpretes?: string | null
+          local?: string | null
+          maestros?: string | null
+          partitura_id?: string | null
+          programa_anotado?: string | null
           release?: string | null
-          titulo_obra: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
-          created_at?: string
-          data?: string
-          horario?: string
+          created_at?: string | null
+          data?: string | null
+          horario?: string | null
           id?: string
-          interpretes?: string
-          local?: string
-          maestros?: string
-          nome_compositor?: string
-          programa_arquivo_url?: string | null
+          interpretes?: string | null
+          local?: string | null
+          maestros?: string | null
+          partitura_id?: string | null
+          programa_anotado?: string | null
           release?: string | null
-          titulo_obra?: string
-          updated_at?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performances_partitura_id_fkey"
+            columns: ["partitura_id"]
+            isOneToOne: false
+            referencedRelation: "partituras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          funcao: string | null
+          id: string
+          name: string | null
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          funcao?: string | null
+          id: string
+          name?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          funcao?: string | null
+          id?: string
+          name?: string | null
+          role?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
       setores: {
         Row: {
-          created_at: string
+          created_at: string | null
           id: string
           nome: string
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           id?: string
           nome: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           id?: string
           nome?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      solicitacoes_cadastro: {
-        Row: {
-          created_at: string
-          email: string
-          funcao: Database["public"]["Enums"]["funcao_usuario"]
-          id: string
-          instituicao: string
-          instrumento: Database["public"]["Enums"]["instrumento_tipo"] | null
-          nome: string
-          setor: string
-          status: string
-          telefone: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          funcao: Database["public"]["Enums"]["funcao_usuario"]
-          id?: string
-          instituicao: string
-          instrumento?: Database["public"]["Enums"]["instrumento_tipo"] | null
-          nome: string
-          setor: string
-          status?: string
-          telefone: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          funcao?: Database["public"]["Enums"]["funcao_usuario"]
-          id?: string
-          instituicao?: string
-          instrumento?: Database["public"]["Enums"]["instrumento_tipo"] | null
-          nome?: string
-          setor?: string
-          status?: string
-          telefone?: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -366,7 +309,7 @@ export type Database = {
           created_at: string
           id: string
           mensagem: string | null
-          status: string
+          status: string | null
           updated_at: string
           usuario_responsavel: string
           usuario_solicitante: string
@@ -376,7 +319,7 @@ export type Database = {
           created_at?: string
           id?: string
           mensagem?: string | null
-          status?: string
+          status?: string | null
           updated_at?: string
           usuario_responsavel: string
           usuario_solicitante: string
@@ -386,7 +329,7 @@ export type Database = {
           created_at?: string
           id?: string
           mensagem?: string | null
-          status?: string
+          status?: string | null
           updated_at?: string
           usuario_responsavel?: string
           usuario_solicitante?: string
@@ -401,48 +344,18 @@ export type Database = {
           },
         ]
       }
-      User: {
-        Row: {
-          createdAt: string
-          email: string
-          id: number
-          name: string
-          password: string
-          role: Database["public"]["Enums"]["Role"]
-          updatedAt: string
-        }
-        Insert: {
-          createdAt?: string
-          email: string
-          id?: number
-          name: string
-          password: string
-          role?: Database["public"]["Enums"]["Role"]
-          updatedAt: string
-        }
-        Update: {
-          createdAt?: string
-          email?: string
-          id?: number
-          name?: string
-          password?: string
-          role?: Database["public"]["Enums"]["Role"]
-          updatedAt?: string
-        }
-        Relationships: []
-      }
       user_profiles: {
         Row: {
           avatar_url: string | null
           created_at: string | null
-          email: string
-          funcao: Database["public"]["Enums"]["funcao_usuario"] | null
+          email: string | null
           id: string
           instituicao: string | null
-          instrumento: Database["public"]["Enums"]["instrumento_type"] | null
-          name: string
-          role: Database["public"]["Enums"]["user_role"]
-          setor: Database["public"]["Enums"]["Setor"] | null
+          instrumento: string | null
+          name: string | null
+          role: string | null
+          role_user_role: string | null
+          setor: string | null
           status: string | null
           telefone: string | null
           updated_at: string | null
@@ -450,14 +363,14 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string | null
-          email: string
-          funcao?: Database["public"]["Enums"]["funcao_usuario"] | null
+          email?: string | null
           id: string
           instituicao?: string | null
-          instrumento?: Database["public"]["Enums"]["instrumento_type"] | null
-          name: string
-          role?: Database["public"]["Enums"]["user_role"]
-          setor?: Database["public"]["Enums"]["Setor"] | null
+          instrumento?: string | null
+          name?: string | null
+          role?: string | null
+          role_user_role?: string | null
+          setor?: string | null
           status?: string | null
           telefone?: string | null
           updated_at?: string | null
@@ -465,14 +378,14 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string | null
-          email?: string
-          funcao?: Database["public"]["Enums"]["funcao_usuario"] | null
+          email?: string | null
           id?: string
           instituicao?: string | null
-          instrumento?: Database["public"]["Enums"]["instrumento_type"] | null
-          name?: string
-          role?: Database["public"]["Enums"]["user_role"]
-          setor?: Database["public"]["Enums"]["Setor"] | null
+          instrumento?: string | null
+          name?: string | null
+          role?: string | null
+          role_user_role?: string | null
+          setor?: string | null
           status?: string | null
           telefone?: string | null
           updated_at?: string | null
@@ -484,91 +397,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      check_user_profile_access: {
-        Args: { profile_user_id: string }
-        Returns: boolean
-      }
-      get_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: Database["public"]["Enums"]["user_role"]
-      }
-      get_user_sector: {
-        Args: Record<PropertyKey, never>
-        Returns: Database["public"]["Enums"]["Setor"]
-      }
-      has_role: {
-        Args: { check_role: Database["public"]["Enums"]["user_role"] }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
-      funcao_usuario:
-        | "MUSICO"
-        | "ESTUDANTE"
-        | "PROFESSOR"
-        | "MAESTRO"
-        | "ARQUIVISTA"
-        | "GERENTE"
-      instrumento_tipo:
-        | "FLAUTA"
-        | "OBOÉ"
-        | "CLARINETE"
-        | "FAGOTE"
-        | "TROMPA"
-        | "TROMPETE"
-        | "TROMBONE"
-        | "TUBA"
-        | "VIOLINO_I"
-        | "VIOLINO_II"
-        | "VIOLA"
-        | "VIOLONCELO"
-        | "CONTRABAIXO"
-        | "HARPA"
-        | "PIANO"
-        | "PERCUSSAO"
-        | "SOPRANO"
-        | "CONTRALTO"
-        | "TENOR"
-        | "BAIXO"
-      instrumento_type:
-        | "FLAUTA"
-        | "OBOÉ"
-        | "CLARINETE"
-        | "FAGOTE"
-        | "TROMPA"
-        | "TROMPETE"
-        | "TROMBONE"
-        | "TUBA"
-        | "VIOLINO_I"
-        | "VIOLINO_II"
-        | "VIOLA"
-        | "VIOLONCELO"
-        | "CONTRABAIXO"
-        | "HARPA"
-        | "PIANO"
-        | "PERCUSSAO"
-        | "SOPRANO"
-        | "CONTRALTO"
-        | "TENOR"
-        | "BAIXO"
-      Role: "ADMIN" | "SETOR" | "USER"
-      Setor:
-        | "ACERVO_OSUFBA"
-        | "ACERVO_SCHWEBEL"
-        | "ACERVO_PIERO"
-        | "ACERVO_PINO"
-        | "ACERVO_WIDMER"
-        | "MEMORIAL_LINDENBERG_CARDOSO"
-        | "COMPOSITORES_DA_BAHIA"
-        | "ACERVO_OSBA"
-      user_role:
-        | "ADMIN"
-        | "GERENTE"
-        | "ARQUIVISTA"
-        | "MUSICO"
-        | "ESTUDANTE"
-        | "PROFESSOR"
-        | "MAESTRO"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -682,80 +514,11 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
-    Enums: {
-      funcao_usuario: [
-        "MUSICO",
-        "ESTUDANTE",
-        "PROFESSOR",
-        "MAESTRO",
-        "ARQUIVISTA",
-        "GERENTE",
-      ],
-      instrumento_tipo: [
-        "FLAUTA",
-        "OBOÉ",
-        "CLARINETE",
-        "FAGOTE",
-        "TROMPA",
-        "TROMPETE",
-        "TROMBONE",
-        "TUBA",
-        "VIOLINO_I",
-        "VIOLINO_II",
-        "VIOLA",
-        "VIOLONCELO",
-        "CONTRABAIXO",
-        "HARPA",
-        "PIANO",
-        "PERCUSSAO",
-        "SOPRANO",
-        "CONTRALTO",
-        "TENOR",
-        "BAIXO",
-      ],
-      instrumento_type: [
-        "FLAUTA",
-        "OBOÉ",
-        "CLARINETE",
-        "FAGOTE",
-        "TROMPA",
-        "TROMPETE",
-        "TROMBONE",
-        "TUBA",
-        "VIOLINO_I",
-        "VIOLINO_II",
-        "VIOLA",
-        "VIOLONCELO",
-        "CONTRABAIXO",
-        "HARPA",
-        "PIANO",
-        "PERCUSSAO",
-        "SOPRANO",
-        "CONTRALTO",
-        "TENOR",
-        "BAIXO",
-      ],
-      Role: ["ADMIN", "SETOR", "USER"],
-      Setor: [
-        "ACERVO_OSUFBA",
-        "ACERVO_SCHWEBEL",
-        "ACERVO_PIERO",
-        "ACERVO_PINO",
-        "ACERVO_WIDMER",
-        "MEMORIAL_LINDENBERG_CARDOSO",
-        "COMPOSITORES_DA_BAHIA",
-        "ACERVO_OSBA",
-      ],
-      user_role: [
-        "ADMIN",
-        "GERENTE",
-        "ARQUIVISTA",
-        "MUSICO",
-        "ESTUDANTE",
-        "PROFESSOR",
-        "MAESTRO",
-      ],
-    },
+    Enums: {},
   },
 } as const
+

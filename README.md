@@ -94,3 +94,26 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 ## 📧 Suporte
 
 Para suporte, envie um email para seu-email@exemplo.com ou abra uma issue no GitHub.
+
+## 🎼 Fluxo de Cadastro e Edição de Performances (v0.1)
+
+O sistema permite cadastrar e editar performances musicais de forma robusta, garantindo integridade e flexibilidade:
+
+- **Cadastro de Performance:**
+  - Preencha os campos obrigatórios (título, compositor, local, data, horário, maestros).
+  - O sistema sugere títulos e compositores já existentes, mas permite digitação livre.
+  - Se o título/compositor não existir, uma nova partitura mínima é criada automaticamente.
+  - É possível fazer upload do programa de concerto (PDF, DOC, JPG, PNG), que será salvo no bucket `programas-concerto` e vinculado à performance.
+
+- **Edição de Performance:**
+  - Ao editar, os campos de título e compositor são preenchidos automaticamente a partir da partitura vinculada.
+  - O upload de um novo programa substitui o anterior e o arquivo é salvo corretamente na tabela `arquivos` com vínculo à performance.
+
+- **Exibição de Arquivos:**
+  - O modal de detalhes da performance exibe todos os arquivos de programa vinculados à performance, com links para visualização/baixa.
+  - A busca dos arquivos é feita diretamente na tabela `arquivos` usando o `performance_id`, garantindo que todos os uploads estejam visíveis.
+
+Essas melhorias garantem:
+- Fluxo consistente e sem erros para cadastro e edição.
+- Integridade referencial entre performances e partituras.
+- Facilidade para encontrar e baixar programas de concerto associados a cada performance.

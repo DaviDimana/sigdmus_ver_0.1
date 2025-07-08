@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, MapPin, Clock, User, Music, FileText, Trash2, Edit } from 'lucide-react';
+import { Calendar, MapPin, Clock, User, Music, FileText, Trash2, Edit, Info } from 'lucide-react';
 import ProgramViewer from './ProgramViewer';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,6 +38,7 @@ const PerformanceDetailsDialog: React.FC<PerformanceDetailsDialogProps> = ({
   const [sharedProgramUrl, setSharedProgramUrl] = React.useState<string | null>(null);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = React.useState(false);
   const [arquivos, setArquivos] = useState<any[]>([]);
+  const [sharedProgramFile, setSharedProgramFile] = useState<any | null>(null);
 
   useEffect(() => {
     async function fetchArquivos() {
@@ -53,31 +54,32 @@ const PerformanceDetailsDialog: React.FC<PerformanceDetailsDialogProps> = ({
   }, [isOpen, performance?.id]);
 
   React.useEffect(() => {
-    async function fetchSharedProgram() {
+    async function fetchSharedProgramFile() {
       if (!performance) return;
-      if (performance.programa_arquivo_url) {
-        setSharedProgramUrl(performance.programa_arquivo_url);
-        return;
-      }
-      // Buscar entre as performances do mesmo local, data e horário
-      const { data: groupPerformances, error } = await supabase
+      // Buscar todas as performances do mesmo grupo
+      const { data: groupPerformances, error: perfError } = await supabase
         .from('performances')
-        .select('programa_arquivo_url')
+        .select('id')
         .eq('local', performance.local)
         .eq('data', performance.data)
         .eq('horario', performance.horario);
-      if (!error && groupPerformances) {
-        const found = groupPerformances.find((p: any) => p.programa_arquivo_url && p.programa_arquivo_url.trim() !== '');
-        if (found && found.programa_arquivo_url) {
-          setSharedProgramUrl(found.programa_arquivo_url);
-        } else {
-          setSharedProgramUrl(null);
-        }
+      if (perfError || !groupPerformances || groupPerformances.length === 0) {
+        setSharedProgramFile(null);
+        return;
+      }
+      const perfIds = groupPerformances.map((p: any) => p.id);
+      // Buscar arquivos do tipo programa para qualquer uma dessas performances
+      const { data: arquivos, error: arqError } = await supabase
+        .from('arquivos')
+        .select('*')
+        .in('performance_id', perfIds);
+      if (!arqError && arquivos && arquivos.length > 0) {
+        setSharedProgramFile(arquivos[0]); // Pega o primeiro encontrado
       } else {
-        setSharedProgramUrl(null);
+        setSharedProgramFile(null);
       }
     }
-    if (isOpen) fetchSharedProgram();
+    if (isOpen) fetchSharedProgramFile();
   }, [isOpen, performance]);
 
   if (!performance) return null;
@@ -109,6 +111,10 @@ const PerformanceDetailsDialog: React.FC<PerformanceDetailsDialogProps> = ({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Detalhes da Performance</DialogTitle>
+          <div className="mt-2">
+            <span className="block text-xl font-bold text-blue-900">{performance.partitura?.titulo || 'Sem título'}</span>
+            <span className="block text-md text-gray-700 font-medium">{performance.partitura?.compositor || 'Sem compositor'}</span>
+          </div>
           <DialogDescription>Veja as informações completas da performance selecionada.</DialogDescription>
         </DialogHeader>
         <div className="space-y-6">
@@ -133,23 +139,22 @@ const PerformanceDetailsDialog: React.FC<PerformanceDetailsDialogProps> = ({
           {/* Seção do Programa de Concerto */}
           <div>
             <h3 className="text-lg font-semibold mb-3">Programa de Concerto</h3>
-            {arquivos.length > 0 ? (
-              arquivos.map(arquivo => (
-                <div key={arquivo.id} className="bg-gray-50 rounded-lg p-3 flex flex-col gap-2 mb-2">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-blue-600" />
-                    <a
-                      href={arquivo.url}
-                      className="text-blue-700 font-medium hover:underline truncate focus:outline-none"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {arquivo.nome || `Programa dia ${formatDateBR(performance.data)}`}
-                    </a>
-                  </div>
+            {(arquivos.length > 0 ? arquivos : sharedProgramFile ? [sharedProgramFile] : []).map(arquivo => (
+              <div key={arquivo.id} className="bg-gray-50 rounded-lg p-3 flex flex-col gap-2 mb-2">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-blue-600" />
+                  <a
+                    href={arquivo.url}
+                    className="text-blue-700 font-medium hover:underline truncate focus:outline-none"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {arquivo.nome || `Programa dia ${formatDateBR(performance.data)}`}
+                  </a>
                 </div>
-              ))
-            ) : (
+              </div>
+            ))}
+            {arquivos.length === 0 && !sharedProgramFile && (
               <div className="text-gray-500 italic">Nenhum programa de concerto carregado.</div>
             )}
           </div>

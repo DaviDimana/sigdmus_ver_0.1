@@ -10,6 +10,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useToast } from '@/hooks/use-toast';
+import { identifyInstrument } from '@/utils/instrumentIdentifier';
 
 const uploadSchema = z.object({
   obra: z.string().min(1, 'Nome da obra é obrigatório'),
@@ -91,10 +92,14 @@ const UploadDialog: React.FC<UploadDialogProps> = ({ children, onUpload }) => {
       return;
     }
 
-    console.log('Upload data:', { file: selectedFile, ...data });
+    // Identificação automática do instrumento
+    const instrumentoIdentificado = identifyInstrument(selectedFile.name);
+    const uploadData = { ...data, instrument: instrumentoIdentificado };
+
+    console.log('Upload data:', { file: selectedFile, ...uploadData });
     
     if (onUpload) {
-      onUpload(selectedFile, data);
+      onUpload(selectedFile, uploadData);
     }
 
     toast({

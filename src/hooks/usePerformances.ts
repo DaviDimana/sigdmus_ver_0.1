@@ -15,7 +15,7 @@ export const usePerformances = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('performances')
-        .select('*')
+        .select('*, partitura:partitura_id (titulo, compositor)')
         .order('data', { ascending: false });
       if (error) throw error;
       return data || [];

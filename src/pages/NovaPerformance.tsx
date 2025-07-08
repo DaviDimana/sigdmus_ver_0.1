@@ -10,10 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useArquivos } from '@/hooks/useArquivos';
 import { usePartituras } from '@/hooks/usePartituras';
-
-function useQuery() {
-  return new URLSearchParams(useLocation().search);
-}
+import { useQuery } from '../hooks/useQuery';
 
 const NovaPerformance = () => {
   const navigate = useNavigate();
@@ -91,7 +88,7 @@ const NovaPerformance = () => {
       .upload(filePath, file, {
         cacheControl: '3600',
         upsert: false
-      });
+    });
 
     if (uploadError) {
       console.error('Upload error:', uploadError);

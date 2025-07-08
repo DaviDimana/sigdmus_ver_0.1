@@ -27,6 +27,7 @@ const ObraDetailsDialog: React.FC<ObraDetailsDialogProps> = ({
   formatFileSize,
   onDeleteAllArquivos,
 }) => {
+  console.log('ObraDetailsDialog - arquivos prop:', arquivos.map(a => a.nome));
   const { profile } = useAuth();
   // Removendo verificação de role - qualquer usuário pode editar/deletar
   const canEditOrDelete = true;
@@ -38,8 +39,57 @@ const ObraDetailsDialog: React.FC<ObraDetailsDialogProps> = ({
   // Função para normalizar nomes de instrumento
   const normalize = (str: string) => str?.toLowerCase().replace(/[^a-z0-9]/gi, '');
 
+  // Mapeamento de instrumentos e sinônimos/abreviações
+  const instrumentOrder = [
+    'Flautim', 'Piccolo', 'Flauta', 'Flauta 1', 'Flauta 2', 'Flauta 3',
+    'Oboé', 'Oboé 1', 'Oboé 2', 'Clarinete', 'Clarinete 1', 'Clarinete 2', 'Fagote', 'Trompa', 'Trompete', 'Trombone', 'Tímpanos', 'Percussão',
+    'Violino 1', 'Violino 2', 'Viola', 'Violoncelo', 'Contrabaixo', 'Piano', 'Harpa'
+  ];
+  const instrumentSynonyms: Record<string, string[]> = {
+    'Flautim': ['flautim', 'picc', 'piccolo', 'fl picc'],
+    'Piccolo': ['piccolo', 'picc', 'flautim'],
+    'Flauta': ['flauta', 'fl'],
+    'Oboé': ['oboé', 'oboe', 'ob'],
+    'Clarinete': ['clarinete', 'cl', 'clarinet'],
+    'Fagote': ['fagote', 'fg'],
+    'Trompa': ['trompa', 'tpa'],
+    'Trompete': ['trompete', 'tpe'],
+    'Trombone': ['trombone', 'tbn'],
+    'Tímpanos': ['tímpanos', 'tim', 'timpani'],
+    'Percussão': ['percussão', 'perc'],
+    'Violino 1': ['violino 1', 'v1', 'vl1'],
+    'Violino 2': ['violino 2', 'v2', 'vl2'],
+    'Viola': ['viola', 'vla'],
+    'Violoncelo': ['violoncelo', 'vc', 'cello'],
+    'Contrabaixo': ['contrabaixo', 'cb'],
+    'Piano': ['piano', 'pno'],
+    'Harpa': ['harpa', 'hpa'],
+  };
+
+  function ordenarArquivosPorInstrumento(arquivos: any[]): any[] {
+    console.log('Função ordenarArquivosPorInstrumento chamada com:', arquivos.map(a => a.nome));
+    const arquivosRestantes = [...arquivos];
+    const ordenados: any[] = [];
+    for (const instrumento of instrumentOrder) {
+      const sinos = instrumentSynonyms[instrumento] || [instrumento.toLowerCase()];
+      for (let i = 0; i < arquivosRestantes.length; ) {
+        const nomeArquivo = arquivosRestantes[i].nome?.toLowerCase() || '';
+        if (sinos.some(s => nomeArquivo.includes(s))) {
+          ordenados.push(arquivosRestantes[i]);
+          arquivosRestantes.splice(i, 1);
+        } else {
+          i++;
+        }
+      }
+    }
+    // Adiciona os que não foram identificados ao final
+    return [...ordenados, ...arquivosRestantes];
+  }
+
   // Removendo filtro por instrumento - qualquer usuário vê todos os arquivos
-  const arquivosFiltrados = arquivos;
+  const arquivosFiltrados = ordenarArquivosPorInstrumento(arquivos);
+  console.log('Arquivos recebidos:', arquivos.map(a => a.nome));
+  console.log('Arquivos ordenados:', arquivosFiltrados.map(a => a.nome));
 
   // Buscar partituras relacionadas à obra
   const { data: partituras = [] } = useQuery({
@@ -106,10 +156,12 @@ const ObraDetailsDialog: React.FC<ObraDetailsDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto" aria-describedby="obra-details-description">
         <DialogHeader>
           <DialogTitle>Detalhes da Obra</DialogTitle>
-          <DialogDescription>Veja as informações completas da obra selecionada.</DialogDescription>
+          <DialogDescription id="obra-details-description">
+            Veja as informações completas da obra selecionada, incluindo arquivos disponíveis, partituras cadastradas e estatísticas de uso.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6">

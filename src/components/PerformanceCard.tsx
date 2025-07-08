@@ -54,18 +54,15 @@ const PerformanceCard: React.FC<PerformanceCardProps> = ({ performance, onEdit, 
     <>
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader>
-        <div className="flex justify-between items-start">
-          <CardTitle className="text-lg font-semibold line-clamp-2">
-            {performance.titulo_obra}
-          </CardTitle>
+        <div className="flex flex-col gap-1">
+          <span className="text-lg font-bold text-blue-900">{performance.partitura?.titulo || 'Sem título'}</span>
+          <span className="text-md text-gray-700 font-medium">{performance.partitura?.compositor || 'Sem compositor'}</span>
+        </div>
+        <div className="flex justify-end items-start">
           <Badge variant="outline" className="bg-blue-100 text-blue-800">
             Performance
           </Badge>
         </div>
-        <CardDescription>
-          <User className="h-4 w-4 mr-1 inline" />
-          <span>{performance.nome_compositor}</span>
-        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">

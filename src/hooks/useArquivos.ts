@@ -28,7 +28,6 @@ export const useArquivos = () => {
       console.log('Arquivos fetched:', data);
       return data as Arquivo[];
     },
-    keepPreviousData: true,
   });
 
   useEffect(() => {
@@ -47,50 +46,84 @@ export const useArquivos = () => {
     };
   }, [queryClient]);
 
-  const apiUrl = import.meta.env.VITE_API_URL;
-
   const uploadArquivo = useMutation({
-    mutationFn: async ({ file, metadata }) => {
-      // Upload do arquivo para a API
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const res = await fetch(`${apiUrl}/api/upload`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Erro no upload');
+    mutationFn: async ({ file, metadata, bucket = 'arquivos' }: { file: File; metadata: any; bucket?: string }) => {
+      console.log('Starting upload for file:', file.name, 'with metadata:', metadata, 'bucket:', bucket);
+      
+      // Obter usuário atual
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('Usuário não autenticado');
       }
 
-      const { url } = await res.json();
+      // Gerar nome único para o arquivo
+      const fileExtension = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExtension}`;
+      const filePath = `${bucket}/${fileName}`;
 
-      // Obter usuário atual (continua pelo Supabase Auth)
-      const { data: { user } } = await supabase.auth.getUser();
+      console.log('Uploading file to path:', filePath);
 
-      // Criar entrada no banco de dados (continua igual)
+      // Upload direto para o Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+      });
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw new Error(`Erro no upload: ${uploadError.message}`);
+      }
+
+      console.log('File uploaded successfully:', uploadData);
+
+      // Obter URL pública do arquivo
+      const { data: urlData } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(filePath);
+
+      if (!urlData?.publicUrl) {
+        throw new Error('Não foi possível obter a URL pública do arquivo');
+      }
+
+      console.log('Public URL obtained:', urlData.publicUrl);
+
+      // Criar entrada no banco de dados
       const arquivoData = {
-        ...metadata,
         nome: file.name,
         tipo: file.type,
-        tamanho: file.size,
-        arquivo_url: url, // agora é a URL da sua API local
-        usuario_upload: user?.id,
-        restricao_download: metadata.restricao_download || false,
+        tamanho: String(file.size),
+        categoria: metadata.categoria || null,
+        obra: metadata.obra || null,
+        partitura_id: metadata.partitura_id || null,
+        performance_id: metadata.performance_id || null,
+        usuario_id: user.id,
+        url: urlData.publicUrl,
+        // outros campos opcionais:
+        // aquisicao_at: metadata.aquisicao_at || null,
+        // download_url: null,
+        // digitalizado: false,
+        // instituicao: metadata.instituicao || null,
+        // observacoes: metadata.observacoes || null,
       };
 
-      const { data, error } = await supabase
+      console.log('Creating database entry with data:', arquivoData);
+
+      const { data, error: dbError } = await supabase
         .from('arquivos')
         .insert(arquivoData)
         .select()
         .single();
 
-      if (error) {
-        throw error;
+      if (dbError) {
+        console.error('Database error:', dbError);
+        // Tentar remover o arquivo do storage se falhou no banco
+        await supabase.storage.from(bucket).remove([filePath]);
+        throw dbError;
       }
 
+      console.log('Database entry created successfully:', data);
       return data;
     },
     onSuccess: () => {
@@ -172,16 +205,29 @@ export const useArquivos = () => {
   });
 
   const deleteArquivo = useMutation({
-    mutationFn: async (arquivo: Arquivo) => {
-      console.log('Deleting arquivo:', arquivo.id);
+    mutationFn: async ({ id, arquivo_url, nome }: { id: string; arquivo_url: string; nome: string }) => {
+      console.log('Deleting arquivo:', id, 'with URL:', arquivo_url);
       
       // Deletar arquivo do storage se existir
-      if (arquivo.arquivo_url) {
-        const fileName = arquivo.arquivo_url.split('/').pop();
-        if (fileName) {
-          await supabase.storage
+      if (arquivo_url) {
+        try {
+          // Extrair o caminho do arquivo da URL
+          const urlParts = arquivo_url.split('/');
+          const fileName = urlParts[urlParts.length - 1];
+          const filePath = `arquivos/${fileName}`;
+          
+          console.log('Removing file from storage:', filePath);
+          
+          const { error: storageError } = await supabase.storage
             .from('arquivos')
-            .remove([fileName]);
+            .remove([filePath]);
+          
+          if (storageError) {
+            console.error('Error removing file from storage:', storageError);
+            // Não falhar se o arquivo não existir no storage
+          }
+        } catch (error) {
+          console.error('Error processing file removal:', error);
         }
       }
       
@@ -189,14 +235,14 @@ export const useArquivos = () => {
       const { error } = await supabase
         .from('arquivos')
         .delete()
-        .eq('id', arquivo.id);
+        .eq('id', id);
       
       if (error) {
-        console.error('Error deleting arquivo:', error);
+        console.error('Error deleting arquivo from database:', error);
         throw error;
       }
       
-      console.log('Arquivo deleted:', arquivo.id);
+      console.log('Arquivo deleted successfully:', id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['arquivos'] });
