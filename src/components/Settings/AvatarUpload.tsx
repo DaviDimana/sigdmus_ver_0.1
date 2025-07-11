@@ -72,8 +72,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
 
       // Gerar nome único para o arquivo
       const fileExtension = file.name.split('.').pop();
-      const fileName = `${userId}/${userId}.${fileExtension}`;
-      const filePath = `avatars/${fileName}`;
+      const filePath = `${userId}/${userId}.${fileExtension}`;
 
       console.log('Uploading avatar to path:', filePath);
 
